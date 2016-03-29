@@ -12,6 +12,7 @@ $(function() {
     }
 
     window.SDR.tools = {
+
         getRandom: function(size, sparsity) {
             var out = [];
             var randomIndex = undefined;
@@ -35,12 +36,40 @@ $(function() {
             return out;
         },
 
-        // I am unsure whether this is the right way to add noise to an SDR.
+        getActiveBits: function(sdr) {
+            var active = [];
+            _.each(sdr, function(bit, i) {
+                if (bit == 1) active.push(i);
+            });
+            return active;
+        },
+
+        getInactiveBits: function(sdr) {
+            var inactive = [];
+            _.each(sdr, function(bit, i) {
+                if (bit == 0) inactive.push(i);
+            });
+            return inactive;
+        },
+
         addNoise: function(sdr, percentNoise) {
             var noisy = [];
-            _.each(sdr, function(bit) {
+            var noiseLevel = Math.floor(this.population(sdr) * percentNoise);
+            //var numMissBits = this.population(sdr) * noiseLevel;
+            var activeBits = this.getActiveBits(sdr);
+            var inactiveBits = this.getInactiveBits(sdr);
+            var toFlip = [];
+            _.times(noiseLevel, function() {
+                toFlip.push(
+                    activeBits.splice(_.random(activeBits.length - 1), 1)[0]
+                );
+                toFlip.push(
+                    inactiveBits.splice(_.random(inactiveBits.length - 1), 1)[0]
+                );
+            });
+            _.each(sdr, function(bit, i) {
                 var newBit = bit;
-                if (Math.random() <= percentNoise) {
+                if (toFlip.indexOf(i) >= 0) {
                     newBit = flip(bit);
                 }
                 noisy.push(newBit);

@@ -46,14 +46,35 @@
 
 <table>
     <tbody>
+
     <tr>
-        <td><svg id="left"></svg></td>
-        <td><svg id="right"></svg></td>
+        <td colspan="2">
+            <h2>Two Random SDRs at 2% Sparsity</h2>
+        </td>
     </tr>
     <tr>
-        <td><svg id="overlap"></svg></td>
-        <td><svg id="union"></svg></td>
+        <td><svg id="ex1-left"></svg></td>
+        <td><svg id="ex1-right"></svg></td>
     </tr>
+    <tr>
+        <td><svg id="ex1-overlap"></svg></td>
+        <td><svg id="ex1-union"></svg></td>
+    </tr>
+
+    <tr>
+        <td colspan="2">
+            <h2>Adding Noise to SDR</h2>
+        </td>
+    </tr>
+    <tr>
+        <td><svg id="ex2-left"></svg></td>
+        <td><svg id="ex2-right"></svg></td>
+    </tr>
+    <tr>
+        <td><svg id="ex2-overlap"></svg></td>
+        <td><svg id="ex2-union"></svg></td>
+    </tr>
+
     </tbody>
 </table>
 
@@ -74,19 +95,23 @@
 
         var LENGTH = Math.pow(2, 12);
 
+        // Example 1
         var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
         var rightsdr = SDR.tools.getRandom(LENGTH, 0.02);
-        var noisyRight = SDR.tools.addNoise(rightsdr, 0.05);
 
-        SDR.draw(leftsdr, '#left', 'Left');
-        SDR.draw(rightsdr, '#right', 'Right');
-        SDR.drawOverlap(leftsdr, rightsdr, '#overlap', 'Overlap');
-        SDR.drawUnion(leftsdr, rightsdr, '#union', 'Union');
+        SDR.draw(leftsdr, '#ex1-left', 'Left');
+        SDR.draw(rightsdr, '#ex1-right', 'Right');
+        SDR.drawOverlap(leftsdr, rightsdr, '#ex1-overlap', 'Overlap');
+        SDR.drawUnion(leftsdr, rightsdr, '#ex1-union', 'Union');
 
-//        SDR.draw(leftsdr, '#left', 'Left');
-//        SDR.draw(noisyRight, '#right', 'Noisy Right');
-//        SDR.drawOverlap(leftsdr, noisyRight, '#overlap', 'Overlap');
-//        SDR.drawUnion(leftsdr, noisyRight, '#union', 'Union');
+        // Example 2
+        var percentNoise = 0.1;
+        leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
+        rightsdr = SDR.tools.addNoise(leftsdr, percentNoise);
+        SDR.draw(leftsdr, '#ex2-left', 'Original');
+        SDR.draw(rightsdr, '#ex2-right', 'With ' + percentNoise + ' noise');
+        SDR.drawOverlap(leftsdr, rightsdr, '#ex2-overlap', 'Overlap');
+        SDR.drawUnion(leftsdr, rightsdr, '#ex2-union', 'Union');
 
     });
 </script>
