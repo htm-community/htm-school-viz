@@ -51,7 +51,18 @@ $(function() {
                 }
                 return 0;
             });
+        },
+
+        union: function(left, right) {
+            return _.map(left, function(leftBit, index) {
+                var rightBit = right[index];
+                if (leftBit == 1 || rightBit == 1) {
+                    return 1;
+                }
+                return 0;
+            });
         }
+
     };
 });
 

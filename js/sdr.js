@@ -37,12 +37,12 @@ $(function() {
             $(selector).before('<p>Sparsity: ' + sparsity + '</p>');
         },
 
-        drawOffset: function(left, right, selector, title) {
-            var offset = SDR.tools.offset(left, right);
-            var rowLength = Math.floor(Math.sqrt(offset.length));
+        drawOverlap: function(left, right, selector, title) {
+            var overlap = SDR.tools.offset(left, right);
+            var rowLength = Math.floor(Math.sqrt(overlap.length));
             var rects = d3.select(selector)
                 .selectAll("rect")
-                .data(offset)
+                .data(overlap)
                 .enter()
                 .append("rect")
                 .attr("x", function(d, i) {
@@ -60,13 +60,48 @@ $(function() {
                     return "white";
                 });
 
-            var population = SDR.tools.population(offset);
-            var sparsity = SDR.tools.sparsity(offset);
+            var population = SDR.tools.population(overlap);
+            var sparsity = SDR.tools.sparsity(overlap);
 
             if (title) {
                 $(selector).before('<h3>' + title + '</h3>');
             }
-            $(selector).before('<p>Length: ' + offset.length + '</p>');
+            $(selector).before('<p>Length: ' + overlap.length + '</p>');
+            $(selector).before('<p>Population: ' + population + '</p>');
+            $(selector).before('<p>Sparsity: ' + sparsity + '</p>');
+
+        },
+
+        drawUnion: function(left, right, selector, title) {
+            var union = SDR.tools.union(left, right);
+            var rowLength = Math.floor(Math.sqrt(union.length));
+            var rects = d3.select(selector)
+                .selectAll("rect")
+                .data(union)
+                .enter()
+                .append("rect")
+                .attr("x", function(d, i) {
+                    var offset = i % rowLength;
+                    return offset * POINT_SIZE;
+                })
+                .attr("y", function(d, i) {
+                    var offset = Math.floor(i / rowLength);
+                    return offset * POINT_SIZE;
+                })
+                .attr("width", POINT_SIZE)
+                .attr("height", POINT_SIZE)
+                .style("fill", function(d) {
+                    if (d == 1) return "steelblue";
+                    return "white";
+                });
+
+            var population = SDR.tools.population(union);
+            var sparsity = SDR.tools.sparsity(union);
+
+            if (title) {
+                $(selector).before('<h3>' + title + '</h3>');
+            }
+            $(selector).before('<p>Length: ' + union.length + '</p>');
             $(selector).before('<p>Population: ' + population + '</p>');
             $(selector).before('<p>Sparsity: ' + sparsity + '</p>');
 

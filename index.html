@@ -48,8 +48,11 @@
     <tbody>
     <tr>
         <td><svg id="left"></svg></td>
-        <td><svg id="center"></svg></td>
         <td><svg id="right"></svg></td>
+    </tr>
+    <tr>
+        <td><svg id="overlap"></svg></td>
+        <td><svg id="union"></svg></td>
     </tr>
     </tbody>
 </table>
@@ -75,7 +78,8 @@
         var rightsdr = SDR.tools.getRandom(LENGTH, 0.02);
         SDR.draw(leftsdr, '#left', 'Left');
         SDR.draw(rightsdr, '#right', 'Right');
-        SDR.drawOffset(leftsdr, rightsdr, '#center', 'Offset');
+        SDR.drawOverlap(leftsdr, rightsdr, '#overlap', 'Overlap');
+        SDR.drawUnion(leftsdr, rightsdr, '#union', 'Union');
 
     });
 </script>
