@@ -76,10 +76,17 @@
 
         var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
         var rightsdr = SDR.tools.getRandom(LENGTH, 0.02);
+        var noisyRight = SDR.tools.addNoise(rightsdr, 0.05);
+
         SDR.draw(leftsdr, '#left', 'Left');
         SDR.draw(rightsdr, '#right', 'Right');
         SDR.drawOverlap(leftsdr, rightsdr, '#overlap', 'Overlap');
         SDR.drawUnion(leftsdr, rightsdr, '#union', 'Union');
+
+//        SDR.draw(leftsdr, '#left', 'Left');
+//        SDR.draw(noisyRight, '#right', 'Noisy Right');
+//        SDR.drawOverlap(leftsdr, noisyRight, '#overlap', 'Overlap');
+//        SDR.drawUnion(leftsdr, noisyRight, '#union', 'Union');
 
     });
 </script>
