@@ -48,31 +48,35 @@
     <tbody>
 
     <tr>
-        <td colspan="2">
+        <td colspan="3">
             <h2>Two Random SDRs at 2% Sparsity</h2>
         </td>
     </tr>
     <tr>
         <td><svg id="ex1-left"></svg></td>
         <td><svg id="ex1-right"></svg></td>
+        <td><svg id="ex1-compare"></svg></td>
     </tr>
     <tr>
         <td><svg id="ex1-overlap"></svg></td>
         <td><svg id="ex1-union"></svg></td>
+        <td></td>
     </tr>
 
     <tr>
-        <td colspan="2">
+        <td colspan="3">
             <h2>Adding Noise to SDR</h2>
         </td>
     </tr>
     <tr>
         <td><svg id="ex2-left"></svg></td>
         <td><svg id="ex2-right"></svg></td>
+        <td><svg id="ex2-compare"></svg></td>
     </tr>
     <tr>
         <td><svg id="ex2-overlap"></svg></td>
         <td><svg id="ex2-union"></svg></td>
+        <td></td>
     </tr>
 
     </tbody>
@@ -101,6 +105,7 @@
 
         SDR.draw(leftsdr, '#ex1-left', 'Left');
         SDR.draw(rightsdr, '#ex1-right', 'Right');
+        SDR.drawComparison(leftsdr, rightsdr, '#ex1-compare', 'Comparison');
         SDR.drawOverlap(leftsdr, rightsdr, '#ex1-overlap', 'Overlap');
         SDR.drawUnion(leftsdr, rightsdr, '#ex1-union', 'Union');
 
@@ -110,6 +115,7 @@
         rightsdr = SDR.tools.addNoise(leftsdr, percentNoise);
         SDR.draw(leftsdr, '#ex2-left', 'Original');
         SDR.draw(rightsdr, '#ex2-right', 'With ' + percentNoise + ' noise');
+        SDR.drawComparison(leftsdr, rightsdr, '#ex2-compare', 'Comparison');
         SDR.drawOverlap(leftsdr, rightsdr, '#ex2-overlap', 'Overlap');
         SDR.drawUnion(leftsdr, rightsdr, '#ex2-union', 'Union');
 
