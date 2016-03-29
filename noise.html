@@ -42,16 +42,50 @@
 </head>
 <body>
 
-<h1>Sparse Distributed Representation Visualizations</h1>
+<h1>SDR Viz</h1>
 
-<ul>
-    <li>
-        <a href="compare.html">Compare 2 SDRs</a>
-    </li>
-    <li>
-        <a href="noise.html">Add Noise to an SDR</a>
-    </li>
-</ul>
+<table>
+    <tbody>
+
+    <tr>
+        <td>
+        </td>
+
+        <td>
+            <form class="form-inline">
+                <div class="form-group">
+                    <label for="noise">Noise</label>
+                    <input type="text" class="form-control input-sm" id="noise"
+                           placeholder="Percent Noise" value="0.10">
+                </div>
+                <button type="submit" class="btn btn-default btn-sm">Generate</button>
+            </form>
+        </td>
+
+        <td>
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan="3">
+            <h2 id="ex2">Adding Noise to SDR</h2>
+        </td>
+    </tr>
+    <tr>
+        <td id="ex2-left"></td>
+        <td id="ex2-right"></td>
+        <td id="ex2-compare"></td>
+    </tr>
+
+    <tr>
+        <td id="ex2-overlap"></td>
+        <td id="ex2-union"></td>
+        <td></td>
+    </tr>
+
+
+    </tbody>
+</table>
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -64,6 +98,49 @@
 
 <script src="js/sdr.js"></script>
 <script src="js/tools.js"></script>
+
+<script>
+    $(function() {
+
+        var LENGTH = Math.pow(2, 12);
+        var leftColor = "orange";
+        var rightColor = "green";
+
+        // Example 2
+        var percentNoise = 0.1;
+        var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
+        var rightsdr = SDR.tools.addNoise(leftsdr, percentNoise);
+
+        SDR.draw(leftsdr, 'ex2-left', {title: 'Original', color: leftColor});
+        SDR.draw(rightsdr, 'ex2-right', {
+            title: 'With ' + (percentNoise * 100) + '% noise', color: rightColor
+        });
+        SDR.drawComparison(leftsdr, rightsdr, 'ex2-compare', {
+            title: 'Comparison', colors: {left: leftColor, right: rightColor}
+        });
+        SDR.drawOverlap(leftsdr, rightsdr, 'ex2-overlap', {title: 'Overlap'});
+        SDR.drawUnion(leftsdr, rightsdr, 'ex2-union', {title: 'Union'});
+
+        $('form button').click(function(evt) {
+            evt.preventDefault();
+            var percentNoise = $('#noise').val();
+            var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
+            var rightsdr = SDR.tools.addNoise(leftsdr, percentNoise);
+
+            SDR.draw(leftsdr, 'ex2-left', {title: 'Original', color: leftColor});
+            SDR.draw(rightsdr, 'ex2-right', {
+                title: 'With ' + (percentNoise * 100) + '% noise', color: rightColor
+            });
+            SDR.drawComparison(leftsdr, rightsdr, 'ex2-compare', {
+                title: 'Comparison', colors: {left: leftColor, right: rightColor}
+            });
+            SDR.drawOverlap(leftsdr, rightsdr, 'ex2-overlap', {title: 'Overlap'});
+            SDR.drawUnion(leftsdr, rightsdr, 'ex2-union', {title: 'Union'});
+        });
+
+
+    });
+</script>
 
 <a href="https://github.com/rhyolight/sdr-viz"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
 
