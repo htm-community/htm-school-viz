@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>SDR Viz</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+        body {
+            margin: 20px 50px;
+        }
+        rect {
+            stroke: rgba(204, 204, 204, 0.5);
+            shape-rendering: crispEdges;
+        }
+        svg {
+            width: 400px;
+            height: 400px;
+        }
+        p {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
+
+</head>
+<body>
+
+<h1>SDR Viz</h1>
+
+<table>
+    <tbody>
+    <tr>
+        <td><svg id="left"></svg></td>
+        <td><svg id="center"></svg></td>
+        <td><svg id="right"></svg></td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/lodash/4.6.1/lodash.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script src="js/sdr.js"></script>
+<script src="js/tools.js"></script>
+
+<script>
+    $(function() {
+
+        var LENGTH = Math.pow(2, 12);
+
+        var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
+        var rightsdr = SDR.tools.getRandom(LENGTH, 0.02);
+        SDR.draw(leftsdr, '#left', 'Left');
+        SDR.draw(rightsdr, '#right', 'Right');
+        SDR.drawOffset(leftsdr, rightsdr, '#center', 'Offset');
+
+    });
+</script>
+
+</body>
+</html>
