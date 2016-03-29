@@ -43,7 +43,7 @@ $(function() {
             return onBits / sdr.length
         },
 
-        offset: function(left, right) {
+        overlap: function(left, right) {
             return _.map(left, function(leftBit, index) {
                 var rightBit = right[index];
                 if (leftBit == 1 && rightBit == 1) {
