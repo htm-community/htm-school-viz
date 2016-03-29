@@ -11,6 +11,13 @@ $(function() {
         return 0;
     }
 
+    function factorial(n) {
+        var result = 1;
+        for (var i = 1; i <= n; i++) {
+            result *= i
+        }
+        return result;
+    }
     window.SDR.tools = {
 
         getRandom: function(size, sparsity) {
@@ -112,6 +119,12 @@ $(function() {
                 }
                 return 0;
             });
+        },
+
+        uniqueValues: function(sdr) {
+            var n = sdr.length;
+            var w = this.population(sdr);
+            return factorial(n) / factorial(w) * factorial(n - w)
         }
 
     };

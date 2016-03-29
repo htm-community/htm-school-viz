@@ -28,6 +28,7 @@ $(function() {
 
     window.SDR = {
         draw: function(sdr, elId, opts) {
+            if (! opts) opts = {};
             var title = opts.title || 'SDR';
             var color = opts.color || 'steelblue';
             var size = opts.size;
@@ -42,8 +43,8 @@ $(function() {
             if (title) {
                 $container.append('<h3>' + title + '</h3>');
             }
-            $container.append('<p>Length: ' + sdr.length + '</p>');
-            $container.append('<p>Population: ' + population + '</p>');
+            $container.append('<p>n: ' + sdr.length + '</p>');
+            $container.append('<p>w: ' + population + '</p>');
             $container.append('<p>Sparsity: ' + (sparsity * 100).toFixed(2) + '%</p>');
             $container.append(svg);
 
