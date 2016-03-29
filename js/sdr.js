@@ -50,7 +50,6 @@ $(function() {
         drawUnion: function(left, right, selector, title) {
             var union = SDR.tools.union(left, right);
             this.draw(union, selector, title);
-
         }
     };
 
