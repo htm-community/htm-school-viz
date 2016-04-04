@@ -32,6 +32,7 @@ $(function() {
             var title = opts.title || 'SDR';
             var color = opts.color || 'steelblue';
             var size = opts.size;
+            var spartan = opts.spartan;
             var population = SDR.tools.population(sdr);
             var sparsity = SDR.tools.sparsity(sdr);
             var svg = $('<svg id="' + elId + '-svg">');
@@ -40,12 +41,15 @@ $(function() {
             // Clear out container.
             $container.html('');
 
-            if (title) {
-                $container.append('<h3>' + title + '</h3>');
+            if (! spartan) {
+                if (title) {
+                    $container.append('<h3>' + title + '</h3>');
+                }
+                $container.append('<p>n: ' + sdr.length + '</p>');
+                $container.append('<p>w: ' + population + '</p>');
+                $container.append('<p>Sparsity: ' + (sparsity * 100).toFixed(2) + '%</p>');
             }
-            $container.append('<p>n: ' + sdr.length + '</p>');
-            $container.append('<p>w: ' + population + '</p>');
-            $container.append('<p>Sparsity: ' + (sparsity * 100).toFixed(2) + '%</p>');
+
             $container.append(svg);
 
             drawSdr(sdr, '#' + elId + '-svg', color, size);
@@ -118,5 +122,3 @@ $(function() {
     };
 
 });
-
-

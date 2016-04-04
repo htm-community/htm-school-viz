@@ -13,6 +13,8 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -36,6 +38,17 @@
             margin: 0;
             padding: 0;
         }
+        .slider {
+            width: 400px;
+        }
+        table#sdr-props td {
+            padding: 0 10px;
+        }
+        .data {
+            font-family: monospace;
+            width: 320px;
+            font-size: 14pt;
+        }
     </style>
 
 
@@ -52,32 +65,35 @@
     <tbody>
 
     <tr>
-        <td>
-            <form class="form-inline">
-                <div class="form-group">
-                    <label for="n">n (bit length)</label>
-                    <input type="text" class="form-control input-sm" id="n"
-                           placeholder="n" value="4096">
-                </div>
-                <div class="form-group">
-                    <label for="w">w (on bits)</label>
-                    <input type="text" class="form-control input-sm" id="w"
-                           placeholder="w" value="82">
-                </div>
-                <button type="submit" class="btn btn-default btn-sm">Generate Random SDR</button>
-            </form>
-        </td>
+        <td colspan=3>
 
-        <td>
-        </td>
-
-        <td>
+            <table id="sdr-props">
+                <tbody>
+                    <tr>
+                        <td>n</td>
+                        <td id="n-display" class="data">loading...</td>
+                        <td><div id="n-slider" class="slider"></td>
+                    </tr>
+                    <tr>
+                        <td>w</td>
+                        <td id="w-display" class="data">loading...</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>sparsity</td>
+                        <td id="sparsity-display" class="data">loading...</td>
+                        <td><div id="sparsity-slider" class="slider"></td>
+                    </tr>
+                </tbody>
+            </table>
         </td>
     </tr>
 
     <tr>
         <td id="sdr"></td>
-        <td id="props"></td>
+        <td id="props">
+            <!-- Uniqueness: <span id="uniqueness-display"></span> -->
+        </td>
         <td></td>
     </tr>
 
@@ -90,8 +106,11 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-<script src="https://cdn.jsdelivr.net/lodash/4.6.1/lodash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.7.0/lodash.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 <script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="js/jquery-ui.min.js"></script>
 
 <script src="js/sdr.js"></script>
 <script src="js/tools.js"></script>
@@ -99,20 +118,66 @@
 <script>
     $(function() {
 
-        $('form button').click(function(evt) {
-            evt.preventDefault();
-            var n = $('#n').val();
-            var w = $('#w').val();
+        // The functions below all rely on these values.
+        var n = 256;
+        var w = 4;
+
+        function drawSdr(newN, newW) {
+            n = newN;
+            w = newW;
             var sparsity = w / n;
             var sdr = SDR.tools.getRandom(n, sparsity);
-            var possibleUnique = SDR.tools.uniqueValues(sdr);
+            SDR.draw(sdr, 'sdr', {spartan: true});
+            updateDisplayValues(sparsity, sdr);
+        }
 
-            SDR.draw(sdr, 'sdr');
+        function updateDisplayValues(sparsity, sdr) {
+            $('#n-display').html(n);
+            $('#w-display').html(w);
+            $('#sparsity-display').html(sparsity);
+            // var uniqueness = SDR.tools.getUniqueness(sdr);
+            // $('#uniqueness-display').html(uniqueness);
+        }
 
-            $('#props').html('<p>Unique values: ' + possibleUnique + '</p>');
+        function validate(testN, testW) {
+            if (testW > testN) {
+                return false;
+            }
+            return true;
+        }
 
+        function drawSliders() {
+            function slide(event, ui) {
+                var source = event.target.id
+                var value = ui.value;
+                var myN = n;
+                var myW = w;
+                if (source == 'n-slider') {
+                    myN = value;
+                } else if (source == 'sparsity-slider') {
+                    myW = Math.floor(n * (value / 100));
+                } else {
+                    throw new Error('Unknown event');
+                }
+                if (validate(myN, myW)) {
+                    drawSdr(myN, myW);
+                } else {
+                    event.preventDefault();
+                }
+            }
+            $( '#n-slider' ).slider({
+                min: 16, max: 4096, value: 256,
+                slide: slide
+            });
+            $( '#sparsity-slider' ).slider({
+                min: 1, max: 100, value: 10,
+                slide: slide
+            });
+        }
 
-        });
+        drawSdr(n, w);
+        drawSliders();
+
     });
 </script>
 

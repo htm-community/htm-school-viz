@@ -121,12 +121,11 @@ $(function() {
             });
         },
 
-        uniqueValues: function(sdr) {
+        getUniqueness: function(sdr) {
             var n = sdr.length;
             var w = this.population(sdr);
-            return factorial(n) / factorial(w) * factorial(n - w)
+            return factorial(n) / ( factorial(w) * factorial(n - w) );
         }
 
     };
 });
-
