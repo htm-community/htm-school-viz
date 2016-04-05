@@ -10,9 +10,6 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-
     <link rel="stylesheet" href="css/jquery-ui.min.css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -70,54 +67,59 @@
 </head>
 <body>
 
-<div style="position:absolute;top:0;left:0">
-    <a href="index.html">BACK</a>
+<div class="container-fluid">
+    <div style="position:absolute;top:0;left:0">
+        <a href="index.html">BACK</a>
+    </div>
+
+    <h1>SDR Unions</h1>
+
+    <table>
+        <tbody>
+        <tr>
+            <td>n</td>
+            <td id="n-display" class="data">loading...</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>w</td>
+            <td id="w-display" class="data">loading...</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>sparsity</td>
+            <td id="sparsity-display" class="data">loading...</td>
+            <td>
+                <div id="sparsity-slider" class="slider"></div>
+            </td>
+        </tr>
+        <tr><td colspan="3"><hr/></td></tr>
+        <tr>
+            <td colspan="3">
+                <div id="next-sdr"></div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-default" data-action="add">Add</button>
+                    <button type="button" class="btn btn-default" data-action="match">Match?</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div id="sdr-stack"></div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div id="sdr-union"></div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>
-
-<h1>SDR Unions</h1>
-
-<table>
-    <tbody>
-    <tr>
-        <td>n</td>
-        <td id="n-display" class="data">loading...</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>w</td>
-        <td id="w-display" class="data">loading...</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>sparsity</td>
-        <td id="sparsity-display" class="data">loading...</td>
-        <td>
-            <div id="sparsity-slider" class="slider"></div>
-        </td>
-    </tr>
-    <tr><td colspan="3"><hr/></td></tr>
-    <tr>
-        <td colspan="3">
-            <div id="next-sdr"></div>
-        </td>
-    </tr>
-    <tr>
-        <td colspan="3" align="center">
-            <button type="button" class="btn btn-default">Add</button>
-        </td>
-    </tr>
-    <tr>
-        <td colspan="3">
-            <div id="sdr-stack"></div>
-        </td>
-    </tr>
-    <tr>
-        <td colspan="3">
-            <div id="sdr-union"></div>
-        </td>
-    </tr>
-    </tbody>
-</table>
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -142,7 +144,7 @@
         var n = 256;
         var w = 4;
 
-        var nextSdr = undefined;
+        var sdrNext = undefined;
         var sdrStack = [];
         var sdrUnion = SDR.tools.getRandom(n, 0.0);
 
@@ -152,8 +154,8 @@
             n = newN;
             w = newW;
             var sparsity = w / n;
-            nextSdr = SDR.tools.getRandom(n, sparsity);
-            SDR.draw(nextSdr, 'next-sdr', {
+            sdrNext = SDR.tools.getRandom(n, sparsity);
+            SDR.draw(sdrNext, 'next-sdr', {
                 spartan: true,
                 size: 6,
                 stretch: 2,
@@ -187,17 +189,20 @@
         }
 
         function calculateUnion() {
-            _.each(sdrStack, function(sdr) {
-                _.each(sdr, function(bit, index) {
-                    if (bit == 1) {
-                        sdrUnion[index] = 1;
-                    }
-                });
-            });
+            sdrUnion = SDR.tools.union(sdrUnion, sdrNext);
+        }
+
+        function matchNextSdr() {
+            var nextPopulation = SDR.tools.population(sdrNext);
+            var overlap = SDR.tools.overlap(sdrNext, sdrUnion);
+            var bitsSame = SDR.tools.population(overlap);
+            var match = bitsSame == nextPopulation;
+            var message = match + ': ' + bitsSame + ' bits overlap out of ' + nextPopulation + '.';
+            alert(message);
         }
 
         function addNextSdr() {
-            sdrStack.push(nextSdr);
+            sdrStack.push(sdrNext);
             calculateUnion();
             drawSdrStack();
             drawUnionSdr();
@@ -227,14 +232,19 @@
                 }
             }
             $sSlider.slider({
-                min: 1, max: 20, value: 2, step: 0.1,
+                min: 1, max: 50, value: 2, step: 0.1,
                 slide: slide
             });
         }
 
         function addButtonClickHandler() {
             $('button').click(function() {
-                addNextSdr();
+                var action = $(this).data('action');
+                if (action == 'add') {
+                    addNextSdr();
+                } else {
+                    matchNextSdr();
+                }
             });
         }
 
