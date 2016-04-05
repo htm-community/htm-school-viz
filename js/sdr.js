@@ -2,9 +2,13 @@ $(function() {
 
     var POINT_SIZE = 6;
 
-    function drawSdr(sdr, selector, color, pointSize) {
+    function drawSdr(sdr, selector, color, pointSize, line, stretch) {
         var rowLength = Math.floor(Math.sqrt(sdr.length));
         var size = pointSize || POINT_SIZE;
+        var heightMultiplyer = stretch ? stretch : 1;
+        if (line) {
+            rowLength = sdr.length;
+        }
         return d3.select(selector)
             .selectAll("rect")
             .data(sdr)
@@ -19,7 +23,7 @@ $(function() {
                 return offset * size;
             })
             .attr("width", size)
-            .attr("height", size)
+            .attr("height", size * heightMultiplyer)
             .style("fill", function(d) {
                 if (d == 1) return color;
                 return "white";
@@ -32,7 +36,9 @@ $(function() {
             var title = opts.title || 'SDR';
             var color = opts.color || 'steelblue';
             var size = opts.size;
+            var line = opts.line;
             var spartan = opts.spartan;
+            var stretch = opts.stretch;
             var population = SDR.tools.population(sdr);
             var sparsity = SDR.tools.sparsity(sdr);
             var svg = $('<svg id="' + elId + '-svg">');
@@ -52,7 +58,7 @@ $(function() {
 
             $container.append(svg);
 
-            drawSdr(sdr, '#' + elId + '-svg', color, size);
+            drawSdr(sdr, '#' + elId + '-svg', color, size, line, stretch);
 
         },
 

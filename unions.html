@@ -25,34 +25,44 @@
     <style>
         body {
             margin: 60px 150px;
+            line-height: inherit;
         }
         rect {
             stroke: rgba(204, 204, 204, 1);
             shape-rendering: crispEdges;
         }
         svg {
-            width: 520px;
-            height: 520px;
+            width: 1550px;
+            height: 13px;
         }
         p {
             margin: 0;
             padding: 0;
         }
         .slider {
-            width: 400px;
+            width: 800px;
         }
-        table#sdr-props td {
+        table {
+            width: 1560px;
+        }
+        table td {
             padding: 0 10px;
-        }
-        #props {
-            vertical-align: top;
-            text-align: left;
-            font-size: 20pt;
         }
         .data {
             font-family: monospace;
             width: 320px;
             font-size: 14pt;
+        }
+        #sdr-stack div {
+            padding: 0;
+            margin: 0;
+            font-size: inherit;
+        }
+        #sdr-union {
+            border-top: solid black 3px;
+        }
+        button {
+            margin: 20px !important;
         }
     </style>
 
@@ -68,41 +78,44 @@
 
 <table>
     <tbody>
-
     <tr>
-        <td colspan=3>
-
-            <table id="sdr-props">
-                <tbody>
-                    <tr>
-                        <td>n</td>
-                        <td id="n-display" class="data">loading...</td>
-                        <td><div id="n-slider" class="slider"></td>
-                    </tr>
-                    <tr>
-                        <td>w</td>
-                        <td id="w-display" class="data">loading...</td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>sparsity</td>
-                        <td id="sparsity-display" class="data">loading...</td>
-                        <td>
-                            <div id="sparsity-slider" class="slider"></div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <td>n</td>
+        <td id="n-display" class="data">loading...</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>w</td>
+        <td id="w-display" class="data">loading...</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>sparsity</td>
+        <td id="sparsity-display" class="data">loading...</td>
+        <td>
+            <div id="sparsity-slider" class="slider"></div>
         </td>
     </tr>
-
+    <tr><td colspan="3"><hr/></td></tr>
     <tr>
-        <td id="sdr" colspan="2"></td>
-        <td id="props">
-            Capacity: <span id="uniqueness-display"></span>
+        <td colspan="3">
+            <div id="next-sdr"></div>
         </td>
     </tr>
-
+    <tr>
+        <td colspan="3" align="center">
+            <button type="button" class="btn btn-default">Add</button>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <div id="sdr-stack"></div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <div id="sdr-union"></div>
+        </td>
+    </tr>
     </tbody>
 </table>
 
@@ -126,33 +139,73 @@
     $(function() {
 
         // The functions below all rely on these values.
-        var n = 64;
-        var w = 2;
+        var n = 256;
+        var w = 4;
 
-        var $nSlider = $('#n-slider');
+        var nextSdr = undefined;
+        var sdrStack = [];
+        var sdrUnion = SDR.tools.getRandom(n, 0.0);
+
         var $sSlider = $('#sparsity-slider');
 
-        function drawSdr(newN, newW) {
+        function drawNextSdr(newN, newW) {
             n = newN;
             w = newW;
             var sparsity = w / n;
-            var sdr = SDR.tools.getRandom(n, sparsity);
-            SDR.draw(sdr, 'sdr', {spartan: true, size: 32});
-            updateDisplayValues(sparsity, sdr);
+            nextSdr = SDR.tools.getRandom(n, sparsity);
+            SDR.draw(nextSdr, 'next-sdr', {
+                spartan: true,
+                size: 6,
+                stretch: 2,
+                line: true
+            });
+            updateDisplayValues(sparsity);
         }
 
-        function updateDisplayValues(sparsity, sdr) {
-            var uniqueness = SDR.tools.getUniqueness(sdr);
-            if (Number.isNaN(uniqueness)) {
-                uniqueness = 'NaN';
-            } else if (! isFinite(uniqueness)) {
-                uniqueness = "Infinity";
-            } else {
-                uniqueness = Math.round(uniqueness).toLocaleString();
-            }
-            $('#uniqueness-display').html(uniqueness);
+        function drawUnionSdr() {
+            SDR.draw(sdrUnion, 'sdr-union', {
+                spartan: true,
+                size: 6,
+                stretch: 2,
+                line: true
+            });
+        }
+
+        function drawSdrStack() {
+            var $stack = $('#sdr-stack');
+            $stack.html('');
+            _.each(sdrStack, function(sdr, i) {
+                var sdrId = 'sdr-' + i;
+                $stack.prepend('<div id="' + sdrId + '">');
+                SDR.draw(sdr, sdrId, {
+                    spartan: true,
+                    size: 6,
+                    stretch: 2,
+                    line: true
+                });
+            });
+        }
+
+        function calculateUnion() {
+            _.each(sdrStack, function(sdr) {
+                _.each(sdr, function(bit, index) {
+                    if (bit == 1) {
+                        sdrUnion[index] = 1;
+                    }
+                });
+            });
+        }
+
+        function addNextSdr() {
+            sdrStack.push(nextSdr);
+            calculateUnion();
+            drawSdrStack();
+            drawUnionSdr();
+            drawNextSdr(n, w);
+        }
+
+        function updateDisplayValues(sparsity) {
             $('#n-display').html(n);
-            $nSlider.slider('value', n);
             $('#w-display').html(w);
             $('#sparsity-display').html(sparsity);
             $sSlider.slider('value', sparsity * 100);
@@ -162,37 +215,33 @@
             return testW < testN;
         }
 
-        function drawSliders() {
+        function drawSlider() {
             function slide(event, ui) {
-                var source = event.target.id;
                 var value = ui.value;
                 var myN = n;
-                var myW = w;
-                if (source == 'n-slider') {
-                    myN = value;
-                } else if (source == 'sparsity-slider') {
-                    myW = Math.floor(n * (value / 100));
-                } else {
-                    throw new Error('Unknown event');
-                }
+                var myW = Math.floor(n * (value / 100));
                 if (validate(myN, myW)) {
-                    drawSdr(myN, myW);
+                    drawNextSdr(myN, myW);
                 } else {
                     event.preventDefault();
                 }
             }
-            $nSlider.slider({
-                min: 16, max: 256, value: n, step: 1,
-                slide: slide
-            });
             $sSlider.slider({
                 min: 1, max: 20, value: 2, step: 0.1,
                 slide: slide
             });
         }
 
-        drawSliders();
-        drawSdr(n, w);
+        function addButtonClickHandler() {
+            $('button').click(function() {
+                addNextSdr();
+            });
+        }
+
+        drawSlider();
+        drawNextSdr(n, w);
+        drawUnionSdr();
+        addButtonClickHandler();
 
     });
 </script>
