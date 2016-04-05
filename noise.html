@@ -134,12 +134,19 @@
             var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
             var rightsdr = SDR.tools.addNoise(leftsdr, percentNoise);
 
-            SDR.draw(leftsdr, 'ex2-left', {title: 'Original', color: leftColor});
+            SDR.draw(leftsdr, 'ex2-left', {
+                title: 'Original',
+                color: leftColor,
+                staticSize: true
+            });
             SDR.draw(rightsdr, 'ex2-right', {
-                title: 'With ' + (percentNoise * 100) + '% noise', color: rightColor
+                title: 'With ' + (percentNoise * 100) + '% noise',
+                color: rightColor,
+                staticSize: true
             });
             SDR.drawComparison(leftsdr, rightsdr, 'ex2-compare', {
-                title: 'Comparison', colors: {left: leftColor, right: rightColor}
+                title: 'Comparison',
+                colors: {left: leftColor, right: rightColor}
             });
             SDR.drawOverlap(leftsdr, rightsdr, 'ex2-overlap', {title: 'Overlap'});
             SDR.drawUnion(leftsdr, rightsdr, 'ex2-union', {title: 'Union'});

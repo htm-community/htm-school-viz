@@ -144,10 +144,16 @@
             var pointSize = $('#bitSize').val();
 
             SDR.draw(leftsdr, 'ex1-left', {
-                title: 'Left', color: leftColor, size: pointSize
+                title: 'Left',
+                color: leftColor,
+                size: pointSize,
+                staticSize: true
             });
             SDR.draw(rightsdr, 'ex1-right', {
-                title: 'Right', color: rightColor, size: pointSize
+                title: 'Right',
+                color: rightColor,
+                size: pointSize,
+                staticSize: true
             });
             SDR.drawComparison(leftsdr, rightsdr, 'ex1-compare', {
                 title: 'Comparison',
