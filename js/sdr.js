@@ -76,6 +76,8 @@ $(function() {
             var size = opts.size || POINT_SIZE;
             var svg = $('<svg id="' + elId + '-svg">');
             var $container = $('#' + elId);
+            var overlapScore = SDR.tools.population(SDR.tools.overlap(left, right));
+
             if (opts.colors) {
                 leftColor = opts.colors.left;
                 rightColor = opts.colors.right;
@@ -87,7 +89,7 @@ $(function() {
             if (title) {
                 $container.append('<h3>' + title + '</h3>');
             }
-            $container.append('<p style="color:red">overlap</p>');
+            $container.append('<p style="color:red">overlap score: ' + overlapScore + '</p>');
             $container.append('<p style="color:' + leftColor + '">left bits</p>');
             $container.append('<p style="color:' + rightColor + '">right bits</p>');
             $container.append(svg);

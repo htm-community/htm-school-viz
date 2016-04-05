@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>SDR Matching</title>
+
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+
+    <style>
+        body {
+            margin: 60px 150px;
+        }
+
+        rect {
+            stroke: rgba(204, 204, 204, 0.5);
+            shape-rendering: crispEdges;
+        }
+
+        svg {
+            width: 400px;
+            height: 400px;
+        }
+        .data {
+            font-family: monospace;
+            width: 320px;
+            font-size: 14pt;
+        }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        #match {
+            font-size: 20pt;
+            text-align: center;
+            padding: 20px;
+            border: solid grey 1px;
+            border-radius: 10px;
+        }
+    </style>
+
+
+</head>
+<body>
+
+<div style="position:absolute;top:0;left:0">
+    <a href="index.html">BACK</a>
+</div>
+
+<h1>SDR Matching</h1>
+
+<table>
+    <tbody>
+
+    <tr>
+        <td>noise: <span id="noise-display" class="data">loading...</span></td>
+        <td colspan="2">
+            <div id="noise-slider" class="slider"></div>
+        </td>
+    </tr>
+
+    <tr>
+        <td>&theta;: <span id="theta-display" class="data">loading...</span></td>
+        <td colspan="2">
+            <div id="theta-slider" class="slider"></div>
+        </td>
+    </tr>
+
+    <tr>
+        <td id="left"></td>
+        <td id="right"></td>
+        <td id="compare"></td>
+    </tr>
+
+    <tr>
+        <td colspan="3">
+            <div id="match"></div>
+        </td>
+    </tr>
+
+    </tbody>
+</table>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+        integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.7.0/lodash.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="js/d3.min.js"></script>
+<script src="js/jquery-ui.min.js"></script>
+<script src="js/math.min.js"></script>
+
+<script src="js/sdr.js"></script>
+<script src="js/tools.js"></script>
+
+<script>
+    $(function () {
+
+        var n = 4096;
+        var sparsity = 0.02;
+        var w = Math.floor(n * sparsity);
+        var theta = Math.floor(w * .9);
+        var noise = 0.02;
+
+        var sdr = SDR.tools.getRandom(n, sparsity);
+        var noisySdr = SDR.tools.addNoise(sdr, noise);
+
+        var $noiseSlider = $('#noise-slider');
+        var $thetaSlider = $('#theta-slider');
+        var leftColor = "orange";
+        var rightColor = "green";
+
+        function sdrsMatch() {
+            return SDR.tools.population(SDR.tools.overlap(sdr, noisySdr)) >= theta;
+        }
+
+        function updateDisplayValues() {
+            var $match = $('#match');
+            $('#sparsity-display').html();
+            $('#noise-display').html(noise);
+            $('#theta-display').html(theta);
+            if (sdrsMatch()) {
+                $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
+            } else {
+                $match.html('NOPE').removeClass('bg-success').addClass('bg-danger');
+            }
+        }
+
+        function drawSliders() {
+            function slide(event, ui) {
+                var source = event.target.id;
+                if (source == 'noise-slider') {
+                    noise = ui.value / 100;
+                    sdr = SDR.tools.getRandom(n, sparsity);
+                    noisySdr = SDR.tools.addNoise(sdr, noise);
+                    drawSdrs();
+                } else {
+                    theta = ui.value;
+                }
+                updateDisplayValues();
+            }
+
+            $noiseSlider.slider({
+                min: 1,
+                max: 100,
+                value: 2,
+                step: 1,
+                slide: slide
+            });
+            $thetaSlider.slider({
+                min: 1,
+                max: w,
+                value: theta,
+                step: 1,
+                slide: slide
+            });
+        }
+
+        function drawSdrs() {
+            SDR.draw(sdr, 'left', {
+                title: 'Original',
+                color: leftColor,
+                staticSize: true
+            });
+            SDR.draw(noisySdr, 'right', {
+                title: 'With ' + Math.round(noise * 100) + '% noise',
+                color: rightColor,
+                staticSize: true
+            });
+            SDR.drawComparison(sdr, noisySdr, 'compare', {
+                title: 'Comparison',
+                colors: {left: leftColor, right: rightColor}
+            });
+        }
+
+        drawSliders();
+        drawSdrs();
+        updateDisplayValues();
+
+    });
+</script>
+
+<a href="https://github.com/rhyolight/sdr-viz"><img
+        style="position: absolute; top: 0; right: 0; border: 0;"
+        src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67"
+        alt="Fork me on GitHub"
+        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
+
+</body>
+</html>
