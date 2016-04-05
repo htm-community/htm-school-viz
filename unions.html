@@ -29,8 +29,8 @@
             shape-rendering: crispEdges;
         }
         svg {
-            width: 1550px;
-            height: 13px;
+            width: 2150px;
+            height: 18px;
         }
         p {
             margin: 0;
@@ -38,9 +38,6 @@
         }
         .slider {
             width: 800px;
-        }
-        table {
-            width: 1560px;
         }
         table td {
             padding: 0 10px;
@@ -55,11 +52,8 @@
             margin: 0;
             font-size: inherit;
         }
-        #sdr-union {
-            border-top: solid black 3px;
-        }
         button {
-            margin: 20px !important;
+            margin: 20px 0 !important;
         }
     </style>
 
@@ -114,6 +108,7 @@
         </tr>
         <tr>
             <td colspan="3">
+                <h3>Union:</h3>
                 <div id="sdr-union"></div>
             </td>
         </tr>
@@ -145,6 +140,8 @@
         // The functions below all rely on these values.
         var n = 256;
         var w = 4;
+        var bitSize = 8;
+        var bitStretch = 2;
 
         var sdrNext = undefined;
         var sdrStack = [];
@@ -159,8 +156,8 @@
             sdrNext = SDR.tools.getRandom(n, sparsity);
             SDR.draw(sdrNext, 'next-sdr', {
                 spartan: true,
-                size: 6,
-                stretch: 2,
+                size: bitSize,
+                stretch: bitStretch,
                 line: true
             });
             updateDisplayValues(sparsity);
@@ -169,8 +166,8 @@
         function drawUnionSdr() {
             SDR.draw(sdrUnion, 'sdr-union', {
                 spartan: true,
-                size: 6,
-                stretch: 2,
+                size: bitSize,
+                stretch: bitStretch,
                 line: true
             });
         }
@@ -183,8 +180,8 @@
                 $stack.prepend('<div id="' + sdrId + '">');
                 SDR.draw(sdr, sdrId, {
                     spartan: true,
-                    size: 6,
-                    stretch: 2,
+                    size: bitSize,
+                    stretch: bitStretch,
                     line: true
                 });
             });
