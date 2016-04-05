@@ -199,11 +199,12 @@
             var overlap = SDR.tools.overlap(sdrNext, sdrUnion);
             var bitsSame = SDR.tools.population(overlap);
             var match = bitsSame == nextPopulation;
-            var message = match + ': ' + bitsSame + ' bits overlap out of ' + nextPopulation + '.';
+            var message = '<h3>' + match + ': ' + bitsSame + ' bits overlap out of ' + nextPopulation + '.</h3>';
             var $dialog = $('#dialog');
             $dialog.html(message);
             $dialog.dialog({
                 modal: true,
+                width: '400px',
                 buttons: {
                     Ok: function() {
                         $( this ).dialog( "close" );
