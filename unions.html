@@ -121,6 +121,8 @@
     </table>
 </div>
 
+<div id="dialog" title="Match Results"></div>
+
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
@@ -198,7 +200,16 @@
             var bitsSame = SDR.tools.population(overlap);
             var match = bitsSame == nextPopulation;
             var message = match + ': ' + bitsSame + ' bits overlap out of ' + nextPopulation + '.';
-            alert(message);
+            var $dialog = $('#dialog');
+            $dialog.html(message);
+            $dialog.dialog({
+                modal: true,
+                buttons: {
+                    Ok: function() {
+                        $( this ).dialog( "close" );
+                    }
+                }
+            });
         }
 
         function addNextSdr() {
