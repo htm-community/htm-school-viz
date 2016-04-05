@@ -142,7 +142,9 @@
 
         function updateDisplayValues(sparsity, sdr) {
             var uniqueness = SDR.tools.getUniqueness(sdr);
-            if (Number.isNaN(uniqueness) || ! isFinite(uniqueness)) {
+            if (Number.isNaN(uniqueness)) {
+                uniqueness = 'NaN';
+            } else if (! isFinite(uniqueness)) {
                 uniqueness = "Infinity";
             } else {
                 uniqueness = Math.round(uniqueness).toLocaleString();
