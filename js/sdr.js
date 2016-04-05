@@ -2,17 +2,16 @@ $(function() {
 
     var POINT_SIZE = 6;
 
-    function drawSdr(sdr, selector, color, pointSize, line, stretch) {
+    function drawSdr(sdr, selector, color, pointSize, line, stretch, staticSize) {
         var rowLength = Math.floor(Math.sqrt(sdr.length));
         var size = pointSize || POINT_SIZE;
         var heightMultiplyer = stretch ? stretch : 1;
         if (line) {
             rowLength = sdr.length;
-        }
-        if (size > size * 15 / rowLength) {
+        } else if (! staticSize && size > size * 15 / rowLength) {
           //var svgsize = document.getElementById("sdr-svg").style.width;
           //svgsize = svgsize.toString().substring(0, svgsize.length - 1);
-          var size = size * 15 / rowLength;
+          size = size * 15 / rowLength;
         }
         return d3.select(selector)
             .selectAll("rect")
@@ -42,6 +41,7 @@ $(function() {
             var color = opts.color || 'steelblue';
             var size = opts.size;
             var line = opts.line;
+            var staticSize = opts.staticSize;
             var spartan = opts.spartan;
             var stretch = opts.stretch;
             var population = SDR.tools.population(sdr);
@@ -63,7 +63,8 @@ $(function() {
 
             $container.append(svg);
 
-            drawSdr(sdr, '#' + elId + '-svg', color, size, line, stretch);
+            drawSdr(sdr, '#' + elId + '-svg', color,
+                size, line, stretch, staticSize);
 
         },
 
@@ -122,13 +123,19 @@ $(function() {
 
         drawOverlap: function(left, right, selector, title) {
             var overlap = SDR.tools.overlap(left, right);
-            this.draw(overlap, selector, title);
+            this.draw(overlap, selector, {
+                staticSize: true,
+                title: 'Overlap'
+            });
 
         },
 
         drawUnion: function(left, right, selector, title) {
             var union = SDR.tools.union(left, right);
-            this.draw(union, selector, title);
+            this.draw(union, selector, {
+                staticSize: true,
+                title: 'Union'
+            });
         }
     };
 

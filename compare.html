@@ -122,8 +122,12 @@
         var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
         var rightsdr = SDR.tools.getRandom(LENGTH, 0.02);
 
-        SDR.draw(leftsdr, 'ex1-left', {title: 'Left', color: leftColor});
-        SDR.draw(rightsdr, 'ex1-right', {title: 'Right', color: rightColor});
+        SDR.draw(leftsdr, 'ex1-left', {
+            title: 'Left', color: leftColor, staticSize: true
+        });
+        SDR.draw(rightsdr, 'ex1-right', {
+            title: 'Right', color: rightColor, staticSize: true
+        });
         SDR.drawComparison(leftsdr, rightsdr, 'ex1-compare', {
             title: 'Comparison', colors: {left: leftColor, right: rightColor}
         });
