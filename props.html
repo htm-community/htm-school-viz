@@ -51,6 +51,16 @@
             width: 320px;
             font-size: 14pt;
         }
+        .wrapword{
+          white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+          white-space: -webkit-pre-wrap; /*Chrome & Safari */
+          white-space: -pre-wrap;      /* Opera 4-6 */
+          white-space: -o-pre-wrap;    /* Opera 7 */
+          white-space: pre-wrap;       /* css-3 */
+          word-wrap: break-word;       /* Internet Explorer 5.5+ */
+          word-break: break-all;
+          white-space: normal;
+        }
     </style>
 
 
@@ -95,7 +105,7 @@
 
     <tr>
         <td id="sdr" colspan="2"></td>
-        <td id="props">
+        <td id="props" style="width:400px" class="wrapword">
             Capacity: <span id="uniqueness-display"></span>
         </td>
     </tr>
@@ -179,7 +189,7 @@
                 }
             }
             $nSlider.slider({
-                min: 16, max: 256, value: n, step: 1,
+                min: 16, max: 2048, value: n, step: 1,
                 slide: slide
             });
             $sSlider.slider({
