@@ -9,6 +9,11 @@ $(function() {
         if (line) {
             rowLength = sdr.length;
         }
+        if (size > size * 15 / rowLength) {
+          //var svgsize = document.getElementById("sdr-svg").style.width;
+          //svgsize = svgsize.toString().substring(0, svgsize.length - 1);
+          var size = size * 15 / rowLength;
+        }
         return d3.select(selector)
             .selectAll("rect")
             .data(sdr)
