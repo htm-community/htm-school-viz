@@ -12,9 +12,10 @@ $(function() {
     }
 
     function factorial(n) {
-        var result = 1;
+        var result = math.bignumber(1);
         for (var i = 1; i <= n; i++) {
-            result *= i
+            var bigI = math.bignumber(i);
+            result = math.multiply(bigI, result);
         }
         return result;
     }
@@ -122,9 +123,14 @@ $(function() {
         },
 
         getUniqueness: function(sdr) {
-            var n = sdr.length;
-            var w = this.population(sdr);
-            return factorial(n) / ( factorial(w) * factorial(n - w) );
+            var n = math.bignumber(sdr.length);
+            var w = math.bignumber(this.population(sdr));
+
+            var nf = factorial(n);
+            var wf = factorial(w);
+            var nwf = factorial(math.subtract(n, w));
+
+            return math.number(math.divide(nf, math.multiply(wf, nwf)));
         }
 
     };
