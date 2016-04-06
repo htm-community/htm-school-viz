@@ -11,28 +11,18 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="css/jquery-ui.min.css">
 
+    <link rel="stylesheet" href="css/styles.css">
+
     <style>
         body {
-            margin: 60px 150px;
             line-height: inherit;
-        }
-        rect {
-            stroke: rgba(204, 204, 204, 1);
-            shape-rendering: crispEdges;
         }
         svg {
             width: 2150px;
             height: 18px;
         }
-        p {
-            margin: 0;
-            padding: 0;
-        }
         .slider {
             width: 800px;
-        }
-        table td {
-            padding: 0 10px;
         }
         .data {
             font-family: monospace;
@@ -47,6 +37,9 @@
         button {
             margin: 20px 0 !important;
         }
+        .sdr {
+            height: 16px;
+        }
     </style>
 
 
@@ -54,7 +47,8 @@
 <body>
 
 <div class="container-fluid">
-    <div style="position:absolute;top:0;left:0">
+
+    <div class="back-button">
         <a href="index.html">BACK</a>
     </div>
 
@@ -110,6 +104,21 @@
 
 <div id="dialog" title="Match Results"></div>
 
+<script id="props-tmpl" type="text/x-handlebars-template">
+    <h2>{{title}}</h2>
+    <table class="props">
+        <tbody>
+        {{#each props}}
+        <tr class="{{rowClass}}">
+            <td class="data-label">{{label}}:</td>
+            <td id="n-display" class="data">{{data}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</script>
+
+<script src="https://cdn.jsdelivr.net/handlebarsjs/4.0.5/handlebars.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/lodash/4.7.0/lodash.min.js"></script>
@@ -165,7 +174,7 @@
             $stack.html('');
             _.each(sdrStack, function(sdr, i) {
                 var sdrId = 'sdr-' + i;
-                $stack.prepend('<div id="' + sdrId + '">');
+                $stack.prepend('<div id="' + sdrId + '" class="sdr">');
                 SDR.draw(sdr, sdrId, {
                     spartan: true,
                     size: bitSize,

@@ -1,6 +1,7 @@
 $(function() {
 
     var POINT_SIZE = 6;
+    var propsTmpl = Handlebars.compile($('#props-tmpl').html());
 
     function drawSdr(sdr, selector, color, pointSize, line, stretch, staticSize) {
         var rowLength = Math.floor(Math.sqrt(sdr.length));
@@ -53,12 +54,22 @@ $(function() {
             $container.html('');
 
             if (! spartan) {
-                if (title) {
-                    $container.append('<h3>' + title + '</h3>');
-                }
-                $container.append('<p>n: ' + sdr.length + '</p>');
-                $container.append('<p>w: ' + population + '</p>');
-                $container.append('<p>Sparsity: ' + (sparsity * 100).toFixed(2) + '%</p>');
+                $container.append(propsTmpl({
+                    title: title,
+                    props: [{
+                        label: 'n', data: sdr.length
+                    }, {
+                        label: 'w', data: population
+                    }, {
+                        label: 'n', data: sparsity.toFixed(2)
+                    }]
+                }));
+                //if (title) {
+                //    $container.append('<h3>' + title + '</h3>');
+                //}
+                //$container.append('<p>n: ' + sdr.length + '</p>');
+                //$container.append('<p>w: ' + population + '</p>');
+                //$container.append('<p>Sparsity: ' + (sparsity * 100).toFixed(2) + '%</p>');
             }
 
             $container.append(svg);
@@ -77,6 +88,11 @@ $(function() {
             var svg = $('<svg id="' + elId + '-svg">');
             var $container = $('#' + elId);
             var overlapScore = SDR.tools.population(SDR.tools.overlap(left, right));
+            if (size > size * 15 / rowLength) {
+                //var svgsize = document.getElementById("sdr-svg").style.width;
+                //svgsize = svgsize.toString().substring(0, svgsize.length - 1);
+                size = size * 15 / rowLength;
+            }
 
             if (opts.colors) {
                 leftColor = opts.colors.left;

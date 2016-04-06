@@ -1,8 +1,10 @@
 body {
     margin: 60px 150px;
+    background-color: rgb(229, 242, 247);
+    font-size: 20pt;
 }
 rect {
-    stroke: rgba(204, 204, 204, 1.0);
+    stroke: #9b9b9b;
     shape-rendering: crispEdges;
 }
 p {
@@ -11,8 +13,8 @@ p {
 }
 .data {
     font-family: monospace;
-    width: 320px;
-    font-size: 18pt;
+    width: 100px;
+    font-size: 22pt;
     font-weight: normal;
 }
 .data-label {
@@ -22,4 +24,12 @@ p {
 
 table.inner {
     width: 100%;
+}
+.back-button {
+    position: absolute;
+    right: 100px;
+    bottom: 100px;
+}
+table.props td {
+    padding-right: 30px;
 }

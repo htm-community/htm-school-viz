@@ -35,55 +35,70 @@
 </head>
 <body>
 
-<div style="position:absolute;top:0;left:0">
-    <a href="index.html">BACK</a>
+<div class="container-fluid">
+
+    <div class="back-button">
+        <a href="index.html">BACK</a>
+    </div>
+
+    <h1>SDR Matching</h1>
+
+    <table>
+        <tbody>
+
+        <tr>
+            <td>
+                <table class="inner"><tbody>
+                <tr>
+                    <td class="data-label">noise</td>
+                    <td id="noise-display" class="data">loading...</td>
+                </tr>
+                </tbody></table>
+            </td>
+            <td colspan="2">
+                <div id="noise-slider" class="slider"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="data-label">&theta;: <span id="theta-display" class="data">loading...</span></td>
+            <td colspan="2">
+                <div id="theta-slider" class="slider"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td id="left"></td>
+            <td id="right"></td>
+            <td id="compare"></td>
+        </tr>
+
+        <tr>
+            <td colspan="3">
+                <div id="match"></div>
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+
 </div>
 
-<h1>SDR Matching</h1>
+<script id="props-tmpl" type="text/x-handlebars-template">
+    <h2>{{title}}</h2>
+    <table class="props">
+        <tbody>
+        {{#each props}}
+        <tr class="{{rowClass}}">
+            <td class="data-label">{{label}}:</td>
+            <td id="n-display" class="data">{{data}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</script>
 
-<table>
-    <tbody>
-
-    <tr>
-        <td>
-            <table class="inner"><tbody>
-            <tr>
-                <td class="data-label">noise</td>
-                <td id="noise-display" class="data">loading...</td>
-            </tr>
-            </tbody></table>
-        </td>
-        <td colspan="2">
-            <div id="noise-slider" class="slider"></div>
-        </td>
-    </tr>
-
-    <tr>
-        <td class="data-label">&theta;: <span id="theta-display" class="data">loading...</span></td>
-        <td colspan="2">
-            <div id="theta-slider" class="slider"></div>
-        </td>
-    </tr>
-
-    <tr>
-        <td id="left"></td>
-        <td id="right"></td>
-        <td id="compare"></td>
-    </tr>
-
-    <tr>
-        <td colspan="3">
-            <div id="match"></div>
-        </td>
-    </tr>
-
-    </tbody>
-</table>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
-        integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
-        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/handlebarsjs/4.0.5/handlebars.min.js"></script>
 <script src="https://cdn.jsdelivr.net/lodash/4.7.0/lodash.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
