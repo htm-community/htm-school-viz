@@ -11,21 +11,12 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="css/jquery-ui.min.css">
 
+    <link rel="stylesheet" href="css/styles.css">
+
     <style>
-        body {
-            margin: 60px 150px;
-        }
-        rect {
-            stroke: rgba(204, 204, 204, 1);
-            shape-rendering: crispEdges;
-        }
         svg {
             width: 520px;
             height: 520px;
-        }
-        p {
-            margin: 0;
-            padding: 0;
         }
         .slider {
             width: 400px;
@@ -38,12 +29,7 @@
             text-align: left;
             font-size: 20pt;
         }
-        .data {
-            font-family: monospace;
-            width: 320px;
-            font-size: 14pt;
-        }
-        .wrapword{
+        .wrapword {
           white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
           white-space: -webkit-pre-wrap; /*Chrome & Safari */
           white-space: -pre-wrap;      /* Opera 4-6 */
@@ -74,17 +60,17 @@
             <table id="sdr-props">
                 <tbody>
                     <tr>
-                        <td>n</td>
+                        <td class="data-label">n</td>
                         <td id="n-display" class="data">loading...</td>
                         <td><div id="n-slider" class="slider"></td>
                     </tr>
                     <tr>
-                        <td>w</td>
+                        <td class="data-label">w</td>
                         <td id="w-display" class="data">loading...</td>
                         <td></td>
                     </tr>
                     <tr>
-                        <td>sparsity</td>
+                        <td class="data-label">sparsity</td>
                         <td id="sparsity-display" class="data">loading...</td>
                         <td>
                             <div id="sparsity-slider" class="slider"></div>
@@ -94,6 +80,13 @@
             </table>
         </td>
     </tr>
+    </tbody>
+</table>
+
+<hr/>
+
+<table>
+    <tbody>
 
     <tr>
         <td id="sdr" colspan="2"></td>

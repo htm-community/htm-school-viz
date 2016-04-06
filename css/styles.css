@@ -1,0 +1,25 @@
+body {
+    margin: 60px 150px;
+}
+rect {
+    stroke: rgba(204, 204, 204, 1.0);
+    shape-rendering: crispEdges;
+}
+p {
+    margin: 0;
+    padding: 0;
+}
+.data {
+    font-family: monospace;
+    width: 320px;
+    font-size: 18pt;
+    font-weight: normal;
+}
+.data-label {
+    font-size: 22pt;
+    font-weight: bold;
+}
+
+table.inner {
+    width: 100%;
+}

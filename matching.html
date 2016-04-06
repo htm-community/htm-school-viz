@@ -14,29 +14,12 @@
           crossorigin="anonymous">
     <link rel="stylesheet" href="css/jquery-ui.min.css">
 
+    <link rel="stylesheet" href="css/styles.css">
+
     <style>
-        body {
-            margin: 60px 150px;
-        }
-
-        rect {
-            stroke: rgba(204, 204, 204, 0.5);
-            shape-rendering: crispEdges;
-        }
-
         svg {
             width: 400px;
             height: 400px;
-        }
-        .data {
-            font-family: monospace;
-            width: 320px;
-            font-size: 14pt;
-        }
-
-        p {
-            margin: 0;
-            padding: 0;
         }
 
         #match {
@@ -62,14 +45,21 @@
     <tbody>
 
     <tr>
-        <td>noise: <span id="noise-display" class="data">loading...</span></td>
+        <td>
+            <table class="inner"><tbody>
+            <tr>
+                <td class="data-label">noise</td>
+                <td id="noise-display" class="data">loading...</td>
+            </tr>
+            </tbody></table>
+        </td>
         <td colspan="2">
             <div id="noise-slider" class="slider"></div>
         </td>
     </tr>
 
     <tr>
-        <td>&theta;: <span id="theta-display" class="data">loading...</span></td>
+        <td class="data-label">&theta;: <span id="theta-display" class="data">loading...</span></td>
         <td colspan="2">
             <div id="theta-slider" class="slider"></div>
         </td>
