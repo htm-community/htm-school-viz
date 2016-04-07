@@ -10,8 +10,6 @@ $(function() {
         if (line) {
             rowLength = sdr.length;
         } else if (! staticSize && size > size * 15 / rowLength) {
-          //var svgsize = document.getElementById("sdr-svg").style.width;
-          //svgsize = svgsize.toString().substring(0, svgsize.length - 1);
           size = size * 15 / rowLength;
         }
         return d3.select(selector)
@@ -93,13 +91,6 @@ $(function() {
 
             // Clear out container.
             $container.html('');
-
-            //if (title) {
-            //    $container.append('<h3>' + title + '</h3>');
-            //}
-            //$container.append('<p style="color:red">overlap score: ' + overlapScore + '</p>');
-            //$container.append('<p style="color:' + leftColor + '">left bits</p>');
-            //$container.append('<p style="color:' + rightColor + '">right bits</p>');
 
             $container.append(propsTmpl({
                 title: title,

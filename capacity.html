@@ -49,8 +49,9 @@
         #card .front {
             padding: 50px 10px;
         }
-        .capacity {
+        #props {
             font-size: 24pt;
+            display: none;
         }
 
     </style>
@@ -233,6 +234,8 @@
             autoSize: true,
             forceWidth: true,
             forceHeight: true
+        }).on('flip:done', function() {
+            $('#props').show();
         });
 
     });
