@@ -64,12 +64,6 @@ $(function() {
                         label: 'n', data: sparsity.toFixed(2)
                     }]
                 }));
-                //if (title) {
-                //    $container.append('<h3>' + title + '</h3>');
-                //}
-                //$container.append('<p>n: ' + sdr.length + '</p>');
-                //$container.append('<p>w: ' + population + '</p>');
-                //$container.append('<p>Sparsity: ' + (sparsity * 100).toFixed(2) + '%</p>');
             }
 
             $container.append(svg);
@@ -89,8 +83,6 @@ $(function() {
             var $container = $('#' + elId);
             var overlapScore = SDR.tools.population(SDR.tools.overlap(left, right));
             if (size > size * 15 / rowLength) {
-                //var svgsize = document.getElementById("sdr-svg").style.width;
-                //svgsize = svgsize.toString().substring(0, svgsize.length - 1);
                 size = size * 15 / rowLength;
             }
 
@@ -102,12 +94,29 @@ $(function() {
             // Clear out container.
             $container.html('');
 
-            if (title) {
-                $container.append('<h3>' + title + '</h3>');
-            }
-            $container.append('<p style="color:red">overlap score: ' + overlapScore + '</p>');
-            $container.append('<p style="color:' + leftColor + '">left bits</p>');
-            $container.append('<p style="color:' + rightColor + '">right bits</p>');
+            //if (title) {
+            //    $container.append('<h3>' + title + '</h3>');
+            //}
+            //$container.append('<p style="color:red">overlap score: ' + overlapScore + '</p>');
+            //$container.append('<p style="color:' + leftColor + '">left bits</p>');
+            //$container.append('<p style="color:' + rightColor + '">right bits</p>');
+
+            $container.append(propsTmpl({
+                title: title,
+                props: [{
+                    label: 'overlap score',
+                    data: overlapScore,
+                    rowStyle: 'color:red'
+                }, {
+                    label: 'left bits',
+                    rowStyle: 'color:' + leftColor
+                }, {
+                    label: 'right bits',
+                    rowStyle: 'color:' + rightColor
+                }]
+            }));
+
+
             $container.append(svg);
 
             d3.select('#' + elId + '-svg')

@@ -22,9 +22,6 @@ p {
     font-weight: bold;
 }
 
-table.inner {
-    width: 100%;
-}
 .back-button {
     position: absolute;
     right: 100px;
@@ -32,4 +29,7 @@ table.inner {
 }
 table.props td {
     padding-right: 30px;
+}
+table.props {
+    margin-bottom: 20px;
 }

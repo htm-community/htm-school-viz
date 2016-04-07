@@ -63,9 +63,9 @@
     <table class="props">
         <tbody>
         {{#each props}}
-        <tr class="{{rowClass}}">
+        <tr style="{{rowStyle}}">
             <td class="data-label">{{label}}:</td>
-            <td id="n-display" class="data">{{data}}</td>
+            <td id="{{label}}-display" class="data">{{data}}</td>
         </tr>
         {{/each}}
         </tbody>
