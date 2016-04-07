@@ -42,21 +42,34 @@
         <tbody>
 
         <tr>
-            <td id="ex1-left"></td>
-            <td id="ex1-right"></td>
-            <td id="ex1-compare"></td>
+            <td id="left"></td>
+            <td id="right"></td>
+            <td id="compare"></td>
         </tr>
 
         <tr>
-            <td id="ex1-overlap"></td>
-            <td id="ex1-union"></td>
-            <td></td>
+            <td colspan="3" align="center">
+                <div class="btn-group" role="group">
+                    <a href="compare-overlap.html">
+                        <button type="button" class="btn-xl btn-default">Overlap</button>
+                    </a>
+                    <a href="compare-union.html">
+                        <button type="button" class="btn-xl btn-default">Union</button>
+                    </a>
+                    <a href="compare.html">
+                        <button type="button" class="btn-xl btn-default">Compare</button>
+                    </a>
+                </div>
+
+
+            </td>
         </tr>
 
         </tbody>
     </table>
 
 </div>
+
 
 <script id="props-tmpl" type="text/x-handlebars-template">
     <h2>{{title}}</h2>
@@ -86,22 +99,22 @@
 <script>
     $(function() {
 
-        var LENGTH = 1024;
+        var length = 1024;
+        var sparsity = 0.1;
         var size = 38;
         var leftColor = "orange";
         var rightColor = "green";
 
-        // Example 1
-        var leftsdr = SDR.tools.getRandom(LENGTH, 0.05);
-        var rightsdr = SDR.tools.getRandom(LENGTH, 0.05);
+        var leftsdr = SDR.tools.getRandom(length, sparsity);
+        var rightsdr = SDR.tools.getRandom(length, sparsity);
 
-        SDR.draw(leftsdr, 'ex1-left', {
+        SDR.draw(leftsdr, 'left', {
             title: 'Left', color: leftColor, size: size
         });
-        SDR.draw(rightsdr, 'ex1-right', {
+        SDR.draw(rightsdr, 'right', {
             title: 'Right', color: rightColor, size: size
         });
-        SDR.drawComparison(leftsdr, rightsdr, 'ex1-compare', {
+        SDR.drawComparison(leftsdr, rightsdr, 'compare', {
             title: 'Comparison',
             colors: {left: leftColor, right: rightColor},
             size: size

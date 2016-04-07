@@ -61,7 +61,7 @@ $(function() {
                     }, {
                         label: 'w', data: population
                     }, {
-                        label: 'n', data: sparsity.toFixed(2)
+                        label: 'sparsity', data: sparsity.toFixed(2)
                     }]
                 }));
             }
@@ -148,21 +148,15 @@ $(function() {
                 });
         },
 
-        drawOverlap: function(left, right, selector, title) {
+        drawOverlap: function(left, right, selector, opts) {
             var overlap = SDR.tools.overlap(left, right);
-            this.draw(overlap, selector, {
-                staticSize: true,
-                title: 'Overlap'
-            });
+            this.draw(overlap, selector, opts);
 
         },
 
-        drawUnion: function(left, right, selector, title) {
+        drawUnion: function(left, right, selector, opts) {
             var union = SDR.tools.union(left, right);
-            this.draw(union, selector, {
-                staticSize: true,
-                title: 'Union'
-            });
+            this.draw(union, selector, opts);
         }
     };
 
