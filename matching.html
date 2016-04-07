@@ -154,7 +154,7 @@
                 var source = event.target.id;
                 if (source == 'noise-slider') {
                     noise = ui.value / 100;
-                    sdr = SDR.tools.getRandom(n, sparsity);
+//                    sdr = SDR.tools.getRandom(n, sparsity);
                     noisySdr = SDR.tools.addNoise(sdr, noise);
                     drawSdrs();
                 } else {
@@ -180,11 +180,6 @@
         }
 
         function drawSdrs() {
-            SDR.draw(sdr, 'left', {
-                title: 'Original',
-                color: leftColor,
-                size: size
-            });
             SDR.draw(noisySdr, 'right', {
                 title: 'With ' + Math.round(noise * 100) + '% noise',
                 color: rightColor,
@@ -198,6 +193,11 @@
         }
 
         drawSliders();
+        SDR.draw(sdr, 'left', {
+            title: 'Original',
+            color: leftColor,
+            size: size
+        });
         drawSdrs();
         updateDisplayValues();
 
