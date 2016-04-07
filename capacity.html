@@ -39,11 +39,35 @@
           word-break: break-all;
           white-space: normal;
         }
+
+        #card {
+            position: absolute;
+            top: 10px;
+            left: 1000px;
+            width: 300px;
+        }
+        #card .front {
+            padding: 50px 10px;
+        }
+        .capacity {
+            font-size: 24pt;
+        }
+
     </style>
 
 
 </head>
 <body>
+
+<div id="card">
+    <div class="front">
+        <p type="button" class="btn btn-warning btn-lg capacity">Show Capacity Formula</p>
+    </div>
+    <div class="back">
+        <img src="img/sdr-capacity.png"/>
+    </div>
+</div>
+
 
 <div class="container-fluid">
 
@@ -57,7 +81,7 @@
         <tbody>
 
         <tr>
-            <td colspan=3>
+            <td colspan="3">
 
                 <table id="sdr-props">
                     <tbody>
@@ -82,7 +106,9 @@
                 </table>
 
             </td>
+
         </tr>
+
         </tbody>
     </table>
 
@@ -124,6 +150,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 <script src="js/d3.min.js"></script>
+<script src="js/jquery.flip.min.js"></script>
 <script src="js/jquery-ui.min.js"></script>
 <script src="js/math.min.js"></script>
 
@@ -201,6 +228,12 @@
 
         drawSliders();
         drawSdr(n, w);
+
+        $("#card").flip({
+            autoSize: true,
+            forceWidth: true,
+            forceHeight: true
+        });
 
     });
 </script>
