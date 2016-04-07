@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>SDR Comparisons</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <style>
+        body {
+            margin: 20px 40px;
+        }
+        svg {
+            width: 600px;
+            height: 600px;
+        }
+        rect {
+            stroke: rgba(204, 204, 204, 0.5);
+            shape-rendering: crispEdges;
+        }
+    </style>
+
+
+</head>
+<body>
+
+<div class="container-fluid">
+
+    <div class="back-button">
+        <a href="index.html">BACK</a>
+    </div>
+
+    <h1>SDR Comparisons</h1>
+
+    <table>
+        <tbody>
+
+        <tr>
+            <td id="left"></td>
+            <td id="right"></td>
+            <td id="compare"></td>
+        </tr>
+
+        <tr>
+            <td colspan="3" align="center">
+                <div class="btn-group" role="group">
+                    <a href="compare-overlap.html">
+                        <button type="button" class="btn-xl btn-default">Overlap</button>
+                    </a>
+                    <a href="compare-union.html">
+                        <button type="button" class="btn-xl btn-default">Union</button>
+                    </a>
+                    <a href="compare.html">
+                        <button type="button" class="btn-xl btn-default">Compare</button>
+                    </a>
+                </div>
+
+
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+
+</div>
+
+
+<script id="props-tmpl" type="text/x-handlebars-template">
+    <h2>{{title}}</h2>
+    <table class="props">
+        <tbody>
+        {{#each props}}
+        <tr style="{{rowStyle}}">
+            <td class="data-label">{{label}}:</td>
+            <td id="{{label}}-display" class="data">{{data}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/handlebarsjs/4.0.5/handlebars.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/lodash/4.6.1/lodash.min.js"></script>
+<script src="js/d3.min.js"></script>
+<script src="js/math.min.js"></script>
+
+<script src="js/sdr.js"></script>
+<script src="js/tools.js"></script>
+
+<script>
+    $(function() {
+
+        var length = 1024;
+        var sparsity = 0.1;
+        var size = 38;
+        var leftColor = "orange";
+        var rightColor = "green";
+
+        var leftsdr = SDR.tools.getRandom(length, sparsity);
+        var rightsdr = SDR.tools.getRandom(length, sparsity);
+
+        SDR.draw(leftsdr, 'left', {
+            title: 'Left', color: leftColor, size: size
+        });
+        SDR.draw(rightsdr, 'right', {
+            title: 'Right', color: rightColor, size: size
+        });
+        SDR.drawOverlap(leftsdr, rightsdr, 'compare', {
+            title: 'Overlap',
+            size: size
+        });
+
+    });
+</script>
+
+<a href="https://github.com/rhyolight/sdr-viz"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
+
+</body>
+</html>
