@@ -19,6 +19,19 @@ $(function() {
         }
         return result;
     }
+
+    function overflowSafeUniqueness(n, w) {
+        var bigN = math.bignumber(n);
+        var bigW = math.bignumber(w);
+
+        var nf = factorial(bigN);
+        var wf = factorial(bigW);
+        var nwf = factorial(math.subtract(bigN, bigW));
+
+        return math.number(math.divide(nf, math.multiply(wf, nwf)));
+
+    }
+
     window.SDR.tools = {
 
         getRandom: function(size, sparsity) {
@@ -123,14 +136,17 @@ $(function() {
         },
 
         getUniqueness: function(sdr) {
-            var n = math.bignumber(sdr.length);
-            var w = math.bignumber(this.population(sdr));
+            return overflowSafeUniqueness(sdr.length, this.population(sdr));
+        },
 
-            var nf = factorial(n);
-            var wf = factorial(w);
-            var nwf = factorial(math.subtract(n, w));
-
-            return math.number(math.divide(nf, math.multiply(wf, nwf)));
+        getOverlapSet: function(sdr, b) {
+            var n = sdr.length;
+            var w = this.population(sdr);
+            var term1 = overflowSafeUniqueness(n, w);
+            var n2 = n - w;
+            var w2 = w - b;
+            var term2 = overflowSafeUniqueness(n2, w2);
+            return term1 * term2;
         }
 
     };

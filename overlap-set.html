@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-    <title>SDR Capacity</title>
+    <title>SDR Overlap Set</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="css/jquery-ui.min.css">
@@ -62,10 +62,10 @@
 
 <div id="card">
     <div class="front">
-        <p type="button" class="btn btn-warning btn-lg">Show Capacity Formula</p>
+        <p type="button" class="btn btn-warning btn-lg">Show Overlap Set Formula</p>
     </div>
     <div class="back">
-        <img src="img/sdr-capacity.png"/>
+        <img src="img/overlap-set.png"/>
     </div>
 </div>
 
@@ -76,7 +76,7 @@
         <a href="index.html">BACK</a>
     </div>
 
-    <h1>SDR Capacity</h1>
+    <h1>SDR Overlap Set</h1>
 
     <table>
         <tbody>
@@ -97,6 +97,11 @@
                             <td></td>
                         </tr>
                         <tr>
+                            <td class="data-label">b</td>
+                            <td id="b-display" class="data">loading...</td>
+                            <td><div id="b-slider" class="slider"></td>
+                        </tr>
+                        <tr>
                             <td class="data-label">sparsity</td>
                             <td id="sparsity-display" class="data">loading...</td>
                             <td>
@@ -111,6 +116,7 @@
         </tr>
 
         </tbody>
+
     </table>
 
     <hr/>
@@ -121,7 +127,7 @@
         <tr>
             <td id="sdr" colspan="2"></td>
             <td id="props" style="width:400px" class="wrapword">
-                Capacity: <span id="uniqueness-display"></span>
+                Overlap Set: <span id="overlap-set-display"></span>
             </td>
         </tr>
 
@@ -164,9 +170,34 @@
         // The functions below all rely on these values.
         var n = 256;
         var w = 5;
+        var b = 3;
 
         var $nSlider = $('#n-slider');
+        var $bSlider = $('#b-slider');
         var $sSlider = $('#sparsity-slider');
+
+        function slide(event, ui) {
+            var source = event.target.id;
+            var value = ui.value;
+            var myN = n;
+            var myW = w;
+            var myB = b;
+            if (source == 'n-slider') {
+                myN = value;
+            } else if (source == 'sparsity-slider') {
+                myW = Math.floor(n * (value / 100));
+            } else if (source == 'b-slider') {
+                myB = value;
+            } else {
+                throw new Error('Unknown event');
+            }
+            if (validate(myN, myW, myB)) {
+                b = myB;
+                drawSdr(myN, myW);
+            } else {
+                event.preventDefault();
+            }
+        }
 
         function drawSdr(newN, newW) {
             n = newN;
@@ -178,47 +209,30 @@
         }
 
         function updateDisplayValues(sparsity, sdr) {
-            var uniqueness = SDR.tools.getUniqueness(sdr);
-            if (Number.isNaN(uniqueness)) {
-                uniqueness = 'NaN';
-            } else if (! isFinite(uniqueness)) {
-                uniqueness = "Infinity";
-            } else {
-                uniqueness = Math.round(uniqueness).toLocaleString();
-            }
-            $('#uniqueness-display').html(uniqueness);
+            var overlapSet = SDR.tools.getOverlapSet(sdr, b);
+            overlapSet = Math.round(overlapSet).toLocaleString();
+            $('#overlap-set-display').html(overlapSet);
             $('#n-display').html(n);
             $nSlider.slider('value', n);
             $('#w-display').html(w);
+            $('#b-display').html(b);
+            $bSlider.slider('option', 'max', w);
+            $bSlider.slider('value', b);
             $('#sparsity-display').html(sparsity);
             $sSlider.slider('value', sparsity * 100);
         }
 
-        function validate(testN, testW) {
-            return testW < testN;
+        function validate(testN, testW, testB) {
+            return testW < testN && testB < testW;
         }
 
         function drawSliders() {
-            function slide(event, ui) {
-                var source = event.target.id;
-                var value = ui.value;
-                var myN = n;
-                var myW = w;
-                if (source == 'n-slider') {
-                    myN = value;
-                } else if (source == 'sparsity-slider') {
-                    myW = Math.floor(n * (value / 100));
-                } else {
-                    throw new Error('Unknown event');
-                }
-                if (validate(myN, myW)) {
-                    drawSdr(myN, myW);
-                } else {
-                    event.preventDefault();
-                }
-            }
             $nSlider.slider({
                 min: 16, max: 2048, value: n, step: 1,
+                slide: slide
+            });
+            $bSlider.slider({
+                min: 1, max: w, value: b, step: 1,
                 slide: slide
             });
             $sSlider.slider({

@@ -121,7 +121,7 @@
         var sparsity = 0.02;
         var w = Math.floor(n * sparsity);
         var theta = Math.floor(w * .9);
-        var noise = 0.02;
+        var noise = 0.05;
 
         var sdr = SDR.tools.getRandom(n, sparsity);
         var noisySdr = SDR.tools.addNoise(sdr, noise);
