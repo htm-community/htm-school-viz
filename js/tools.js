@@ -147,6 +147,10 @@ $(function() {
             var w2 = w - b;
             var term2 = overflowSafeUniqueness(n2, w2);
             return term1 * term2;
+        },
+
+        getExactMatchProbability: function(sdr) {
+            return math.bignumber(1) / this.getUniqueness(sdr);
         }
 
     };
