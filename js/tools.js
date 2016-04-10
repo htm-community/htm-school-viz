@@ -139,11 +139,11 @@ $(function() {
             return overflowSafeUniqueness(sdr.length, this.population(sdr));
         },
 
-        getOverlapSet: function(sdr, b) {
+        getOverlapSet: function(sdr, b, w) {
             var n = sdr.length;
-            var w = this.population(sdr);
-            var term1 = overflowSafeUniqueness(n, w);
-            var n2 = n - w;
+            var wx = this.population(sdr);
+            var term1 = overflowSafeUniqueness(wx, b);
+            var n2 = n - wx;
             var w2 = w - b;
             var term2 = overflowSafeUniqueness(n2, w2);
             return term1 * term2;

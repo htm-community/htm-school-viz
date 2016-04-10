@@ -28,6 +28,7 @@
             vertical-align: top;
             text-align: left;
             font-size: 26pt;
+            width: 600px;
         }
         .wrapword {
           white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
@@ -53,6 +54,13 @@
             font-size: 24pt;
             display: none;
         }
+        h1 span.data {
+            font-size: inherit;
+        }
+        h2 {
+            text-decoration: underline;
+            font-size: 30pt;
+        }
 
     </style>
 
@@ -76,7 +84,7 @@
         <a href="index.html">BACK</a>
     </div>
 
-    <h1>SDR Overlap Set</h1>
+    <h1> Overlap Set of SDR "<span class="data">x</span>"</h1>
 
     <table>
         <tbody>
@@ -88,25 +96,36 @@
                     <tbody>
                         <tr>
                             <td class="data-label">n</td>
-                            <td id="n-display" class="data">loading...</td>
-                            <td><div id="n-slider" class="slider"></td>
+                            <td class="n-display" class="data">loading...</td>
+                            <td><div id="n-slider" class="slider"></div></td>
                         </tr>
                         <tr>
-                            <td class="data-label">w</td>
-                            <td id="w-display" class="data">loading...</td>
+                            <td class="data-label">w<sub>x</sub></td>
+                            <td id="wx-display" class="data">loading...</td>
                             <td></td>
                         </tr>
                         <tr>
-                            <td class="data-label">b</td>
-                            <td id="b-display" class="data">loading...</td>
-                            <td><div id="b-slider" class="slider"></td>
-                        </tr>
-                        <tr>
-                            <td class="data-label">sparsity</td>
+                            <td class="data-label">sparsity<sub>x</sub></td>
                             <td id="sparsity-display" class="data">loading...</td>
                             <td>
                                 <div id="sparsity-slider" class="slider"></div>
                             </td>
+                        </tr>
+                        <tr><td colspan="3"><hr/></td></tr>
+                        <tr>
+                            <td class="data-label">b</td>
+                            <td class="b-display" class="data">loading...</td>
+                            <td><div id="b-slider" class="slider"></div></td>
+                        </tr>
+                        <tr>
+                            <td class="data-label">w</td>
+                            <td class="w-display" class="data">loading...</td>
+                            <td><div id="w-slider" class="slider"></div></td>
+                        </tr>
+                        <tr>
+                            <td class="data-label">sparsity<sub>o</sub></td>
+                            <td class="overlap-sparsity-display data">loading...</td>
+                            <td></td>
                         </tr>
                     </tbody>
                 </table>
@@ -126,8 +145,17 @@
 
         <tr>
             <td id="sdr" colspan="2"></td>
-            <td id="props" style="width:400px" class="wrapword">
-                Overlap Set: <span id="overlap-set-display"></span>
+            <td id="props" class="wrapword">
+                <h2>Overlap Set</h2>
+                <p># of SDRs where:</p>
+                <ul>
+                    <li class="data">n = <span class="n-display"></span></li>
+                    <li class="data">w = <span class="w-display"></span></li>
+                    <li class="data">sparsity = <span class="overlap-sparsity-display"></span></li>
+                    <li><span class="data b-display"></span> bits of overlap with <span class="data">x</span></li>
+                </ul>
+                <hr/>
+                <div id="overlap-set-display"></div>
             </td>
         </tr>
 
@@ -169,11 +197,15 @@
 
         // The functions below all rely on these values.
         var n = 256;
-        var w = 5;
+        var wx = 5;
+        var w = wx;
         var b = 3;
+        var sparsity = undefined;
+        var sdr = undefined;
 
         var $nSlider = $('#n-slider');
         var $bSlider = $('#b-slider');
+        var $wSlider = $('#w-slider');
         var $sSlider = $('#sparsity-slider');
 
         function slide(event, ui) {
@@ -181,49 +213,60 @@
             var value = ui.value;
             var myN = n;
             var myW = w;
+            var myWx = wx;
             var myB = b;
             if (source == 'n-slider') {
                 myN = value;
             } else if (source == 'sparsity-slider') {
-                myW = Math.floor(n * (value / 100));
+                myWx = Math.floor(n * (value / 100));
             } else if (source == 'b-slider') {
                 myB = value;
+            } else if (source == 'w-slider') {
+                myW = value;
             } else {
                 throw new Error('Unknown event');
             }
-            if (validate(myN, myW, myB)) {
+            if (validate(myN, myW, myB, myWx)) {
                 b = myB;
-                drawSdr(myN, myW);
+                w = myW;
+                if (myN !== n || myWx !== wx) {
+                    sparsity = Number(w / n).toFixed(4);
+                    n = myN;
+                    wx = myWx;
+                    drawSdr();
+                }
+                updateDisplayValues(sdr);
             } else {
                 event.preventDefault();
             }
         }
 
-        function drawSdr(newN, newW) {
-            n = newN;
-            w = newW;
-            var sparsity = w / n;
-            var sdr = SDR.tools.getRandom(n, sparsity);
+        function drawSdr() {
+            sparsity = Number(wx / n).toFixed(4);
+            sdr = SDR.tools.getRandom(n, sparsity);
             SDR.draw(sdr, 'sdr', {spartan: true, size: 60});
-            updateDisplayValues(Number(sparsity).toFixed(4), sdr);
         }
 
-        function updateDisplayValues(sparsity, sdr) {
-            var overlapSet = SDR.tools.getOverlapSet(sdr, b);
+        function updateDisplayValues() {
+            var overlapSet = SDR.tools.getOverlapSet(sdr, b, w);
             overlapSet = Math.round(overlapSet).toLocaleString();
             $('#overlap-set-display').html(overlapSet);
-            $('#n-display').html(n);
+            $('.n-display').html(n);
             $nSlider.slider('value', n);
-            $('#w-display').html(w);
-            $('#b-display').html(b);
+            $('.w-display').html(w);
+            $('.b-display').html(b);
             $bSlider.slider('option', 'max', w);
             $bSlider.slider('value', b);
+            $('#wx-display').html(wx);
+            $wSlider.slider('option', 'max', n/2);
+            $wSlider.slider('value', w);
             $('#sparsity-display').html(sparsity);
             $sSlider.slider('value', sparsity * 100);
+            $('.overlap-sparsity-display').html(Number(w / n).toFixed(4));
         }
 
-        function validate(testN, testW, testB) {
-            return testW < testN && testB <= testW;
+        function validate(testN, testW, testB, testWx) {
+            return testB <= testWx && testB <= testW && testW < testN;
         }
 
         function drawSliders() {
@@ -235,6 +278,10 @@
                 min: 1, max: w, value: b, step: 1,
                 slide: slide
             });
+            $wSlider.slider({
+                min: 1, max: 2048, value: w, step: 1,
+                slide: slide
+            });
             $sSlider.slider({
                 min: 1, max: 20, value: 2, step: 0.1,
                 slide: slide
@@ -242,7 +289,8 @@
         }
 
         drawSliders();
-        drawSdr(n, w);
+        drawSdr();
+        updateDisplayValues();
 
         $("#card").flip({
             autoSize: true,
