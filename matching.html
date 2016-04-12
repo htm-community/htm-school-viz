@@ -24,7 +24,6 @@
             width: 630px;
             height: 630px;
         }
-
         #match {
             font-size: 20pt;
             text-align: center;
@@ -32,11 +31,29 @@
             border: solid grey 1px;
             border-radius: 10px;
         }
+        #card {
+            position: absolute;
+            top: 10px;
+            left: 1400px;
+            width: 500px;
+        }
     </style>
 
 
 </head>
 <body>
+
+<div id="card">
+    <div class="front">
+        <p type="button" class="btn btn-warning btn-lg">Show False Positives</p>
+    </div>
+    <div class="back">
+        <div rowspan="2" class="data-label false-pos">
+            <h2>Chance of False Positive:</h2>
+            <div id="false-positive-display" class="data"></div>
+        </div>
+    </div>
+</div>
 
 <div class="container-fluid">
 
@@ -60,16 +77,18 @@
                     </tbody>
                 </table>
             </td>
-            <td colspan="2">
+            <td>
                 <div id="noise-slider" class="slider"></div>
             </td>
+            <td></td>
         </tr>
 
         <tr>
             <td class="data-label">&theta;: <span id="theta-display" class="data">loading...</span></td>
-            <td colspan="2">
+            <td>
                 <div id="theta-slider" class="slider"></div>
             </td>
+            <td></td>
         </tr>
 
         <tr>
@@ -108,6 +127,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 <script src="js/d3.min.js"></script>
+<script src="js/jquery.flip.min.js"></script>
 <script src="js/jquery-ui.min.js"></script>
 <script src="js/math.min.js"></script>
 
@@ -117,11 +137,11 @@
 <script>
     $(function () {
 
-        var n = 2304;
+        var n = 2048;
         var sparsity = 0.02;
         var w = Math.floor(n * sparsity);
         var theta = Math.floor(w * .9);
-        var noise = 0.05;
+        var noise = 0.33;
 
         var sdr = SDR.tools.getRandom(n, sparsity);
         var noisySdr = SDR.tools.addNoise(sdr, noise);
@@ -139,6 +159,9 @@
 
         function updateDisplayValues() {
             var $match = $('#match');
+            var overlapSet = SDR.tools.getOverlapSet(sdr, theta, w);
+            var falsePositiveChance = overlapSet / SDR.tools.getUniqueness(sdr);
+            $('#false-positive-display').html(falsePositiveChance);
             $('#sparsity-display').html();
             $('#noise-display').html(noise);
             $('#theta-display').html(theta);
@@ -154,7 +177,6 @@
                 var source = event.target.id;
                 if (source == 'noise-slider') {
                     noise = ui.value / 100;
-//                    sdr = SDR.tools.getRandom(n, sparsity);
                     noisySdr = SDR.tools.addNoise(sdr, noise);
                     drawSdrs();
                 } else {
@@ -200,6 +222,15 @@
         });
         drawSdrs();
         updateDisplayValues();
+
+        $("#card").flip({
+            autoSize: true,
+            forceWidth: true,
+            forceHeight: true
+        }).on('flip:done', function() {
+            $('.false-pos').show();
+        });
+
 
     });
 </script>

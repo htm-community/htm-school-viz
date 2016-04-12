@@ -15,8 +15,8 @@
 
     <style>
         svg {
-            width: 1000px;
-            height: 1000px;
+            width: 800px;
+            height: 800px;
         }
         .slider {
             width: 600px;
@@ -30,6 +30,9 @@
         h2 {
             text-decoration: underline;
             font-size: 30pt;
+        }
+        #props {
+            width: 600px;
         }
 
     </style>
@@ -83,7 +86,7 @@
                         </tr>
                         <tr><td colspan="3"><hr/></td></tr>
                         <tr>
-                            <td class="data-label">b</td>
+                            <td class="data-label">b (&theta;)</td>
                             <td class="b-display" class="data">loading...</td>
                             <td><div id="b-slider" class="slider"></div></td>
                         </tr>
@@ -126,6 +129,8 @@
                 </ul>
                 <hr/>
                 <div id="overlap-set-display"></div>
+                <hr/>
+                <p type="button" id="go-big" class="btn btn-primary btn-lg">Go Big</p>
             </td>
         </tr>
 
@@ -172,6 +177,7 @@
         var b = 3;
         var sparsity = undefined;
         var sdr = undefined;
+        var rectSize = 50;
 
         var $nSlider = $('#n-slider');
         var $bSlider = $('#b-slider');
@@ -214,7 +220,7 @@
         function drawSdr() {
             sparsity = Number(wx / n).toFixed(4);
             sdr = SDR.tools.getRandom(n, sparsity);
-            SDR.draw(sdr, 'sdr', {spartan: true, size: 60});
+            SDR.draw(sdr, 'sdr', {spartan: true, size: rectSize});
         }
 
         function updateDisplayValues() {
@@ -258,6 +264,15 @@
             });
         }
 
+        function goBigOrGoHome() {
+            n = 2048;
+            wx = 40;
+            w = 40;
+            b = 40;
+            drawSdr();
+            updateDisplayValues();
+        }
+
         drawSliders();
         drawSdr();
         updateDisplayValues();
@@ -270,6 +285,9 @@
             $('#props').show();
         });
 
+        $('#go-big').click(function() {
+            goBigOrGoHome();
+        });
     });
 </script>
 
