@@ -148,6 +148,12 @@
 
         var $subsampleSlider = $('#subsample-slider');
         var $thetaSlider = $('#theta-slider');
+        var $fpDisplay = $('#false-positive-display');
+        var $sparsityDisplay = $('#sparsity-display');
+        var $subsampleDisplay = $('#subsample-display');
+        var $thetaDisplay = $('#theta-display');
+        var $match = $('#match');
+
         var leftColor = "orange";
         var rightColor = "green";
         var size = 40;
@@ -157,13 +163,12 @@
         }
 
         function updateDisplayValues() {
-            var $match = $('#match');
             var overlapSet = SDR.tools.getOverlapSet(sdr, theta, w);
             var falsePositiveChance = overlapSet / SDR.tools.getUniqueness(sdr);
-            $('#false-positive-display').html(falsePositiveChance);
-            $('#sparsity-display').html();
-            $('#subsample-display').html(sample);
-            $('#theta-display').html(theta);
+            $fpDisplay.html(falsePositiveChance);
+            $sparsityDisplay.html();
+            $subsampleDisplay.html(sample);
+            $thetaDisplay.html(theta);
             if (sdrsMatch()) {
                 $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
             } else {
