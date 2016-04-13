@@ -102,6 +102,20 @@ $(function() {
             return noisy;
         },
 
+        setW: function(sdr, w) {
+            var pop = this.population(sdr);
+            while (pop !== w) {
+                if (pop < w) {
+                    sdr[_.sample(this.getInactiveBits(sdr))] = 1;
+                    pop++;
+                } else {
+                    sdr[_.sample(this.getActiveBits(sdr))] = 0;
+                    pop--;
+                }
+            }
+            return sdr;
+        },
+
         population: function(sdr) {
             return _.reduce(sdr, function(sum, n) {
                 return sum + n;
@@ -136,12 +150,20 @@ $(function() {
         },
 
         getUniqueness: function(sdr) {
-            return overflowSafeUniqueness(sdr.length, this.population(sdr));
+            return this._getUniqueness(sdr.length, this.population(sdr));
+        },
+
+        _getUniqueness: function(n, w) {
+            return overflowSafeUniqueness(n, w);
         },
 
         getOverlapSet: function(sdr, b, w) {
             var n = sdr.length;
             var wx = this.population(sdr);
+            return this._getOverlapSet(n, wx, b, w);
+        },
+
+        _getOverlapSet: function(n, wx, b, w) {
             var term1 = overflowSafeUniqueness(wx, b);
             var n2 = n - wx;
             var w2 = w - b;
