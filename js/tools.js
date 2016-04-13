@@ -151,6 +151,33 @@ $(function() {
 
         getExactMatchProbability: function(sdr) {
             return math.bignumber(1) / this.getUniqueness(sdr);
+        },
+
+        subsample: function(sdr, percentToSample) {
+            var onBits = [];
+            var sampledOnBits = [];
+            var percent = 1.0 - percentToSample;
+            var bitsToRemove = Math.floor(percent * this.population(sdr));
+            var randomBit;
+
+            _.each(sdr, function(bit, index) {
+                if (bit == 1) onBits.push(index);
+            });
+
+            while (bitsToRemove > 0) {
+                randomBit = _.sample(onBits);
+                sampledOnBits.push(randomBit);
+                onBits.splice(onBits.indexOf(randomBit), 1);
+                bitsToRemove--;
+            }
+
+            return _.map(sdr, function(bit, index) {
+                var out = bit;
+                if (bit == 1 && sampledOnBits.indexOf(index) > -1) {
+                    out = 0;
+                }
+                return out;
+            });
         }
 
     };

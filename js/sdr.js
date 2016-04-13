@@ -59,7 +59,7 @@ $(function() {
                     }, {
                         label: 'w', data: population
                     }, {
-                        label: 'sparsity', data: sparsity.toFixed(2)
+                        label: 'sparsity', data: sparsity.toFixed(3)
                     }]
                 }));
             }
