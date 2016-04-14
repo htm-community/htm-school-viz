@@ -32,7 +32,7 @@
             border-radius: 10px;
         }
         .slider {
-            width: 400px;
+            width: 600px;
             margin: 0 40px;
         }
         .props td {
@@ -64,12 +64,14 @@
         <tbody>
 
         <tr>
-            <!-- Column 1: SDR grid -->
             <td id="sdr-x"></td>
-            <!-- Column 2: SDR grid -->
             <td id="sdr-xprime"></td>
-            <!-- Column 3: Sliders and labels -->
-            <td>
+            <td id="sdr-y"></td>
+            <td id="sdr-comparison"></td>
+        </tr>
+
+        <tr>
+            <td valign="top" colspan="2">
                 <table><tbody>
                 <tr>
                     <td colspan="3" align="center">
@@ -102,18 +104,6 @@
                     </td>
                     <td class="sample-display data"></td>
                 </tr>
-                </tbody></table>
-            </td>
-        </tr>
-
-        <tr>
-            <!-- Column 1: SDR grid -->
-            <td id="sdr-y"></td>
-            <!-- Column 2: SDR grid -->
-            <td id="sdr-comparison"></td>
-            <!-- Column 3: Sliders and labels -->
-            <td valign="top">
-                <table><tbody>
                 <tr>
                     <td class="data-label">&theta;</td>
                     <td>
@@ -128,22 +118,15 @@
                     </td>
                     <td class="wy-display data"></td>
                 </tr>
-                <tr><td colspan="3"><hr/></td></tr>
-                <tr>
-                    <td>
-                        <div id="match"></div>
-                    </td>
-                    <td style="padding-left: 20px">
-                        <h2>Chance of False Positive:</h2>
-                        <div id="false-positive-display" class="data"></div>
-                    </td>
-                    <td>
-                        <button type="button" id="next" class="btn btn-primary btn-lg">Try Another</button>
-                    </td>
-                </tr>
-
                 </tbody></table>
             </td>
+            <td valign="top">
+                <button type="button" id="next" class="btn btn-primary btn-lg">Try Another Random y</button>
+                <h2>Chance of False Positive:</h2>
+                <div id="false-positive-display" class="data"></div>
+                <div id="match"></div>
+            </td>
+            <td></td>
         </tr>
 
 
@@ -211,24 +194,36 @@
         }
 
         function updateDisplayValues() {
-            var overlapSet, falsePositiveChance;
+            var overlapSet, falsePosProbability, falsePosOdds;
+            var wxPrime = SDR.tools.population(xprime);
+            if (theta > wxPrime) {
+                theta = wxPrime;
+            }
             $nDisplay.html(n);
             $wDisplay.html(w);
             $sampleDisplay.html(sample);
-            $wSlider.slider('option', 'max', n);
-            $wySlider.slider('option', 'max', n);
             $thetaDisplay.html(theta);
             $wyDisplay.html(wy);
-            $thetaSlider.slider('option', 'max', SDR.tools.population(xprime));
+            // sliders
+            $wSlider.slider('value', w);
+            $wySlider.slider('value', wy);
+            $thetaSlider.slider('value', theta);
+            $sampleSlider.slider('value', sample);
+            $nSlider.slider('value', n);
+
+            $wSlider.slider('option', 'max', n);
+            $thetaSlider.slider('option', 'max', wxPrime);
+            $wySlider.slider('option', 'max', n);
+            $wySlider.slider('option', 'min', wxPrime);
 
             overlapSet = SDR.tools._getOverlapSet(n, SDR.tools.population(xprime), theta, wy);
             if (isFinite(overlapSet)) {
-                falsePositiveChance = math.divide(overlapSet, SDR.tools._getUniqueness(n, wy));
+                falsePosProbability = math.divide(overlapSet, SDR.tools._getUniqueness(n, wy));
             } else {
-                falsePositiveChance = '&infin;';
+                falsePosProbability = '&infin;';
             }
 
-            $fpDisplay.html(falsePositiveChance);
+            $fpDisplay.html(falsePosProbability);
             if (sdrsMatch(xprime, y)) {
                 $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
             } else {
@@ -236,8 +231,7 @@
             }
         }
 
-        function validatePotentialValues(myN, myW, myWy) {
-            var wxPrime = SDR.tools.population(xprime);
+        function validatePotentialValues(myN, myW, myWy, wxPrime) {
             return myW <= myN && wxPrime <= myWy;
         }
 
@@ -248,6 +242,8 @@
                 var myW = w;
                 var myWy = wy;
                 var mySample = sample;
+                var wxPrime = SDR.tools.population(xprime);
+
                 if (source == 'sample-slider') {
                     mySample = ui.value;
                 } else if (source == 'theta-slider') {
@@ -259,7 +255,12 @@
                 } else if (source == 'w-slider') {
                     myW = ui.value;
                 }
-                if (validatePotentialValues(myN, myW, myWy)) {
+
+                if (myWy < wxPrime) {
+                    myWy = wxPrime;
+                }
+
+                if (validatePotentialValues(myN, myW, myWy, wxPrime)) {
                     drawSdrs(myN, myW, mySample, myWy);
                     updateDisplayValues();
                 } else {
@@ -285,7 +286,7 @@
                 min: 0.0,
                 max: 1.0,
                 value: sample,
-                step: 0.1,
+                step: 0.01,
                 slide: slide
             });
             $thetaSlider.slider({
@@ -330,7 +331,7 @@
             if (force || drawX) {
                 x = SDR.tools.getRandom(n, w / n);
                 SDR.draw(x, 'sdr-x', {
-                    title: 'x',
+                    title: 'Original SDR x',
                     size: size
                 });
             }
@@ -338,7 +339,7 @@
             if (force || drawXPrime) {
                 xprime = SDR.tools.subsample(x, sample);
                 SDR.draw(xprime, 'sdr-xprime', {
-                    title: 'x\'',
+                    title: 'x\' (subsampled)',
                     color: leftColor,
                     size: size
                 });
@@ -354,7 +355,7 @@
             }
 
             SDR.drawComparison(xprime, y, 'sdr-comparison', {
-                title: 'Comparison',
+                title: 'x\' compared to y',
                 colors: {left: leftColor, right: rightColor},
                 size: size
             });
