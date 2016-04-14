@@ -31,12 +31,6 @@
             border: solid grey 1px;
             border-radius: 10px;
         }
-        #card {
-            position: absolute;
-            top: 10px;
-            left: 1400px;
-            width: 500px;
-        }
         .slider {
             width: 400px;
             margin: 0 40px;
@@ -48,6 +42,9 @@
         }
         .data-label, .data {
             font-size: 20pt;
+        }
+        #match {
+            width: 140px;
         }
     </style>
 
@@ -118,13 +115,6 @@
             <td valign="top">
                 <table><tbody>
                 <tr>
-                    <td class="data-label">y noise</td>
-                    <td>
-                        <div id="noise-slider" class="slider"></div>
-                    </td>
-                    <td class="noise-display data"></td>
-                </tr>
-                <tr>
                     <td class="data-label">&theta;</td>
                     <td>
                         <div id="theta-slider" class="slider"></div>
@@ -189,13 +179,11 @@
 
 <script>
     $(function () {
-
         var n = 1024;
         var w = 8;
         var theta = 2;
         var sample = 0.5;
         var wy = w;
-        var noise = 0.5;
 
         var x = SDR.tools.getRandom(n, w / n);
         var xprime = SDR.tools.subsample(x, sample);
@@ -207,8 +195,6 @@
         var $wDisplay = $('.w-display');
         var $sampleSlider = $('#sample-slider');
         var $sampleDisplay = $('.sample-display');
-        var $noiseSlider = $('#noise-slider');
-        var $noiseDisplay = $('.noise-display');
         var $thetaSlider = $('#theta-slider');
         var $thetaDisplay = $('.theta-display');
         var $wySlider = $('#wy-slider');
@@ -225,20 +211,25 @@
         }
 
         function updateDisplayValues() {
+            var overlapSet, falsePositiveChance;
             $nDisplay.html(n);
             $wDisplay.html(w);
             $sampleDisplay.html(sample);
             $wSlider.slider('option', 'max', n);
-            $noiseDisplay.html(noise);
+            $wySlider.slider('option', 'max', n);
             $thetaDisplay.html(theta);
             $wyDisplay.html(wy);
             $thetaSlider.slider('option', 'max', SDR.tools.population(xprime));
 
-            var overlapSet = SDR.tools._getOverlapSet(n, SDR.tools.population(xprime), theta, wy);
-            var falsePositiveChance = overlapSet / SDR.tools._getUniqueness(n, wy);
+            overlapSet = SDR.tools._getOverlapSet(n, SDR.tools.population(xprime), theta, wy);
+            if (isFinite(overlapSet)) {
+                falsePositiveChance = math.divide(overlapSet, SDR.tools._getUniqueness(n, wy));
+            } else {
+                falsePositiveChance = '&infin;';
+            }
 
             $fpDisplay.html(falsePositiveChance);
-            if (sdrsMatch(x, y)) {
+            if (sdrsMatch(xprime, y)) {
                 $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
             } else {
                 $match.html('NOPE').removeClass('bg-success').addClass('bg-danger');
@@ -257,7 +248,6 @@
                 var myW = w;
                 var myWy = wy;
                 var mySample = sample;
-                var myNoise = noise;
                 if (source == 'sample-slider') {
                     mySample = ui.value;
                 } else if (source == 'theta-slider') {
@@ -268,11 +258,9 @@
                     myN = ui.value;
                 } else if (source == 'w-slider') {
                     myW = ui.value;
-                } else if (source == 'noise-slider') {
-                    myNoise = ui.value;
                 }
                 if (validatePotentialValues(myN, myW, myWy)) {
-                    drawSdrs(myN, myW, mySample, myNoise, myWy);
+                    drawSdrs(myN, myW, mySample, myWy);
                     updateDisplayValues();
                 } else {
                     event.preventDefault();
@@ -300,13 +288,6 @@
                 step: 0.1,
                 slide: slide
             });
-            $noiseSlider.slider({
-                min: 0,
-                max: 1.0,
-                value: noise,
-                step: 0.1,
-                slide: slide
-            });
             $thetaSlider.slider({
                 min: 0,
                 max: SDR.tools.population(xprime),
@@ -323,7 +304,7 @@
             });
         }
 
-        function drawSdrs(myN, myW, mySample, myNoise, myWy, force) {
+        function drawSdrs(myN, myW, mySample, myWy, force) {
             var drawX = false;
             var drawXPrime = false;
             var drawY = false;
@@ -341,11 +322,6 @@
                 drawXPrime = true;
             }
 
-            if (myNoise !== noise) {
-                noise = myNoise;
-                drawY = true;
-            }
-
             if (myWy !== wy) {
                 wy = myWy;
                 drawY = true;
@@ -355,7 +331,6 @@
                 x = SDR.tools.getRandom(n, w / n);
                 SDR.draw(x, 'sdr-x', {
                     title: 'x',
-                    color: leftColor,
                     size: size
                 });
             }
@@ -364,15 +339,15 @@
                 xprime = SDR.tools.subsample(x, sample);
                 SDR.draw(xprime, 'sdr-xprime', {
                     title: 'x\'',
+                    color: leftColor,
                     size: size
                 });
             }
 
             if (force || drawY) {
-                y = SDR.tools.addNoise(x, noise);
-                y = SDR.tools.setW(y, wy);
+                y = SDR.tools.getRandom(n, wy / n);
                 SDR.draw(y, 'sdr-y', {
-                    title: 'y = x + noise',
+                    title: 'y (random)',
                     color: rightColor,
                     size: size
                 });
@@ -387,19 +362,19 @@
         }
 
         function example1() {
-            drawSdrs(1024, 8, 0.5, noise, 8);
+            drawSdrs(1024, 8, 0.5, 8);
             theta = 2;
             updateDisplayValues();
         }
 
         function example2() {
-            drawSdrs(1024, 20, 0.5, noise, 20);
+            drawSdrs(1024, 20, 0.5, 20);
             theta = 5;
             updateDisplayValues();
         }
 
         function example3() {
-            drawSdrs(2048, 40, 0.5, noise, 40);
+            drawSdrs(2048, 40, 0.5, 40);
             theta = 10;
             updateDisplayValues();
         }
@@ -412,10 +387,9 @@
             } else if (this.id == 'ex3') {
                 example3();
             } else if (this.id == 'next') {
-                y = SDR.tools.addNoise(x, noise);
-                y = SDR.tools.setW(y, wy);
+                y = SDR.tools.getRandom(n, wy / n);
                 SDR.draw(y, 'sdr-y', {
-                    title: 'y = x + noise',
+                    title: 'y = (random)',
                     color: rightColor,
                     size: size
                 });
@@ -424,11 +398,12 @@
                     colors: {left: leftColor, right: rightColor},
                     size: size
                 });
+                updateDisplayValues();
             }
         });
 
         drawSliders();
-        drawSdrs(n, w, sample, noise, wy, true);
+        drawSdrs(n, w, sample, wy, true);
         updateDisplayValues();
 
     });
