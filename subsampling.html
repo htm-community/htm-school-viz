@@ -194,8 +194,9 @@
         }
 
         function updateDisplayValues() {
-            var overlapSet, falsePosProbability, falsePosOdds;
+            var overlapSet, falsePosProbability;
             var wxPrime = SDR.tools.population(xprime);
+            var yUniqueness;
             if (theta > wxPrime) {
                 theta = wxPrime;
             }
@@ -216,9 +217,11 @@
             $wySlider.slider('option', 'max', n);
             $wySlider.slider('option', 'min', wxPrime);
 
-            overlapSet = SDR.tools._getOverlapSet(n, SDR.tools.population(xprime), theta, wy);
+            overlapSet = SDR.tools._getOverlapSet(n, wxPrime, theta, wy);
             if (isFinite(overlapSet)) {
-                falsePosProbability = math.divide(overlapSet, SDR.tools._getUniqueness(n, wy));
+                yUniqueness = SDR.tools._getUniqueness(n, wy);
+                console.log('%s / %s', overlapSet, yUniqueness);
+                falsePosProbability = math.divide(overlapSet, yUniqueness);
             } else {
                 falsePosProbability = '&infin;';
             }
