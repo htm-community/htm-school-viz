@@ -362,7 +362,6 @@
                 xprime = SDR.tools.subsample(x, sample);
                 SDR.draw(xprime, 'sdr-xprime', {
                     title: 'x\'',
-                    color: rightColor,
                     size: size
                 });
             }
@@ -372,6 +371,7 @@
                 y = SDR.tools.setW(y, wy);
                 SDR.draw(y, 'sdr-y', {
                     title: 'y = x + noise',
+                    color: rightColor,
                     size: size
                 });
             }
