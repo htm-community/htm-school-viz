@@ -55,18 +55,6 @@
 </head>
 <body>
 
-<div id="card">
-    <div class="front">
-        <p type="button" class="btn btn-warning btn-lg">Show False Positives</p>
-    </div>
-    <div class="back">
-        <div rowspan="2" class="data-label false-pos">
-            <h2>Chance of False Positive:</h2>
-            <div id="false-positive-display" class="data"></div>
-        </div>
-    </div>
-</div>
-
 <div class="container-fluid">
 
     <div class="back-button">
@@ -86,6 +74,16 @@
             <!-- Column 3: Sliders and labels -->
             <td>
                 <table><tbody>
+                <tr>
+                    <td colspan="3" align="center">
+                        <div class="btn-group" role="group">
+                            <button type="button" id="ex1" class="btn btn-primary btn-lg">Example 1</button>
+                            <button type="button" id="ex2" class="btn btn-primary btn-lg">Example 2</button>
+                            <button type="button" id="ex3" class="btn btn-primary btn-lg">Example 3</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr><td colspan="3"><hr/></td></tr>
                 <tr>
                     <td class="data-label">n</td>
                     <td>
@@ -140,15 +138,22 @@
                     </td>
                     <td class="wy-display data"></td>
                 </tr>
+                <tr><td colspan="3"><hr/></td></tr>
+                <tr>
+                    <td>
+                        <div id="match"></div>
+                    </td>
+                    <td style="padding-left: 20px">
+                        <h2>Chance of False Positive:</h2>
+                        <div id="false-positive-display" class="data"></div>
+                    </td>
+                    <td></td>
+                </tr>
+
                 </tbody></table>
             </td>
         </tr>
 
-        <tr>
-            <td colspan="3">
-                <div id="match"></div>
-            </td>
-        </tr>
 
         </tbody>
     </table>
@@ -174,7 +179,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 <script src="js/d3.min.js"></script>
-<script src="js/jquery.flip.min.js"></script>
 <script src="js/jquery-ui.min.js"></script>
 <script src="js/math.min.js"></script>
 
@@ -232,14 +236,11 @@
             var falsePositiveChance = overlapSet / SDR.tools._getUniqueness(n, wy);
 
             $fpDisplay.html(falsePositiveChance);
-//            $sparsityDisplay.html();
-//            $subsampleDisplay.html(sample);
-//            $thetaDisplay.html(theta);
-//            if (sdrsMatch()) {
-//                $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
-//            } else {
-//                $match.html('NOPE').removeClass('bg-success').addClass('bg-danger');
-//            }
+            if (sdrsMatch(x, y)) {
+                $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
+            } else {
+                $match.html('NOPE').removeClass('bg-success').addClass('bg-danger');
+            }
         }
 
         function validatePotentialValues(myN, myW, myWy) {
@@ -383,17 +384,37 @@
 
         }
 
+        function example1() {
+            drawSdrs(1024, 8, 0.5, noise, 8);
+            theta = 2;
+            updateDisplayValues();
+        }
+
+        function example2() {
+            drawSdrs(1024, 20, 0.5, noise, 20);
+            theta = 5;
+            updateDisplayValues();
+        }
+
+        function example3() {
+            drawSdrs(2048, 40, 0.5, noise, 40);
+            theta = 10;
+            updateDisplayValues();
+        }
+
+        $('button').click(function() {
+            if (this.id == 'ex1') {
+                example1();
+            } else if (this.id == 'ex2') {
+                example2();
+            } else if (this.id == 'ex3') {
+                example3();
+            }
+        });
+
         drawSliders();
         drawSdrs(n, w, sample, noise, wy, true);
         updateDisplayValues();
-
-        $("#card").flip({
-            autoSize: true,
-            forceWidth: true,
-            forceHeight: true
-        }).on('flip:done', function() {
-            $('.false-pos').show();
-        });
 
     });
 </script>
