@@ -147,7 +147,9 @@
                         <h2>Chance of False Positive:</h2>
                         <div id="false-positive-display" class="data"></div>
                     </td>
-                    <td></td>
+                    <td>
+                        <button type="button" id="next" class="btn btn-primary btn-lg">Try Another</button>
+                    </td>
                 </tr>
 
                 </tbody></table>
@@ -376,7 +378,7 @@
                 });
             }
 
-            SDR.drawComparison(x, y, 'sdr-comparison', {
+            SDR.drawComparison(xprime, y, 'sdr-comparison', {
                 title: 'Comparison',
                 colors: {left: leftColor, right: rightColor},
                 size: size
@@ -409,6 +411,19 @@
                 example2();
             } else if (this.id == 'ex3') {
                 example3();
+            } else if (this.id == 'next') {
+                y = SDR.tools.addNoise(x, noise);
+                y = SDR.tools.setW(y, wy);
+                SDR.draw(y, 'sdr-y', {
+                    title: 'y = x + noise',
+                    color: rightColor,
+                    size: size
+                });
+                SDR.drawComparison(xprime, y, 'sdr-comparison', {
+                    title: 'Comparison',
+                    colors: {left: leftColor, right: rightColor},
+                    size: size
+                });
             }
         });
 
