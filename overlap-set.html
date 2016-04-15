@@ -33,23 +33,13 @@
         }
         #props {
             width: 600px;
+            display: inherit;
         }
-
     </style>
 
 
 </head>
 <body>
-
-<div id="card">
-    <div class="front">
-        <p type="button" class="btn btn-warning btn-lg">Show Overlap Set Formula</p>
-    </div>
-    <div class="back">
-        <img src="img/overlap-set.png"/>
-    </div>
-</div>
-
 
 <div class="container-fluid">
 
@@ -63,61 +53,52 @@
         <tbody>
 
         <tr>
-            <td colspan="3">
-
+            <td>
                 <table id="sdr-props">
                     <tbody>
-                        <tr>
-                            <td class="data-label">n</td>
-                            <td class="n-display" class="data">loading...</td>
-                            <td><div id="n-slider" class="slider"></div></td>
-                        </tr>
-                        <tr>
-                            <td class="data-label">w<sub>x</sub></td>
-                            <td id="wx-display" class="data">loading...</td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td class="data-label">sparsity<sub>x</sub></td>
-                            <td id="sparsity-display" class="data">loading...</td>
-                            <td>
-                                <div id="sparsity-slider" class="slider"></div>
-                            </td>
-                        </tr>
-                        <tr><td colspan="3"><hr/></td></tr>
-                        <tr>
-                            <td class="data-label">b (&theta;)</td>
-                            <td class="b-display" class="data">loading...</td>
-                            <td><div id="b-slider" class="slider"></div></td>
-                        </tr>
-                        <tr>
-                            <td class="data-label">w</td>
-                            <td class="w-display" class="data">loading...</td>
-                            <td><div id="w-slider" class="slider"></div></td>
-                        </tr>
-                        <tr>
-                            <td class="data-label">sparsity<sub>o</sub></td>
-                            <td class="overlap-sparsity-display data">loading...</td>
-                            <td></td>
-                        </tr>
+                    <tr>
+                        <td class="data-label">n</td>
+                        <td class="n-display" class="data">loading...</td>
+                        <td><div id="n-slider" class="slider"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="data-label">w<sub>x</sub></td>
+                        <td id="wx-display" class="data">loading...</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="data-label">sparsity<sub>x</sub></td>
+                        <td id="sparsity-display" class="data">loading...</td>
+                        <td>
+                            <div id="sparsity-slider" class="slider"></div>
+                        </td>
+                    </tr>
+                    <tr><td colspan="3"><hr/></td></tr>
+                    <tr>
+                        <td class="data-label">b (&theta;)</td>
+                        <td class="b-display" class="data">loading...</td>
+                        <td><div id="b-slider" class="slider"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="data-label">w</td>
+                        <td class="w-display" class="data">loading...</td>
+                        <td><div id="w-slider" class="slider"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="data-label">sparsity<sub>o</sub></td>
+                        <td class="overlap-sparsity-display data">loading...</td>
+                        <td></td>
+                    </tr>
                     </tbody>
                 </table>
-
             </td>
-
+            <td>
+                <img src="img/overlap-set.png"/>
+            </td>
         </tr>
 
-        </tbody>
-
-    </table>
-
-    <hr/>
-
-    <table>
-        <tbody>
-
         <tr>
-            <td id="sdr" colspan="2"></td>
+            <td id="sdr"></td>
             <td id="props" class="wrapword">
                 <h2>Overlap Set</h2>
                 <p># of SDRs where:</p>
@@ -135,6 +116,7 @@
         </tr>
 
         </tbody>
+
     </table>
 
 </div>
@@ -276,14 +258,6 @@
         drawSliders();
         drawSdr();
         updateDisplayValues();
-
-        $("#card").flip({
-            autoSize: true,
-            forceWidth: true,
-            forceHeight: true
-        }).on('flip:done', function() {
-            $('#props').show();
-        });
 
         $('#go-big').click(function() {
             goBigOrGoHome();
