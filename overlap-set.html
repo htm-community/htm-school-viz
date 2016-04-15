@@ -24,6 +24,9 @@
         table#sdr-props td {
             padding: 0 10px;
         }
+        #sdr-props {
+            margin-bottom: 40px;
+        }
         h1 span.data {
             font-size: inherit;
         }
@@ -32,8 +35,11 @@
             font-size: 30pt;
         }
         #props {
-            width: 600px;
             display: inherit;
+        }
+        #overlap-set-display {
+            width: 600px;
+            font-size: 34pt;
         }
     </style>
 
@@ -75,7 +81,7 @@
                     </tr>
                     <tr><td colspan="3"><hr/></td></tr>
                     <tr>
-                        <td class="data-label">b (&theta;)</td>
+                        <td class="data-label">b</td>
                         <td class="b-display" class="data">loading...</td>
                         <td><div id="b-slider" class="slider"></div></td>
                     </tr>
@@ -99,7 +105,7 @@
 
         <tr>
             <td id="sdr"></td>
-            <td id="props" class="wrapword">
+            <td id="props">
                 <h2>Overlap Set</h2>
                 <p># of SDRs where:</p>
                 <ul>
@@ -109,9 +115,9 @@
                     <li><span class="data b-display"></span> bits of overlap with <span class="data">x</span></li>
                 </ul>
                 <hr/>
-                <div id="overlap-set-display"></div>
+                <p id="overlap-set-display"></p>
                 <hr/>
-                <p type="button" id="go-big" class="btn btn-primary btn-lg">Go Big</p>
+                <p type="button" id="go-big" class="btn btn-primary btn-lg">2048 bit example</p>
             </td>
         </tr>
 
@@ -165,6 +171,13 @@
         var $bSlider = $('#b-slider');
         var $wSlider = $('#w-slider');
         var $sSlider = $('#sparsity-slider');
+        var $overlapSetDisplay = $('#overlap-set-display');
+        var $nDisplay = $('.n-display');
+        var $wDisplay = $('.w-display');
+        var $bDisplay = $('.b-display');
+        var $wxDisplay = $('#wx-display');
+        var $sparsityDisplay = $('#sparsity-display');
+        var $overlapSparsityDisplay = $('.overlap-sparsity-display');
 
         function slide(event, ui) {
             var source = event.target.id;
@@ -207,20 +220,19 @@
 
         function updateDisplayValues() {
             var overlapSet = SDR.tools.getOverlapSet(sdr, b, w);
-            overlapSet = Math.round(overlapSet).toLocaleString();
-            $('#overlap-set-display').html(overlapSet);
-            $('.n-display').html(n);
+            $overlapSetDisplay.html(overlapSet.toPrecision(5));
+            $nDisplay.html(n);
             $nSlider.slider('value', n);
-            $('.w-display').html(w);
-            $('.b-display').html(b);
-            $bSlider.slider('option', 'max', w);
+            $wDisplay.html(w);
+            $bDisplay.html(b);
+            $bSlider.slider('option', 'max', Math.min(wx, w));
             $bSlider.slider('value', b);
-            $('#wx-display').html(wx);
+            $wxDisplay.html(wx);
             $wSlider.slider('option', 'max', n/2);
             $wSlider.slider('value', w);
-            $('#sparsity-display').html(sparsity);
+            $sparsityDisplay.html(sparsity);
             $sSlider.slider('value', sparsity * 100);
-            $('.overlap-sparsity-display').html(Number(w / n).toFixed(4));
+            $overlapSparsityDisplay.html(Number(w / n).toFixed(4));
         }
 
         function validate(testN, testW, testB, testWx) {

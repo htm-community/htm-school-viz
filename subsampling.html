@@ -46,6 +46,9 @@
         #match {
             width: 140px;
         }
+        #false-positive-display {
+            font-size: 34pt;
+        }
     </style>
 
 
@@ -221,7 +224,7 @@
             if (isFinite(overlapSet)) {
                 yUniqueness = SDR.tools._getUniqueness(n, wy);
                 console.log('%s / %s', overlapSet, yUniqueness);
-                falsePosProbability = overlapSet.div(yUniqueness).toString();
+                falsePosProbability = overlapSet.div(yUniqueness).toPrecision(5);
             } else {
                 falsePosProbability = '&infin;';
             }
