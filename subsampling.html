@@ -171,9 +171,9 @@
         var sample = 0.5;
         var wy = w;
 
-        var x = SDR.tools.getRandom(n, w / n);
+        var x = SDR.tools.getRandom(n, w);
         var xprime = SDR.tools.subsample(x, sample);
-        var y = SDR.tools.getRandom(n, wy / n);
+        var y = SDR.tools.getRandom(n, wy);
 
         var $nSlider = $('#n-slider');
         var $nDisplay = $('.n-display');
@@ -335,7 +335,7 @@
             }
 
             if (force || drawX) {
-                x = SDR.tools.getRandom(n, w / n);
+                x = SDR.tools.getRandom(n, w);
                 SDR.draw(x, 'sdr-x', {
                     title: 'Original SDR x',
                     size: size
@@ -352,7 +352,7 @@
             }
 
             if (force || drawY) {
-                y = SDR.tools.getRandom(n, wy / n);
+                y = SDR.tools.getRandom(n, wy);
                 SDR.draw(y, 'sdr-y', {
                     title: 'y (random)',
                     color: rightColor,
@@ -394,7 +394,7 @@
             } else if (this.id == 'ex3') {
                 example3();
             } else if (this.id == 'next') {
-                y = SDR.tools.getRandom(n, wy / n);
+                y = SDR.tools.getRandom(n, wy);
                 SDR.draw(y, 'sdr-y', {
                     title: 'y = (random)',
                     color: rightColor,

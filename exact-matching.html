@@ -144,7 +144,7 @@
             n = newN;
             w = newW;
             var sparsity = w / n;
-            var sdr = SDR.tools.getRandom(n, sparsity);
+            var sdr = SDR.tools.getRandom(n, w);
             SDR.draw(sdr, 'sdr', {spartan: true, size: 60});
             updateDisplayValues(Number(sparsity).toFixed(4), sdr);
         }

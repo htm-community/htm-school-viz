@@ -104,13 +104,14 @@
 <script>
     $(function() {
 
-        var LENGTH = Math.pow(2, 12);
+        var n = Math.pow(2, 12);
+        var sparsity = 0.02;
         var leftColor = "orange";
         var rightColor = "green";
 
         // Example 2
         var percentNoise = 0.1;
-        var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
+        var leftsdr = SDR.tools.getRandom(n,  Math.floor(n * sparsity));
         var rightsdr = SDR.tools.addNoise(leftsdr, percentNoise);
 
         SDR.draw(leftsdr, 'ex2-left', {
@@ -132,7 +133,7 @@
         $('form button').click(function(evt) {
             evt.preventDefault();
             var percentNoise = $('#noise').val();
-            var leftsdr = SDR.tools.getRandom(LENGTH, 0.02);
+            var leftsdr = SDR.tools.getRandom(n,  Math.floor(n * sparsity));
             var rightsdr = SDR.tools.addNoise(leftsdr, percentNoise);
 
             SDR.draw(leftsdr, 'ex2-left', {

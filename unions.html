@@ -138,22 +138,21 @@
 
         var sdrNext = undefined;
         var sdrStack = [];
-        var sdrUnion = SDR.tools.getRandom(n, 0.0);
+        var sdrUnion = SDR.tools.getRandom(n, 0);
 
         var $sSlider = $('#sparsity-slider');
 
         function drawNextSdr(newN, newW) {
             n = newN;
             w = newW;
-            var sparsity = w / n;
-            sdrNext = SDR.tools.getRandom(n, sparsity);
+            sdrNext = SDR.tools.getRandom(n, w);
             SDR.draw(sdrNext, 'next-sdr', {
                 spartan: true,
                 size: bitSize,
                 stretch: bitStretch,
                 line: true
             });
-            updateDisplayValues(sparsity);
+            updateDisplayValues(w / n);
         }
 
         function drawUnionSdr() {

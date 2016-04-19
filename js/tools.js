@@ -34,21 +34,25 @@ $(function() {
 
     window.SDR.tools = {
 
-        getRandom: function(size, sparsity) {
+        getRandom: function(n, w) {
             var out = [];
             var randomIndex = undefined;
+            var sparsity = undefined;
 
-            if (sparsity == undefined) {
-                sparsity = DEFAULT_SPARSITY;
+            if (w == undefined) {
+                w = n * DEFAULT_SPARSITY;
             }
+
+            sparsity = w / n;
+
             // Fill array with zeros.
-            while(out.length < size) {
+            while(out.length < n) {
                 out.push(0);
             }
             // If not sparse enough, randomly flip 0 bits to 1.
-            while (this.population(out) / size < sparsity) {
+            while (this.population(out) / n < sparsity) {
                 // Make a random 0 bit into a 1.
-                randomIndex = getRandomInt(0, size);
+                randomIndex = getRandomInt(0, n);
                 if (out[randomIndex] == 0) {
                     out[randomIndex] = 1;
                 }

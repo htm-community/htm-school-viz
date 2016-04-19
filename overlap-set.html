@@ -14,6 +14,13 @@
     <link rel="stylesheet" href="css/styles.css">
 
     <style>
+        table.formula {
+            margin-left: 100px;
+        }
+        table.formula td {
+            border: dotted grey 1px;
+            padding: 10px;
+        }
         svg {
             width: 800px;
             height: 800px;
@@ -40,6 +47,16 @@
         #overlap-set-display {
             width: 600px;
             font-size: 34pt;
+        }
+        td.lil {
+            text-align: right;
+        }
+        td.lil svg {
+            width: 220px;
+            height: 220px;
+        }
+        .times {
+            font-size: 38pt;
         }
     </style>
 
@@ -99,7 +116,24 @@
                 </table>
             </td>
             <td>
-                <img src="img/overlap-set.png"/>
+                <table class="formula"><tbody>
+                <tr>
+                    <td colspan="3">
+                        <img src="img/overlap-set.png"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lil">
+                        <div id="left-term-sdr"></div>
+                        <div id="left-term-display"></div>
+                    </td>
+                    <td class="times">x</td>
+                    <td class="lil">
+                        <div id="right-term-sdr"></div>
+                        <div id="right-term-display"></div>
+                    </td>
+                </tr>
+                </tbody></table>
             </td>
         </tr>
 
@@ -165,6 +199,8 @@
         var b = 3;
         var sparsity = undefined;
         var sdr = undefined;
+        var rightTermSdr = undefined;
+        var leftTermSdr = undefined;
         var rectSize = 48;
 
         var $nSlider = $('#n-slider');
@@ -178,6 +214,8 @@
         var $wxDisplay = $('#wx-display');
         var $sparsityDisplay = $('#sparsity-display');
         var $overlapSparsityDisplay = $('.overlap-sparsity-display');
+        var $ltTermDisplay = $('#left-term-display');
+        var $rtTermDisplay = $('#right-term-display');
 
         function slide(event, ui) {
             var source = event.target.id;
@@ -200,22 +238,25 @@
             if (validate(myN, myW, myB, myWx)) {
                 b = myB;
                 w = myW;
-                if (myN !== n || myWx !== wx) {
-                    sparsity = Number(w / n).toFixed(4);
-                    n = myN;
-                    wx = myWx;
-                    drawSdr();
-                }
+                n = myN;
+                wx = myWx;
+                sparsity = Number(w / n).toFixed(4);
+                drawSdrs();
                 updateDisplayValues(sdr);
             } else {
                 event.preventDefault();
             }
         }
 
-        function drawSdr() {
+        function drawSdrs() {
+            var lilRects = 12;
             sparsity = Number(wx / n).toFixed(4);
-            sdr = SDR.tools.getRandom(n, sparsity);
+            sdr = SDR.tools.getRandom(n, wx);
             SDR.draw(sdr, 'sdr', {spartan: true, size: rectSize});
+            leftTermSdr = SDR.tools.getRandom(wx, b);
+            rightTermSdr = SDR.tools.getRandom(n - wx, w - b);
+            SDR.draw(leftTermSdr, 'left-term-sdr', {spartan: true, size: lilRects});
+            SDR.draw(rightTermSdr, 'right-term-sdr', {spartan: true, size: lilRects});
         }
 
         function updateDisplayValues() {
@@ -233,6 +274,8 @@
             $sparsityDisplay.html(sparsity);
             $sSlider.slider('value', sparsity * 100);
             $overlapSparsityDisplay.html(Number(w / n).toFixed(4));
+            $ltTermDisplay.html(SDR.tools.getUniqueness(leftTermSdr).toPrecision(4));
+            $rtTermDisplay.html(SDR.tools.getUniqueness(rightTermSdr).toPrecision(4));
         }
 
         function validate(testN, testW, testB, testWx) {
@@ -263,12 +306,12 @@
             wx = 40;
             w = 40;
             b = 40;
-            drawSdr();
+            drawSdrs();
             updateDisplayValues();
         }
 
         drawSliders();
-        drawSdr();
+        drawSdrs();
         updateDisplayValues();
 
         $('#go-big').click(function() {

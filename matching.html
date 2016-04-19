@@ -143,7 +143,7 @@
         var theta = Math.floor(w * .9);
         var noise = 0.33;
 
-        var sdr = SDR.tools.getRandom(n, sparsity);
+        var sdr = SDR.tools.getRandom(n, Math.floor(n * sparsity));
         var noisySdr = SDR.tools.addNoise(sdr, noise);
 
         var $noiseSlider = $('#noise-slider');
