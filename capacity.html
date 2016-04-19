@@ -65,13 +65,14 @@
                         <tr>
                             <td class="data-label">w</td>
                             <td id="w-display" class="data">loading...</td>
-                            <td></td>
+                            <td>
+                                <div id="w-slider" class="slider"></div>
+                            </td>
                         </tr>
                         <tr>
                             <td class="data-label">sparsity</td>
                             <td id="sparsity-display" class="data">loading...</td>
                             <td>
-                                <div id="sparsity-slider" class="slider"></div>
                             </td>
                         </tr>
                     </tbody>
@@ -135,15 +136,21 @@
         // The functions below all rely on these values.
         var n = 256;
         var w = 5;
+        var sparsity = w / n;
+        var sdr = SDR.tools.getRandom(n, w);
 
         var $nSlider = $('#n-slider');
-        var $sSlider = $('#sparsity-slider');
+        var $wSlider = $('#w-slider');
+        var $nDisplay = $('#n-display');
+        var $wDisplay = $('#w-display');
+        var $uniquenessDisplay = $('#uniqueness-display');
+        var $sparsityDisplay = $('#sparsity-display');
 
         function drawSdr(newN, newW) {
             n = newN;
             w = newW;
-            var sparsity = w / n;
-            var sdr = SDR.tools.getRandom(n, w);
+            sparsity = w / n;
+            sdr = SDR.tools.getRandom(n, w);
             SDR.draw(sdr, 'sdr', {spartan: true, size: 60});
             updateDisplayValues(Number(sparsity).toFixed(4), sdr);
         }
@@ -153,16 +160,17 @@
             if (Number.isNaN(uniqueness)) {
                 uniqueness = 'NaN';
             } else if (! isFinite(uniqueness)) {
-                uniqueness = "Infinity";
+                uniqueness = '&infin;';
             } else {
                 uniqueness = Math.round(uniqueness).toLocaleString();
             }
-            $('#uniqueness-display').html(uniqueness);
-            $('#n-display').html(n);
+            $uniquenessDisplay.html(uniqueness);
+            $nDisplay.html(n);
             $nSlider.slider('value', n);
-            $('#w-display').html(w);
-            $('#sparsity-display').html(sparsity);
-            $sSlider.slider('value', sparsity * 100);
+            $wDisplay.html(w);
+            $wSlider.slider('value', w);
+            $wSlider.slider('option', 'max', n);
+            $sparsityDisplay.html(sparsity);
         }
 
         function validate(testN, testW) {
@@ -177,8 +185,8 @@
                 var myW = w;
                 if (source == 'n-slider') {
                     myN = value;
-                } else if (source == 'sparsity-slider') {
-                    myW = Math.floor(n * (value / 100));
+                } else if (source == 'w-slider') {
+                    myW = value;
                 } else {
                     throw new Error('Unknown event');
                 }
@@ -192,8 +200,8 @@
                 min: 16, max: 2048, value: n, step: 1,
                 slide: slide
             });
-            $sSlider.slider({
-                min: 1, max: 20, value: 2, step: 0.1,
+            $wSlider.slider({
+                min: 1, max: n, value: 1, step: 1,
                 slide: slide
             });
         }
