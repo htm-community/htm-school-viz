@@ -41,7 +41,7 @@ $(function() {
             var size = opts.size;
             var line = opts.line;
             var staticSize = opts.staticSize;
-            var spartan = opts.spartan;
+            var spartan = opts.spartan || false;
             var stretch = opts.stretch;
             var population = SDR.tools.population(sdr);
             var sparsity = SDR.tools.sparsity(sdr);
@@ -51,7 +51,7 @@ $(function() {
             // Clear out container.
             $container.html('');
 
-            if (! spartan) {
+            if (spartan === false) {
                 $container.append(propsTmpl({
                     title: title,
                     props: [{
@@ -60,6 +60,14 @@ $(function() {
                         label: 'w', data: population
                     }, {
                         label: 'sparsity', data: sparsity.toFixed(3)
+                    }]
+                }));
+            } else if (spartan == 'min') {
+                $container.append(propsTmpl({
+                    props: [{
+                        label: 'n', data: sdr.length
+                    }, {
+                        label: 'w', data: population
                     }]
                 }));
             }
