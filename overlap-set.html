@@ -21,6 +21,9 @@
             border: dotted grey 1px;
             padding: 10px;
         }
+        table.formula tr.bottom {
+            display: none;
+        }
         table.formula tr.bottom .props td {
             border: 0;
         }
@@ -360,6 +363,10 @@
 
         $('#go-big').click(function() {
             goBigOrGoHome();
+        });
+
+        $('table.formula').click(function() {
+            $('table.formula tr.bottom').toggle();
         });
     });
 </script>
