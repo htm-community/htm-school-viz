@@ -21,6 +21,9 @@
             border: dotted grey 1px;
             padding: 10px;
         }
+        table.formula tr.bottom .props td {
+            border: 0;
+        }
         svg {
             width: 800px;
             height: 800px;
@@ -318,7 +321,8 @@
             return testB <= testWx
                 && testB <= testW
                 && testW < testN
-                && testWx < testN;
+                && testWx < testN
+                && (testW - testB) <= (testN - testWx);
         }
 
         function drawSliders() {
