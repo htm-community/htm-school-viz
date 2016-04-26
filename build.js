@@ -7,7 +7,7 @@ var Handlebars = require('handlebars');
 
 var HTML_DIR = path.join(__dirname, 'html');
 
-var BUILD_DIR = path.join(__dirname, '_site');
+var BUILD_DIR = path.join(__dirname, 'site');
 var TMPL_DIR = path.join(__dirname, 'tmpl');
 
 
