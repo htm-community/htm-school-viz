@@ -18,6 +18,7 @@ $(function() {
     var $wSlider = $('#w-slider');
     var $wxSlider = $('#wx-slider');
     var $overlapSetDisplay = $('#overlap-set-display');
+    var $falsePositiveDisplay = $('#false-positive-display');
     var $nDisplay = $('.n-display');
     var $wDisplay = $('.w-display');
     var $bDisplay = $('.b-display');
@@ -73,7 +74,11 @@ $(function() {
 
     function updateDisplayValues() {
         var overlapSet = SDR.tools.getOverlapSet(sdr, b, w);
+        var falsePosProbability = math.divide(
+            overlapSet, SDR.tools.getUniqueness(sdr)
+        );
         $overlapSetDisplay.html(overlapSet.toPrecision(5));
+        $falsePositiveDisplay.html(falsePosProbability.toPrecision(5));
         $nDisplay.html(n);
         $nSlider.slider('value', n);
         $wDisplay.html(w);
