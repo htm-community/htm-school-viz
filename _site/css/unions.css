@@ -1,0 +1,22 @@
+body {
+    margin: 20px 40px;
+    line-height: inherit;
+}
+svg {
+    width: 2150px;
+    height: 18px;
+}
+.slider {
+    width: 800px;
+}
+#sdr-stack div {
+    padding: 0;
+    margin: 0;
+    font-size: inherit;
+}
+button {
+    margin: 20px 0 !important;
+}
+.sdr {
+    height: 16px;
+}

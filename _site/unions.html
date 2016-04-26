@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>SDR Unions</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/third/jquery-ui.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/unions.css">
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+    <div class="back-button">
+        <a href="index.html">BACK</a>
+    </div>
+
+    <h1>SDR Unions</h1>
+
+    <div id="dialog" title="Match Results"></div>
+    
+    <table>
+        <tbody>
+        <tr>
+            <td class="data-label">n</td>
+            <td id="n-display" class="data">loading...</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="data-label">w</td>
+            <td id="w-display" class="data">loading...</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="data-label">sparsity</td>
+            <td id="sparsity-display" class="data">loading...</td>
+            <td>
+                <div id="sparsity-slider" class="slider"></div>
+            </td>
+        </tr>
+        <tr><td colspan="3"><hr/></td></tr>
+        <tr>
+            <td colspan="3">
+                <div id="next-sdr"></div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-primary btn-lg" data-action="add">Add</button>
+                    <button type="button" class="btn btn-warning btn-lg" data-action="match">Exact match?</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div id="sdr-stack"></div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <h3>Union:</h3>
+                <div id="sdr-union"></div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<script id="props-tmpl" type="text/x-handlebars-template">
+    <h2>{{title}}</h2>
+    <table class="props">
+        <tbody>
+        {{#each props}}
+        <tr style="">
+            <td class="data-label">{{label}}:</td>
+            <td id="{{label}}-display" class="data">{{data}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</script>
+
+<script src="https://cdn.jsdelivr.net/handlebarsjs/4.0.5/handlebars.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.7.0/lodash.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="js/third/d3.min.js"></script>
+<script src="js/third/jquery.flip.min.js"></script>
+<script src="js/third/jquery-ui.min.js"></script>
+<script src="js/third/math.min.js"></script>
+
+<script src="js/lib/sdr.js"></script>
+<script src="js/lib/tools.js"></script>
+
+<script src="js/unions.js"></script>
+
+<a href="https://github.com/nupic-community/sdr-viz"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
+
+</body>
+</html>

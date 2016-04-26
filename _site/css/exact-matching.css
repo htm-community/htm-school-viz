@@ -1,0 +1,10 @@
+svg {
+    width: 1000px;
+    height: 1000px;
+}
+.slider {
+    width: 600px;
+}
+table#sdr-props td {
+    padding: 0 10px;
+}

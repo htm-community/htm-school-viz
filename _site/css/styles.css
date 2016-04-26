@@ -1,0 +1,80 @@
+body {
+    margin: 60px 150px;
+    background-color: rgb(229, 242, 247);
+    font-size: 20pt;
+}
+h1 {
+    font-size: 34pt;
+}
+rect {
+    stroke: #9b9b9b;
+    shape-rendering: crispEdges;
+}
+p {
+    margin: 0;
+    padding: 0;
+}
+.data {
+    font-family: monospace;
+    min-width: 100px;
+    font-size: 24pt;
+    font-weight: normal;
+}
+.data-label {
+    font-size: 26pt;
+    font-weight: bold;
+}
+
+.back-button {
+    position: absolute;
+    right: 100px;
+    bottom: 100px;
+}
+table.props td {
+    padding-right: 30px;
+}
+table.props {
+    margin-bottom: 20px;
+}
+.jumbotron {
+    border: dotted grey 2px;
+    border-radius: 20px !important;
+    max-width: 1150px;
+}
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+.btn-lg {
+    font-size: 24pt;
+}
+.wrapword {
+    white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+    white-space: -webkit-pre-wrap;          /*Chrome & Safari */
+    white-space: -pre-wrap;                 /* Opera 4-6 */
+    white-space: -o-pre-wrap;               /* Opera 7 */
+    white-space: pre-wrap;                  /* css-3 */
+    word-wrap: break-word;                  /* Internet Explorer 5.5+ */
+    word-break: break-all;
+    white-space: normal;
+}
+#card {
+    position: absolute;
+    top: 10px;
+    left: 1000px;
+    width: 300px;
+}
+#card .front {
+    padding: 50px 10px;
+}
+#props {
+    vertical-align: top;
+    text-align: left;
+    font-size: 24pt;
+    display: none;
+}
+

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>SDR Overlap Set</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/third/jquery-ui.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/overlap-set.css">
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+    <div class="back-button">
+        <a href="index.html">BACK</a>
+    </div>
+
+    <h1>SDR Overlap Set</h1>
+
+    <table>
+        <tbody>
+    
+        <tr>
+            <td>
+                <h2> Overlap Set of SDR "<span class="data">x</span>"</h2>
+            </td>
+            <td rowspan="2">
+                <table class="formula"><tbody>
+                <tr>
+                    <td colspan="3">
+                        <img src="img/overlap-set.png"/>
+                    </td>
+                </tr>
+                <tr class="bottom">
+                    <td class="lil">
+                        <div id="left-term-sdr"></div>
+                        <div id="left-term-display" class="term-capacity"></div>
+                        <div class="term-formula">
+                            <img src="img/overlap-set-term1.png"/>
+                        </div>
+                    </td>
+                    <td class="times">x</td>
+                    <td class="lil">
+                        <div id="right-term-sdr"></div>
+                        <div id="right-term-display" class="term-capacity"></div>
+                        <div class="term-formula">
+                            <img src="img/overlap-set-term2.png"/>
+                        </div>
+                    </td>
+                </tr>
+                </tbody></table>
+            </td>
+    
+        </tr>
+    
+        <tr>
+            <td>
+                <table id="sdr-props">
+                    <tbody>
+    
+                    <tr>
+                        <td class="data-label">n</td>
+                        <td class="n-display" class="data">loading...</td>
+                        <td><div id="n-slider" class="slider"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="data-label">w<sub>x</sub></td>
+                        <td id="wx-display" class="data">loading...</td>
+                        <td>
+                            <div id="wx-slider" class="slider"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="data-label">sparsity<sub>x</sub></td>
+                        <td id="sparsity-display" class="data">loading...</td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr><td colspan="3"><hr/></td></tr>
+                    <tr>
+                        <td class="data-label">b</td>
+                        <td class="b-display" class="data">loading...</td>
+                        <td><div id="b-slider" class="slider"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="data-label">w</td>
+                        <td class="w-display" class="data">loading...</td>
+                        <td><div id="w-slider" class="slider"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="data-label">sparsity<sub>o</sub></td>
+                        <td class="overlap-sparsity-display data">loading...</td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td id="sdr"></td>
+            <td id="props">
+                <h2>Overlap Set</h2>
+                <p># of SDRs where:</p>
+                <ul>
+                    <li class="data">n = <span class="n-display"></span></li>
+                    <li class="data">w = <span class="w-display"></span></li>
+                    <li><span class="data b-display"></span> bits of overlap with <span class="data">x</span></li>
+                </ul>
+                <hr/>
+                <p id="overlap-set-display"></p>
+                <hr/>
+                <p type="button" id="go-big" class="btn btn-primary btn-lg">2048 bit example</p>
+            </td>
+        </tr>
+    
+        </tbody>
+    
+    </table>
+
+</div>
+
+<script id="props-tmpl" type="text/x-handlebars-template">
+    <h2>{{title}}</h2>
+    <table class="props">
+        <tbody>
+        {{#each props}}
+        <tr style="">
+            <td class="data-label">{{label}}:</td>
+            <td id="{{label}}-display" class="data">{{data}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</script>
+
+<script src="https://cdn.jsdelivr.net/handlebarsjs/4.0.5/handlebars.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.7.0/lodash.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="js/third/d3.min.js"></script>
+<script src="js/third/jquery.flip.min.js"></script>
+<script src="js/third/jquery-ui.min.js"></script>
+<script src="js/third/math.min.js"></script>
+
+<script src="js/lib/sdr.js"></script>
+<script src="js/lib/tools.js"></script>
+
+<script src="js/overlap-set.js"></script>
+
+<a href="https://github.com/nupic-community/sdr-viz"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
+
+</body>
+</html>
