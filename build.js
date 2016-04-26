@@ -59,6 +59,13 @@ function copyResources() {
     });
 }
 
-prepareBuildDirectory();
-executeTemplates();
-copyResources();
+function build() {
+    console.log('Building site...');
+    prepareBuildDirectory();
+    executeTemplates();
+    copyResources();
+    console.log('Done!');
+}
+
+
+module.exports = build;

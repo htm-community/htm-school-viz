@@ -2,7 +2,7 @@
 $(function() {
 
     // The functions below all rely on these values.
-    var n = 26;
+    var n = 64;
     var w = 4;
     var sparsity = w / n;
     var sdrStack = [];

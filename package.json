@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/nupic-community/sdr-viz#readme",
   "dependencies": {
+    "chokidar": "^1.4.3",
     "fs-extra": "^0.28.0",
     "handlebars": "^4.0.5",
     "lodash": "^4.11.1"
