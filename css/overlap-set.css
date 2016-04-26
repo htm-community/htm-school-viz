@@ -1,0 +1,67 @@
+table.formula {
+    margin-left: 100px;
+}
+table.formula tr.bottom td {
+    border: dotted grey 1px;
+    padding: 10px;
+}
+table.formula tr.bottom {
+    display: none;
+}
+table.formula tr.bottom .props td {
+    border: 0;
+}
+svg {
+    width: 800px;
+    height: 800px;
+}
+.slider {
+    width: 600px;
+}
+table#sdr-props td {
+    padding: 0 10px;
+}
+#sdr-props {
+    margin-bottom: 40px;
+}
+h1 span.data {
+    font-size: inherit;
+}
+h2 {
+    text-decoration: underline;
+    font-size: 30pt;
+}
+#props {
+    display: inherit;
+}
+#overlap-set-display {
+    width: 600px;
+    font-size: 34pt;
+}
+td.lil {
+    text-align: right;
+}
+td.lil svg {
+    width: 220px;
+    height: 220px;
+}
+.lil .data-label, .lil .data, .lil .props {
+    padding: 0;
+    margin: 0;
+}
+.lil .props {
+    float: right;
+}
+.term-capacity {
+    float: right;
+}
+.term-formula {
+    width: 100px;
+
+}
+.term-formula img {
+    height: 60px;
+}
+.times {
+    font-size: 38pt;
+}

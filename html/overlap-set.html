@@ -1,0 +1,101 @@
+<table>
+    <tbody>
+
+    <tr>
+        <td>
+            <h2> Overlap Set of SDR "<span class="data">x</span>"</h2>
+        </td>
+        <td rowspan="2">
+            <table class="formula"><tbody>
+            <tr>
+                <td colspan="3">
+                    <img src="img/overlap-set.png"/>
+                </td>
+            </tr>
+            <tr class="bottom">
+                <td class="lil">
+                    <div id="left-term-sdr"></div>
+                    <div id="left-term-display" class="term-capacity"></div>
+                    <div class="term-formula">
+                        <img src="img/overlap-set-term1.png"/>
+                    </div>
+                </td>
+                <td class="times">x</td>
+                <td class="lil">
+                    <div id="right-term-sdr"></div>
+                    <div id="right-term-display" class="term-capacity"></div>
+                    <div class="term-formula">
+                        <img src="img/overlap-set-term2.png"/>
+                    </div>
+                </td>
+            </tr>
+            </tbody></table>
+        </td>
+
+    </tr>
+
+    <tr>
+        <td>
+            <table id="sdr-props">
+                <tbody>
+
+                <tr>
+                    <td class="data-label">n</td>
+                    <td class="n-display" class="data">loading...</td>
+                    <td><div id="n-slider" class="slider"></div></td>
+                </tr>
+                <tr>
+                    <td class="data-label">w<sub>x</sub></td>
+                    <td id="wx-display" class="data">loading...</td>
+                    <td>
+                        <div id="wx-slider" class="slider"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="data-label">sparsity<sub>x</sub></td>
+                    <td id="sparsity-display" class="data">loading...</td>
+                    <td>
+                    </td>
+                </tr>
+                <tr><td colspan="3"><hr/></td></tr>
+                <tr>
+                    <td class="data-label">b</td>
+                    <td class="b-display" class="data">loading...</td>
+                    <td><div id="b-slider" class="slider"></div></td>
+                </tr>
+                <tr>
+                    <td class="data-label">w</td>
+                    <td class="w-display" class="data">loading...</td>
+                    <td><div id="w-slider" class="slider"></div></td>
+                </tr>
+                <tr>
+                    <td class="data-label">sparsity<sub>o</sub></td>
+                    <td class="overlap-sparsity-display data">loading...</td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+        <td></td>
+    </tr>
+
+    <tr>
+        <td id="sdr"></td>
+        <td id="props">
+            <h2>Overlap Set</h2>
+            <p># of SDRs where:</p>
+            <ul>
+                <li class="data">n = <span class="n-display"></span></li>
+                <li class="data">w = <span class="w-display"></span></li>
+                <li><span class="data b-display"></span> bits of overlap with <span class="data">x</span></li>
+            </ul>
+            <hr/>
+            <p id="overlap-set-display"></p>
+            <hr/>
+            <p type="button" id="go-big" class="btn btn-primary btn-lg">2048 bit example</p>
+        </td>
+    </tr>
+
+    </tbody>
+
+</table>

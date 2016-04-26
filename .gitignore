@@ -1,3 +1,8 @@
+node_modules/
 .idea/
+
+# Script I use to deploy to GH-Pages.
 deploy.sh
 
+# Where site gets built
+_site/

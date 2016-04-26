@@ -1,0 +1,28 @@
+{
+  "name": "sdr-viz",
+  "version": "1.0.0",
+  "description": "Sparse Distributed Representation Vizualizations",
+  "main": "build.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nupic-community/sdr-viz.git"
+  },
+  "keywords": [
+    "sdr",
+    "htm"
+  ],
+  "author": "Matt Taylor",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nupic-community/sdr-viz/issues"
+  },
+  "homepage": "https://github.com/nupic-community/sdr-viz#readme",
+  "dependencies": {
+    "fs-extra": "^0.28.0",
+    "handlebars": "^4.0.5",
+    "lodash": "^4.11.1"
+  }
+}

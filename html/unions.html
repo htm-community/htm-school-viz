@@ -1,0 +1,48 @@
+<div id="dialog" title="Match Results"></div>
+
+<table>
+    <tbody>
+    <tr>
+        <td class="data-label">n</td>
+        <td id="n-display" class="data">loading...</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="data-label">w</td>
+        <td id="w-display" class="data">loading...</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="data-label">sparsity</td>
+        <td id="sparsity-display" class="data">loading...</td>
+        <td>
+            <div id="sparsity-slider" class="slider"></div>
+        </td>
+    </tr>
+    <tr><td colspan="3"><hr/></td></tr>
+    <tr>
+        <td colspan="3">
+            <div id="next-sdr"></div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3" align="center">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-primary btn-lg" data-action="add">Add</button>
+                <button type="button" class="btn btn-warning btn-lg" data-action="match">Exact match?</button>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <div id="sdr-stack"></div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <h3>Union:</h3>
+            <div id="sdr-union"></div>
+        </td>
+    </tr>
+    </tbody>
+</table>

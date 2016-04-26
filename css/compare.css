@@ -1,0 +1,11 @@
+body {
+    margin: 20px 40px;
+}
+svg {
+    width: 600px;
+    height: 600px;
+}
+rect {
+    stroke: rgba(204, 204, 204, 0.5);
+    shape-rendering: crispEdges;
+}

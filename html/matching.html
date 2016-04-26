@@ -1,0 +1,54 @@
+<div id="card">
+    <div class="front">
+        <p type="button" class="btn btn-warning btn-lg">Show False Positives</p>
+    </div>
+    <div class="back">
+        <div rowspan="2" class="data-label false-pos">
+            <h2>Chance of False Positive:</h2>
+            <div id="false-positive-display" class="data"></div>
+        </div>
+    </div>
+</div>
+
+<table>
+    <tbody>
+
+    <tr>
+        <td>
+            <table class="props">
+                <tbody>
+                <tr>
+                    <td class="data-label">noise:</td>
+                    <td id="noise-display" class="data"></td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+        <td>
+            <div id="noise-slider" class="slider"></div>
+        </td>
+        <td></td>
+    </tr>
+
+    <tr>
+        <td class="data-label">&theta;: <span id="theta-display" class="data">loading...</span></td>
+        <td>
+            <div id="theta-slider" class="slider"></div>
+        </td>
+        <td></td>
+    </tr>
+
+    <tr>
+        <td id="left"></td>
+        <td id="right"></td>
+        <td id="compare"></td>
+    </tr>
+
+    <tr>
+        <td colspan="3">
+            <div id="match"></div>
+        </td>
+    </tr>
+
+    </tbody>
+</table>

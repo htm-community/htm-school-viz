@@ -1,0 +1,15 @@
+body {
+    margin: 20px 40px;
+    font-size: inherit;
+}
+.slider {
+    width: 800px;
+    font-size: 16pt;
+}
+rect {
+    stroke: #9b9b9b;
+    shape-rendering: crispEdges;
+}
+svg:hover {
+    opacity: 0.5;
+}
