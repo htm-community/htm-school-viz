@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>SDR Classification</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <style>
+        body {
+            margin: 20px 40px;
+            font-size: inherit;
+        }
+        .slider {
+            width: 800px;
+            font-size: 16pt;
+        }
+        rect {
+            stroke: #9b9b9b;
+            shape-rendering: crispEdges;
+        }
+        svg:hover {
+            opacity: 0.5;
+        }
+    </style>
+
+
+</head>
+<body>
+
+<div class="container-fluid">
+
+    <div class="back-button">
+        <a href="index.html">BACK</a>
+    </div>
+
+    <h1>SDR Classification</h1>
+
+    <table>
+        <tbody>
+        <tr>
+            <td class="data-label">n</td>
+            <td id="n-display" class="data">loading...</td>
+            <td>
+                <div id="n-slider" class="slider"></div>
+            </td>
+        </tr>
+        <tr>
+            <td class="data-label">w</td>
+            <td id="w-display" class="data">loading...</td>
+            <td>
+                <div id="w-slider" class="slider"></div>
+            </td>
+        </tr>
+        <tr>
+            <td class="data-label">set size</td>
+            <td id="set-size-display" class="data">loading...</td>
+            <td>
+                <div id="set-size-slider" class="slider"></div>
+            </td>
+        </tr>
+        <tr>
+            <td class="data-label">sparsity</td>
+            <td id="sparsity-display" class="data">loading...</td>
+            <td>
+            </td>
+        </tr>
+        <tr><td colspan="3"><hr/></td></tr>
+        <tr>
+            <td colspan="3">
+                <div id="next-sdr"></div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div id="sdr-stack"></div>
+
+</div>
+
+<div id="dialog" title="Match Results"></div>
+
+<script id="props-tmpl" type="text/x-handlebars-template">
+    <h2>{{title}}</h2>
+    <table class="props">
+        <tbody>
+        {{#each props}}
+        <tr style="{{rowStyle}}">
+            <td class="data-label">{{label}}:</td>
+            <td id="{{label}}-display" class="data">{{data}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</script>
+
+<script src="https://cdn.jsdelivr.net/handlebarsjs/4.0.5/handlebars.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.7.0/lodash.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="js/lib/d3.min.js"></script>
+<script src="js/lib/jquery-ui.min.js"></script>
+<script src="js/lib/math.min.js"></script>
+
+<script src="js/sdr.js"></script>
+<script src="js/tools.js"></script>
+
+<script>
+    $(function() {
+
+        // The functions below all rely on these values.
+        var n = 26;
+        var w = 4;
+        var sparsity = w / n;
+        var sdrStack = [];
+        var setSize = 10;
+        var maxSetSize = 100;
+        var maxN = 512;
+        var rectSize = 18;
+
+        var $stack = $('#sdr-stack');
+        var $nSlider = $('#n-slider');
+        var $wSlider = $('#w-slider');
+        var $setSizeSlider = $('#set-size-slider');
+
+        var $setSizeDisplay = $('#set-size-display');
+        var $wDisplay = $('#w-display');
+        var $nDisplay = $('#n-display');
+        var $sparsityDisplay = $('#sparsity-display');
+
+        function drawSdrStack() {
+            $stack.html('');
+            sdrStack = [];
+            _.times(setSize, function() {
+                sdrStack.push(SDR.tools.getRandom(n, w));
+            });
+            _.each(sdrStack, function(sdr, i) {
+                var sdrId = 'sdr-' + i;
+                $stack.prepend('<div id="' + sdrId + '" class="sdr">');
+                SDR.draw(sdr, sdrId, {
+                    spartan: true,
+                    line: true,
+                    size: rectSize,
+                    maxWidth: 2500
+                });
+            });
+        }
+
+        function updateDisplayValues() {
+            $nDisplay.html(n);
+            $wDisplay.html(w);
+            $sparsityDisplay.html(sparsity.toFixed(2));
+            $wSlider.slider('option', 'max', n);
+            $wSlider.slider('value', w);
+            $nSlider.slider('value', n);
+            $setSizeDisplay.html(setSize);
+        }
+
+        function validate(testN, testW) {
+            return testW <= testN;
+        }
+
+        function draw(myN, myW, callback) {
+            var err = undefined;
+            if (validate(myN, myW)) {
+                n = myN;
+                w = myW;
+                sparsity = w / n;
+                drawSdrStack();
+                updateDisplayValues();
+            } else {
+                err = new Error('Invalid values.');
+            }
+            if (callback) callback(err);
+
+        }
+
+        function drawSliders() {
+            $nSlider.slider({
+                min: 1, max: maxN, value: n, step: 1,
+                slide: function(event, ui) {
+                    draw(ui.value, w, function(err) {
+                        if (err) event.preventDefault();
+                    });
+                }
+            });
+            $wSlider.slider({
+                min: 1, max: n, value: w, step: 1,
+                slide: function(event, ui) {
+                    draw(n, ui.value, function(err) {
+                        if (err) event.preventDefault();
+                    });
+                }
+            });
+            $setSizeSlider.slider({
+                min: 1, max: maxSetSize, value: setSize, step: 1,
+                slide: function(event, ui) {
+                    setSize = ui.value;
+                    draw(n, w);
+                }
+            });
+        }
+
+        drawSliders();
+        draw(n, w);
+
+    });
+</script>
+
+<a href="https://github.com/nupic-community/sdr-viz"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
+
+</body>
+</html>

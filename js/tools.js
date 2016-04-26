@@ -11,25 +11,25 @@ $(function() {
         return 0;
     }
 
-    function factorial(n) {
-        var result = new Big(1);
-        var bigI, i;
-        for (i = 1; i <= n; i++) {
-            bigI = new Big(i);
-            result = bigI.times(result);
-        }
-        return result;
-    }
+    // function factorial(n) {
+    //     var result = math.bignumber(1);
+    //     var bigI, i;
+    //     for (i = 1; i <= n; i++) {
+    //         bigI = math.bignumber(i);
+    //         result = math.multiply(bigI, result);
+    //     }
+    //     return result;
+    // }
 
     function overflowSafeUniqueness(n, w) {
-        var bigN = new Big(n);
-        var bigW = new Big(w);
+        var bigN = math.bignumber(n);
+        var bigW = math.bignumber(w);
 
-        var nf = factorial(bigN);
-        var wf = factorial(bigW);
-        var nwf = factorial(bigN.minus(bigW));
+        var nf = math.factorial(bigN);
+        var wf = math.factorial(bigW);
+        var nwf = math.factorial(math.subtract(bigN, bigW));
 
-        return nf.div(wf.times(nwf));
+        return math.divide(nf, math.multiply(wf, nwf));
     }
 
     window.SDR.tools = {
@@ -172,11 +172,11 @@ $(function() {
             var n2 = n - wx;
             var w2 = w - b;
             var term2 = this._getUniqueness(n2, w2);
-            return term1.times(term2);
+            return math.multiply(term1, term2);
         },
 
         getExactMatchProbability: function(sdr) {
-            return new Big(1) / this.getUniqueness(sdr);
+            return math.bignumber(1) / this.getUniqueness(sdr);
         },
 
         subsample: function(sdr, percentToSample) {

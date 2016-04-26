@@ -3,50 +3,42 @@ $(function() {
     var POINT_SIZE = 6;
     var propsTmpl = Handlebars.compile($('#props-tmpl').html());
 
-    function drawSdr(sdr, selector, color, pointSize, line, stretch, staticSize) {
-        var rowLength = Math.floor(Math.sqrt(sdr.length));
-        var size = pointSize || POINT_SIZE;
-        var heightMultiplyer = stretch ? stretch : 1;
-        if (line) {
-            rowLength = sdr.length;
-        } else if (! staticSize && size > size * 15 / rowLength) {
-          size = size * 15 / rowLength;
-        }
-        return d3.select(selector)
-            .selectAll("rect")
-            .data(sdr)
-            .enter()
-            .append("rect")
-            .attr("x", function(d, i) {
-                var offset = i % rowLength;
-                return offset * size;
-            })
-            .attr("y", function(d, i) {
-                var offset = Math.floor(i / rowLength);
-                return offset * size;
-            })
-            .attr("width", size)
-            .attr("height", size * heightMultiplyer)
-            .style("fill", function(d) {
-                if (d == 1) return color;
-                return "white";
-            });
-    }
-
     window.SDR = {
         draw: function(sdr, elId, opts) {
             if (! opts) opts = {};
             var title = opts.title || 'SDR';
             var color = opts.color || 'steelblue';
-            var size = opts.size;
+            var size = (opts.size || POINT_SIZE);
             var line = opts.line;
             var staticSize = opts.staticSize;
             var spartan = opts.spartan || false;
             var stretch = opts.stretch;
             var population = SDR.tools.population(sdr);
             var sparsity = SDR.tools.sparsity(sdr);
-            var svg = $('<svg id="' + elId + '-svg">');
             var $container = $('#' + elId);
+            var rowLength = Math.floor(Math.sqrt(sdr.length));
+            var heightMultiplyer = stretch ? stretch : 1;
+            var width = undefined;
+            var height = undefined;
+            var maxWidth = opts.maxWidth;
+            var svg;
+            var svgId = elId + '-svg';
+
+            if (line) {
+                rowLength = sdr.length;
+            } else if (! staticSize && size > size * 15 / rowLength) {
+                size = size * 15 / rowLength;
+            }
+
+            // Decrease size of boxes if maxWidth is set and we are overflowing it.
+            if (maxWidth && size * sdr.length > maxWidth) {
+                size = Math.floor(maxWidth / sdr.length);
+            }
+
+            width = rowLength * size;
+            height = Math.floor(sdr.length / rowLength) * size;
+
+            svg = $('<svg id="' + svgId + '" width="' + width + '" height="' + height + '">');
 
             // Clear out container.
             $container.html('');
@@ -73,9 +65,29 @@ $(function() {
             }
 
             $container.append(svg);
+            $container.css({
+                height: height + 'px'
+            });
 
-            drawSdr(sdr, '#' + elId + '-svg', color,
-                size, line, stretch, staticSize);
+            return d3.select('#' + svgId)
+                .selectAll("rect")
+                .data(sdr)
+                .enter()
+                .append("rect")
+                .attr("x", function(d, i) {
+                    var offset = i % rowLength;
+                    return offset * size;
+                })
+                .attr("y", function(d, i) {
+                    var offset = Math.floor(i / rowLength);
+                    return offset * size;
+                })
+                .attr("width", size)
+                .attr("height", size * heightMultiplyer)
+                .style("fill", function(d) {
+                    if (d == 1) return color;
+                    return "white";
+                });
 
         },
 
