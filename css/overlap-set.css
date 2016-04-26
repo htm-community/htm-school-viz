@@ -38,10 +38,15 @@ h2 {
     width: 600px;
     font-size: 34pt;
 }
-td.lil {
+.lil {
     text-align: right;
+    padding: 0;
+    vertical-align: top;
 }
-td.lil svg {
+.lil h2 {
+    display: none;
+}
+.lil svg {
     width: 220px;
     height: 220px;
 }
@@ -67,4 +72,7 @@ td.lil svg {
 }
 #go-big {
     float: right;
+}
+.lil .sdr {
+    margin-bottom: 20px;
 }
