@@ -60,12 +60,11 @@ function copyResources() {
 }
 
 function build() {
-    console.log('Building site...');
     prepareBuildDirectory();
     executeTemplates();
     copyResources();
-    console.log('Done!');
 }
 
+build();
 
 module.exports = build;

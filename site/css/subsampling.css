@@ -30,3 +30,9 @@ svg {
 #false-positive-display {
     font-size: 34pt;
 }
+#sdr-xprime rect.on {
+    fill: orange;
+}
+#sdr-y rect.on {
+    fill: green;
+}

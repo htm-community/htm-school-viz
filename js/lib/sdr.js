@@ -22,9 +22,15 @@ $(function() {
             var height = undefined;
             var cssClass = opts.cssClass || '';
             var maxWidth = opts.maxWidth;
-            var svg;
+            var slide = false;
+            var $svg;
             var svgId = elId + '-svg';
+            var svgMarkup = undefined;
+            var svgDisplay = '';
 
+            if (opts.slide) {
+                slide = true;
+            }
             if (line) {
                 rowLength = sdr.length;
             } else if (! staticSize && size > size * 15 / rowLength) {
@@ -39,10 +45,17 @@ $(function() {
             width = rowLength * size;
             height = Math.floor(sdr.length / rowLength) * size;
 
-            svg = $('<svg id="' + svgId
+            if (slide) {
+                svgDisplay = 'display="none"';
+            }
+
+            svgMarkup = '<svg id="' + svgId
                 + '" width="' + width
-                + '" height="' + height
-                + '" class="' + cssClass + '">');
+                + '" height="' + (size * heightMultiplyer)
+                + '" class="' + cssClass + '" '
+                + svgDisplay + '>';
+
+            $svg = $(svgMarkup);
 
             // Clear out container.
             $container.html('');
@@ -68,12 +81,12 @@ $(function() {
                 }));
             }
 
-            $container.append(svg);
+            $container.append($svg);
             $container.css({
-                height: height + 'px'
+                height: (size * heightMultiplyer) + 'px'
             });
 
-            return d3.select('#' + svgId)
+            d3.select('#' + svgId)
                 .selectAll("rect")
                 .data(sdr)
                 .enter()
@@ -87,12 +100,12 @@ $(function() {
                     return offset * size;
                 })
                 .attr("width", size)
-                .attr("height", size * heightMultiplyer)
-                .style("fill", function(d) {
-                    if (d == 1) return color;
-                    return "white";
+                .attr("height", size * heightMultiplyer - 1)
+                .attr("class", function(d) {
+                    if (d == 1) return "on";
+                    return "off";
                 });
-
+            if (slide) $svg.slideDown(100);
         },
 
         drawComparison: function(left, right, elId, opts) {

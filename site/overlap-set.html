@@ -40,19 +40,47 @@
                 </tr>
                 <tr class="bottom">
                     <td class="lil">
-                        <div id="left-term-sdr" class="sdr"></div>
-                        <div id="left-term-display" class="term-capacity"></div>
-                        <div class="term-formula">
-                            <img src="img/overlap-set-term1.png"/>
-                        </div>
+    
+                        <table><tbody>
+                        <tr>
+                            <td colspan="2">
+                                <div id="left-term-sdr" class="sdr"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div id="left-term-display" class="term-capacity"></div>
+                            </td>
+                            <td>
+                                <div class="term-formula">
+                                    <img src="img/overlap-set-term1.png"/>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody></table>
+    
                     </td>
                     <td class="times">x</td>
                     <td class="lil">
-                        <div id="right-term-sdr" class="sdr"></div>
-                        <div id="right-term-display" class="term-capacity"></div>
-                        <div class="term-formula">
-                            <img src="img/overlap-set-term2.png"/>
-                        </div>
+    
+                        <table><tbody>
+                        <tr>
+                            <td colspan="2">
+                                <div id="right-term-sdr" class="sdr"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div id="right-term-display" class="term-capacity"></div>
+                            </td>
+                            <td>
+                                <div class="term-formula">
+                                    <img src="img/overlap-set-term2.png"/>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody></table>
+    
                     </td>
                 </tr>
                 </tbody></table>
@@ -135,7 +163,7 @@
     <table class="props">
         <tbody>
         {{#each props}}
-        <tr style="">
+        <tr style="{{rowStyle}}">
             <td class="data-label">{{label}}:</td>
             <td id="{{label}}-display" class="data">{{data}}</td>
         </tr>

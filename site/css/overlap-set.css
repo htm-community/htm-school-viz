@@ -57,6 +57,12 @@ h2 {
 .lil .props {
     float: right;
 }
+.lil table {
+    height: 200px;
+}
+.lil table td {
+    border: none !important;
+}
 .term-capacity {
     float: right;
 }

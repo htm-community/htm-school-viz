@@ -3,6 +3,9 @@ $(function() {
     // The functions below all rely on these values.
     var n = 256;
     var w = 4;
+    var sparsity = w / n;
+    var theta = Math.floor(w * 3/4);
+    var t = w - theta;
     var bitSize = 8;
     var bitStretch = 2;
 
@@ -10,19 +13,42 @@ $(function() {
     var sdrStack = [];
     var sdrUnion = SDR.tools.getRandom(n, 0);
 
-    var $sSlider = $('#sparsity-slider');
+    var $stack = $('#sdr-stack');
+    var $wSlider = $('#w-slider');
+    var $tSlider = $('#t-slider');
+    var $thetaSlider = $('#theta-slider');
 
-    function drawNextSdr(newN, newW) {
-        n = newN;
+    var $nDisplay = $('#n-display');
+    var $wDisplay = $('#w-display');
+    var $tDisplay = $('#t-display');
+    var $thetaDisplay = $('#theta-display');
+    var $sparsityDisplay = $('#sparsity-display');
+
+    var $nextSdr = $('#next-sdr');
+
+    function drawNextSdr(newW) {
         w = newW;
+        sparsity = w / n;
         sdrNext = SDR.tools.getRandom(n, w);
         SDR.draw(sdrNext, 'next-sdr', {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
-            line: true
+            line: true,
+            slide: true
         });
-        updateDisplayValues(w / n);
+        updateDisplayValues();
+    }
+
+    function drawMatchSdr(index) {
+        var matchSdr = SDR.tools.addBitNoise(sdrStack[index], t);
+        SDR.draw(matchSdr, 'next-sdr', {
+            spartan: true,
+            size: bitSize,
+            stretch: bitStretch,
+            line: true,
+            slide: true
+        });
     }
 
     function drawUnionSdr() {
@@ -35,7 +61,6 @@ $(function() {
     }
 
     function drawSdrStack() {
-        var $stack = $('#sdr-stack');
         $stack.html('');
         _.each(sdrStack, function(sdr, i) {
             var sdrId = 'sdr-' + i;
@@ -44,7 +69,8 @@ $(function() {
                 spartan: true,
                 size: bitSize,
                 stretch: bitStretch,
-                line: true
+                line: true,
+                slide: i == sdrStack.length - 1
             });
         });
     }
@@ -53,58 +79,93 @@ $(function() {
         sdrUnion = SDR.tools.union(sdrUnion, sdrNext);
     }
 
-    function matchNextSdr() {
-        var nextPopulation = SDR.tools.population(sdrNext);
-        var overlap = SDR.tools.overlap(sdrNext, sdrUnion);
-        var bitsSame = SDR.tools.population(overlap);
-        var match = bitsSame == nextPopulation;
-        var message = '<h3>' + match + ': ' + bitsSame + ' bits overlap out of ' + nextPopulation + '.</h3>';
-        var $dialog = $('#dialog');
-        $dialog.html(message);
-        $dialog.dialog({
-            modal: true,
-            width: '400px',
-            buttons: {
-                Ok: function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-    }
+    //function matchNextSdr() {
+    //    var nextPopulation = SDR.tools.population(sdrNext);
+    //    var overlap = SDR.tools.overlap(sdrNext, sdrUnion);
+    //    var bitsSame = SDR.tools.population(overlap);
+    //    var match = bitsSame == nextPopulation;
+    //    var message = '<h3>' + match + ': ' + bitsSame + ' bits overlap out of ' + nextPopulation + '.</h3>';
+    //    var $dialog = $('#dialog');
+    //    $dialog.html(message);
+    //    $dialog.dialog({
+    //        modal: true,
+    //        width: '400px',
+    //        buttons: {
+    //            Ok: function() {
+    //                $(this).dialog("close");
+    //            }
+    //        }
+    //    });
+    //}
 
     function addNextSdr() {
+        $nextSdr.removeClass('highlight');
+        $('#next-sdr-svg').slideUp(function() {
+            $nextSdr.removeClass('highlight');
+            drawNextSdr(w);
+        });
         sdrStack.push(sdrNext);
         calculateUnion();
         drawSdrStack();
         drawUnionSdr();
-        drawNextSdr(n, w);
     }
 
-    function updateDisplayValues(sparsity) {
-        $('#n-display').html(n);
-        $('#w-display').html(w);
-        $('#sparsity-display').html(sparsity.toFixed(2));
-        $sSlider.slider('value', sparsity * 100);
+    function updateDisplayValues() {
+        $nDisplay.html(n);
+        $wDisplay.html(w);
+        $tDisplay.html(t);
+        $thetaDisplay.html(theta);
+        $sparsityDisplay.html(sparsity.toFixed(2));
+        $wSlider.slider('option', 'max', n);
+        $tSlider.slider('option', 'max', w - theta);
+        $thetaSlider.slider('option', 'max', w);
+        $wSlider.slider('value', w);
+        $thetaSlider.slider('value', theta);
+        $tSlider.slider('value', t);
     }
 
-    function validate(testN, testW) {
-        return testW < testN;
+    function validate(testW, testTheta, testT) {
+        return testW <= n
+            && testT <= (testW - testTheta);
     }
 
-    function drawSlider() {
-        function slide(event, ui) {
-            var value = ui.value;
-            var myN = n;
-            var myW = Math.floor(n * (value / 100));
-            if (validate(myN, myW)) {
-                drawNextSdr(myN, myW);
-            } else {
-                event.preventDefault();
-            }
+    function draw(myW, myTheta, myT, callback) {
+        var err = undefined;
+        if (validate(myW, myTheta, myT)) {
+            theta = myTheta;
+            t = myT;
+            drawNextSdr(myW);
+            updateDisplayValues();
+        } else {
+            err = new Error('Invalid values.');
         }
-        $sSlider.slider({
-            min: 1, max: 50, value: 2, step: 0.1,
-            slide: slide
+        if (callback) callback(err);
+    }
+
+    function drawSliders() {
+        $wSlider.slider({
+            min: 1, max: n, value: w, step: 1,
+            slide: function(event, ui) {
+                draw(ui.value, theta, t, function(err) {
+                    if (err) event.preventDefault();
+                });
+            }
+        });
+        $thetaSlider.slider({
+            min: 1, max: w, value: theta, step: 1,
+            slide: function(event, ui) {
+                draw(w, ui.value, t, function(err) {
+                    if (err) event.preventDefault();
+                });
+            }
+        });
+        $tSlider.slider({
+            min: 0, max: w - theta, value: t, step: 1,
+            slide: function(event, ui) {
+                draw(w, theta, ui.value, function(err) {
+                    if (err) event.preventDefault();
+                });
+            }
         });
     }
 
@@ -112,9 +173,22 @@ $(function() {
         $('button').click(addNextSdr);
     }
 
-    drawSlider();
-    drawNextSdr(n, w);
+    function addSdrClickHandler() {
+        $stack.click(function(evt) {
+            var $sdrSvg = $(evt.target).parent();
+            var id = $sdrSvg.attr('id');
+            var index = parseInt(id.split('-')[1]);
+            $stack.find('div.sdr').removeClass('highlight');
+            $sdrSvg.parent().addClass('highlight');
+            $nextSdr.addClass('highlight');
+            drawMatchSdr(index);
+        });
+    }
+
+    drawSliders();
+    drawNextSdr(w);
     drawUnionSdr();
     addButtonClickHandler();
+    addSdrClickHandler();
 
 });

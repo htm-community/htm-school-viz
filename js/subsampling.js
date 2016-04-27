@@ -180,7 +180,6 @@ $(function () {
             xprime = SDR.tools.subsample(x, sample);
             SDR.draw(xprime, 'sdr-xprime', {
                 title: 'x\' (subsampled)',
-                color: leftColor,
                 size: size
             });
         }
@@ -189,7 +188,6 @@ $(function () {
             y = SDR.tools.getRandom(n, wy);
             SDR.draw(y, 'sdr-y', {
                 title: 'y (random)',
-                color: rightColor,
                 size: size
             });
         }
