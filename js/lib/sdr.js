@@ -20,6 +20,7 @@ $(function() {
             var heightMultiplyer = stretch ? stretch : 1;
             var width = undefined;
             var height = undefined;
+            var cssClass = opts.cssClass || '';
             var maxWidth = opts.maxWidth;
             var svg;
             var svgId = elId + '-svg';
@@ -38,7 +39,10 @@ $(function() {
             width = rowLength * size;
             height = Math.floor(sdr.length / rowLength) * size;
 
-            svg = $('<svg id="' + svgId + '" width="' + width + '" height="' + height + '">');
+            svg = $('<svg id="' + svgId
+                + '" width="' + width
+                + '" height="' + height
+                + '" class="' + cssClass + '">');
 
             // Clear out container.
             $container.html('');

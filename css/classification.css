@@ -1,15 +1,17 @@
 body {
-    margin: 20px 40px;
-    font-size: inherit;
+    margin-left: 40px;
+    margin-right: 40px;
 }
 .slider {
     width: 800px;
-    font-size: 16pt;
-}
-rect {
-    stroke: #9b9b9b;
-    shape-rendering: crispEdges;
 }
 svg:hover {
     opacity: 0.5;
+}
+svg.highlight {
+    border: red solid 1px;
+}
+.data-label, .data {
+    font-size: 22pt;
+    padding: 0 6px;
 }

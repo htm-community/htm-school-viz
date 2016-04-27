@@ -9,14 +9,20 @@ svg {
 .slider {
     width: 800px;
 }
+svg:hover {
+    opacity: 0.5;
+}
+svg.highlight {
+    border: red solid 1px;
+}
 #sdr-stack div {
     padding: 0;
     margin: 0;
-    font-size: inherit;
+    /*font-size: inherit;*/
 }
 button {
     margin: 20px 0 !important;
 }
 .sdr {
-    height: 16px;
+    border: solid red 1px;
 }

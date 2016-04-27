@@ -77,17 +77,13 @@ $(function() {
             return inactive;
         },
 
-        // Adds a percent noise by turning on X percent of the off bits and
-        // turning off X percent of the on bits.
-        addNoise: function(sdr, percentNoise) {
+        addBitNoise: function(sdr, noisyBits) {
             var noisy = [];
-            // The noiseLevel will be the number of total bits to flip.
-            var noiseLevel = Math.floor(this.population(sdr) * percentNoise);
             var activeBits = this.getActiveBits(sdr);
             var inactiveBits = this.getInactiveBits(sdr);
             var toFlip = [];
             // Populate the indices of the bits we want to flip with noise.
-            _.times(noiseLevel, function() {
+            _.times(noisyBits, function() {
                 toFlip.push(
                     activeBits.splice(_.random(activeBits.length - 1), 1)[0]
                 );
@@ -104,6 +100,15 @@ $(function() {
                 noisy.push(newBit);
             });
             return noisy;
+
+        },
+
+        // Adds a percent noise by turning on X percent of the off bits and
+        // turning off X percent of the on bits.
+        addNoise: function(sdr, percentNoise) {
+            // The noiseLevel will be the number of total bits to flip.
+            var noiseLevel = Math.floor(this.population(sdr) * percentNoise);
+            return this.addBitNoise(sdr, noiseLevel);
         },
 
         setW: function(sdr, w) {

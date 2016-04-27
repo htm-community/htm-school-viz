@@ -66,7 +66,7 @@ $(function() {
             width: '400px',
             buttons: {
                 Ok: function() {
-                    $( this ).dialog( "close" );
+                    $(this).dialog("close");
                 }
             }
         });
@@ -109,14 +109,7 @@ $(function() {
     }
 
     function addButtonClickHandler() {
-        $('button').click(function() {
-            var action = $(this).data('action');
-            if (action == 'add') {
-                addNextSdr();
-            } else {
-                matchNextSdr();
-            }
-        });
+        $('button').click(addNextSdr);
     }
 
     drawSlider();
