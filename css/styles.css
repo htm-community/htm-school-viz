@@ -81,4 +81,10 @@ hr {
     font-size: 24pt;
     display: none;
 }
-
+#match {
+    font-size: 20pt;
+    text-align: center;
+    padding: 20px;
+    border: solid grey 1px;
+    border-radius: 10px;
+}

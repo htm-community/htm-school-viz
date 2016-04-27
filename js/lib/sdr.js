@@ -109,6 +109,7 @@ $(function() {
         },
 
         drawComparison: function(left, right, elId, opts) {
+            if (! opts) opts = {};
             var rowLength = Math.floor(Math.sqrt(left.length));
             var title = opts.title || 'Comparison';
             var leftColor = "orange";
@@ -129,20 +130,31 @@ $(function() {
             // Clear out container.
             $container.html('');
 
-            $container.append(propsTmpl({
-                title: title,
-                props: [{
-                    label: 'overlap score',
-                    data: overlapScore,
-                    rowStyle: 'color:red'
-                }, {
-                    label: 'left bits',
-                    rowStyle: 'color:' + leftColor
-                }, {
-                    label: 'right bits',
-                    rowStyle: 'color:' + rightColor
-                }]
-            }));
+            if (! opts.spartan) {
+                $container.append(propsTmpl({
+                    title: title,
+                    props: [{
+                        label: 'overlap score',
+                        data: overlapScore,
+                        rowStyle: 'color:red'
+                    }, {
+                        label: 'left bits',
+                        rowStyle: 'color:' + leftColor
+                    }, {
+                        label: 'right bits',
+                        rowStyle: 'color:' + rightColor
+                    }]
+                }));
+            } else if (opts.spartan == 'min') {
+                $container.append(propsTmpl({
+                    props: [{
+                        label: 'overlap score',
+                        data: overlapScore,
+                        rowStyle: 'color:red'
+                    }]
+                }));
+
+            }
 
 
             $container.append(svg);

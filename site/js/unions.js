@@ -103,7 +103,7 @@ $(function() {
     function addNextSdr() {
         $addBtn.prop('disabled', true);
         $nextSdr.removeClass('highlight');
-        $('#next-sdr-svg').slideUp(function() {
+        $('#next-sdr-svg').slideUp(100, function() {
             $nextSdr.removeClass('highlight');
             nextSdr = SDR.tools.getRandom(n, w);
             drawNextSdr();

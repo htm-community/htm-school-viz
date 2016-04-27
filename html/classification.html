@@ -1,0 +1,65 @@
+<div id="dialog" title="Match Results"></div>
+
+<div id="match-compare-container">
+    <div id="match-compare"></div>
+    <div id="match"></div>
+</div>
+
+<table>
+    <tbody>
+    <tr>
+        <td class="data-label">n</td>
+        <td id="n-display" class="data">loading...</td>
+        <td>
+            <div id="false-positive-display"></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="data-label">w</td>
+        <td id="w-display" class="data">loading...</td>
+        <td>
+            <div id="w-slider" class="slider"></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="data-label">&theta;</td>
+        <td id="theta-display" class="data">loading...</td>
+        <td>
+            <div id="theta-slider" class="slider"></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="data-label">t (bits of noise)</td>
+        <td id="t-display" class="data">loading...</td>
+        <td>
+            <div id="t-slider" class="slider"></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="data-label">sparsity</td>
+        <td id="sparsity-display" class="data">loading...</td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+
+<table><tbody>
+    <tr>
+        <td>
+            <div id="next-sdr"></div>
+        </td>
+    </tr>
+    <tr>
+        <td align="center">
+            <div class="btn-group" role="group">
+                <button id="add-btn" type="button" class="btn btn-primary btn-lg" data-action="add">Add</button>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div id="sdr-stack"></div>
+        </td>
+    </tr>
+</tbody></table>
+

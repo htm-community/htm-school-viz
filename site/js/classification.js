@@ -4,7 +4,7 @@ $(function() {
     var n = 256;
     var w = 4;
     var sparsity = w / n;
-    var theta = Math.floor(w * 3/4);
+    var theta = Math.floor(w * (3/4));
     var t = w - theta;
     var bitSize = 8;
     var bitStretch = 2;
@@ -13,23 +13,23 @@ $(function() {
     var matchSdr = undefined;
     var stackMatchSdr = undefined;
     var sdrStack = [];
-    var sdrUnion = SDR.tools.getRandom(n, 0);
 
     var $stack = $('#sdr-stack');
     var $wSlider = $('#w-slider');
     var $tSlider = $('#t-slider');
     var $thetaSlider = $('#theta-slider');
+    var $match = $('#match');
 
     var $nDisplay = $('#n-display');
     var $wDisplay = $('#w-display');
     var $tDisplay = $('#t-display');
     var $thetaDisplay = $('#theta-display');
     var $sparsityDisplay = $('#sparsity-display');
+    var $falsePosDisplay = $('#false-positive-display');
 
     var $nextSdr = $('#next-sdr');
 
     var $addBtn = $('#add-btn');
-    var $matchBtn = $('#match-btn');
 
     var viewMode = 'add';
 
@@ -53,15 +53,6 @@ $(function() {
         });
     }
 
-    function drawUnionSdr() {
-        SDR.draw(sdrUnion, 'sdr-union', {
-            spartan: true,
-            size: bitSize,
-            stretch: bitStretch,
-            line: true
-        });
-    }
-
     function drawSdrStack() {
         $stack.html('');
         _.each(sdrStack, function(sdr, i) {
@@ -77,29 +68,6 @@ $(function() {
         });
     }
 
-    function calculateUnion() {
-        sdrUnion = SDR.tools.union(sdrUnion, nextSdr);
-    }
-
-    //function matchNextSdr() {
-    //    var nextPopulation = SDR.tools.population(nextSdr);
-    //    var overlap = SDR.tools.overlap(nextSdr, sdrUnion);
-    //    var bitsSame = SDR.tools.population(overlap);
-    //    var match = bitsSame == nextPopulation;
-    //    var message = '<h3>' + match + ': ' + bitsSame + ' bits overlap out of ' + nextPopulation + '.</h3>';
-    //    var $dialog = $('#dialog');
-    //    $dialog.html(message);
-    //    $dialog.dialog({
-    //        modal: true,
-    //        width: '400px',
-    //        buttons: {
-    //            Ok: function() {
-    //                $(this).dialog("close");
-    //            }
-    //        }
-    //    });
-    //}
-
     function addNextSdr() {
         $addBtn.prop('disabled', true);
         $nextSdr.removeClass('highlight');
@@ -110,9 +78,20 @@ $(function() {
             $addBtn.prop('disabled', false);
         });
         sdrStack.push(nextSdr);
-        calculateUnion();
         drawSdrStack();
-        drawUnionSdr();
+    }
+
+    function calculateFalsePositiveProbability() {
+        return math.bignumber(0);
+        //return _.reduce(sdrStack, function(sum, sdr) {
+        //    var overlapSet = SDR.tools._getOverlapSet(n, SDR.tools.population(sdr), t, w);
+        //    var uniqueness = SDR.tools.getUniqueness(sdr);
+        //    return math.add(sum, math.divide(overlapSet, uniqueness));
+        //}, math.bignumber(0));
+    }
+
+    function sdrsMatch() {
+        return SDR.tools.population(SDR.tools.overlap(matchSdr, stackMatchSdr)) >= theta;
     }
 
     function switchView(mode) {
@@ -126,7 +105,6 @@ $(function() {
         $tDisplay.html(t);
         $thetaDisplay.html(theta);
         $sparsityDisplay.html(sparsity.toFixed(2));
-
         if (viewMode == 'add') updateUiForAdding();
         else updateUiForMatching();
     }
@@ -135,15 +113,19 @@ $(function() {
         $wSlider.slider('option', 'disabled', false);
         $wSlider.slider('option', 'max', n);
         $wSlider.slider('value', w);
+        $falsePosDisplay.html();
 
         $thetaSlider.slider('option', 'disabled', true);
 
-        $matchBtn.prop('disabled', true);
         $addBtn.prop('disabled', false);
     }
 
     function updateUiForMatching() {
         var matchW = SDR.tools.population(matchSdr);
+
+        $falsePosDisplay.html(
+            calculateFalsePositiveProbability().toPrecision(5)
+        );
 
         $wSlider.slider('option', 'disabled', true);
 
@@ -155,8 +137,19 @@ $(function() {
         $tSlider.slider('option', 'max', matchW - theta);
         $tSlider.slider('value', t);
 
-        $matchBtn.prop('disabled', false);
         $addBtn.prop('disabled', true);
+
+        if (sdrsMatch()) {
+            $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
+        } else {
+            $match.html('NOPE').removeClass('bg-success').addClass('bg-danger');
+        }
+        $match.slideDown();
+
+        SDR.drawComparison(stackMatchSdr, matchSdr, 'match-compare', {
+            spartan: 'min',
+            size: 12
+        });
     }
 
     function validate(testW, testTheta, testT, testMatch) {
@@ -238,24 +231,24 @@ $(function() {
             var $sdrSvg = $(evt.target).parent();
             var id = $sdrSvg.attr('id');
             var index = parseInt(id.split('-')[1]);
+            var matchW;
             stackMatchSdr = sdrStack[index];
-            if (! validate(w, theta, t, SDR.tools.addBitNoise(stackMatchSdr, t))) {
-                evt.preventDefault();
-                evt.stopPropagation();
-            } else {
-                $stack.find('div.sdr').removeClass('highlight');
-                $nextSdr.addClass('highlight');
-                $sdrSvg.parent().addClass('highlight');
-                matchSdr = SDR.tools.addBitNoise(stackMatchSdr, t);
-                drawMatchSdr();
-                switchView('match');
+            matchSdr = SDR.tools.addBitNoise(stackMatchSdr, t);
+            matchW = SDR.tools.population(stackMatchSdr);
+            if (! validate(w, theta, t, matchSdr)) {
+                theta = Math.floor(matchW * (3/4));
+                t = Math.floor((matchW - theta) * (1/2));
             }
+            $stack.find('div.sdr').removeClass('highlight');
+            $nextSdr.addClass('highlight');
+            $sdrSvg.parent().addClass('highlight');
+            drawMatchSdr();
+            switchView('match');
         });
     }
 
     drawSliders();
     drawNextSdr(w);
-    drawUnionSdr();
     addButtonClickHandler();
     addSdrClickHandler();
     switchView(viewMode);

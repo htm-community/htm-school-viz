@@ -57,7 +57,6 @@ $(function () {
         overlapSet = SDR.tools._getOverlapSet(n, wxPrime, theta, wy);
         if (isFinite(overlapSet)) {
             yUniqueness = SDR.tools._getUniqueness(n, wy);
-            console.log('%s / %s', overlapSet, yUniqueness);
             falsePosProbability = overlapSet.div(yUniqueness).toPrecision(5);
         } else {
             falsePosProbability = '&infin;';

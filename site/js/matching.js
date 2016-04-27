@@ -9,6 +9,7 @@ $(function () {
     var sdr = SDR.tools.getRandom(n, Math.floor(n * sparsity));
     var noisySdr = SDR.tools.addNoise(sdr, noise);
 
+    var $match = $('#match');
     var $noiseSlider = $('#noise-slider');
     var $thetaSlider = $('#theta-slider');
     var leftColor = "orange";
@@ -21,7 +22,6 @@ $(function () {
     }
 
     function updateDisplayValues() {
-        var $match = $('#match');
         var overlapSet = SDR.tools.getOverlapSet(sdr, theta, w);
         var falsePositiveChance = overlapSet / SDR.tools.getUniqueness(sdr);
         $('#false-positive-display').html(falsePositiveChance);

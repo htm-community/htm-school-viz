@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-    <title></title>
+    <title>SDR Classification</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="css/third/jquery-ui.min.css">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/classification.css">
 </head>
 
 <body>
@@ -22,33 +22,73 @@
         <a href="index.html">BACK</a>
     </div>
 
-    <h1></h1>
+    <h1>SDR Classification</h1>
 
-    <div class="jumbotron">
-        <h1>Sparse Distributed Representation <em>Visualizations</em></h1>
+    <div id="dialog" title="Match Results"></div>
     
-        <p>These visualizations are best viewed at a large resolution (at least 2500px wide).</p>
-    
-        <h2>HTM School Episode 2</h2>
-        <div class="btn-group" role="group">
-            <a type="button" class="btn btn-warning btn-lg" href="capacity.html">Capacity</a>
-            <a type="button" class="btn btn-primary btn-lg" href="compare.html">Comparison</a>
-            <a type="button" class="btn btn-warning btn-lg" href="matching.html">Matching with &theta;</a>
-        </div>
-    
-        <h2>HTM School Episode 3</h2>
-        <div class="btn-group" role="group">
-            <a type="button" class="btn btn-primary btn-lg" href="overlap-set.html">Overlap Sets</a>
-            <a type="button" class="btn btn-warning btn-lg" href="subsampling.html">Subsampling</a>
-        </div>
-    
-        <h2>HTM School Episode 4</h2>
-        <div class="btn-group" role="group">
-            <a type="button" class="btn btn-warning btn-lg" href="classification.html">Classification</a>
-            <a type="button" class="btn btn-primary btn-lg" href="unions.html">Unions</a>
-        </div>
-    
+    <div id="match-compare-container">
+        <div id="match-compare"></div>
+        <div id="match"></div>
     </div>
+    
+    <table>
+        <tbody>
+        <tr>
+            <td class="data-label">n</td>
+            <td id="n-display" class="data">loading...</td>
+            <td>
+                <div id="false-positive-display"></div>
+            </td>
+        </tr>
+        <tr>
+            <td class="data-label">w</td>
+            <td id="w-display" class="data">loading...</td>
+            <td>
+                <div id="w-slider" class="slider"></div>
+            </td>
+        </tr>
+        <tr>
+            <td class="data-label">&theta;</td>
+            <td id="theta-display" class="data">loading...</td>
+            <td>
+                <div id="theta-slider" class="slider"></div>
+            </td>
+        </tr>
+        <tr>
+            <td class="data-label">t (bits of noise)</td>
+            <td id="t-display" class="data">loading...</td>
+            <td>
+                <div id="t-slider" class="slider"></div>
+            </td>
+        </tr>
+        <tr>
+            <td class="data-label">sparsity</td>
+            <td id="sparsity-display" class="data">loading...</td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
+    
+    <table><tbody>
+        <tr>
+            <td>
+                <div id="next-sdr"></div>
+            </td>
+        </tr>
+        <tr>
+            <td align="center">
+                <div class="btn-group" role="group">
+                    <button id="add-btn" type="button" class="btn btn-primary btn-lg" data-action="add">Add</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="sdr-stack"></div>
+            </td>
+        </tr>
+    </tbody></table>
+    
 
 </div>
 
@@ -80,7 +120,7 @@
 <script src="js/lib/sdr.js"></script>
 <script src="js/lib/tools.js"></script>
 
-<script src="js/index.js"></script>
+<script src="js/classification.js"></script>
 
 <a href="https://github.com/nupic-community/sdr-viz"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
 

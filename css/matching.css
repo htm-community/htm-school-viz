@@ -5,16 +5,7 @@ svg {
     width: 630px;
     height: 630px;
 }
-#match {
-    font-size: 20pt;
-    text-align: center;
-    padding: 20px;
-    border: solid grey 1px;
-    border-radius: 10px;
-}
 #card {
-    position: absolute;
-    top: 10px;
     left: 1400px;
     width: 500px;
 }
