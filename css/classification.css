@@ -52,6 +52,10 @@ svg#match-compare-svg {
     margin-right: 400px;
     display: none;
 }
+
+.sdr.selected rect {
+    stroke: #ffad7e;
+}
 .sdr .meta {
     float: right;
     font-size: 8pt !important;
