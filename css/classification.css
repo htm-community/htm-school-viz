@@ -61,6 +61,9 @@ svg#match-compare-svg {
 .progress {
     height: 14px;
 }
+.progress-bar {
+    line-height: inherit;
+}
 .progress.match .progress-bar {
     background-color: orangered;
 }
