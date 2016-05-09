@@ -59,7 +59,7 @@ svg#match-compare-svg {
 .sdr .meta {
     float: right;
     font-size: 8pt !important;
-    margin-left: -80px !important;
+    /*margin-left: -80px !important;*/
     width: 200px;
 }
 .progress {

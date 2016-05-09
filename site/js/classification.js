@@ -5,8 +5,6 @@ $(function() {
     // Primitives
     var n = 256;
     var w = 4;
-    //var n = 2048;
-    //var w = 40;
     var sparsity = w / n;
     var theta = Math.floor(w * (3/4));
     var t = 0;
@@ -31,19 +29,26 @@ $(function() {
     var $tDisplay = $('#t-display');
     var $thetaDisplay = $('#theta-display');
     var $sparsityDisplay = $('#sparsity-display');
-    var $falsePosDisplay = $('#false-positive-display');
 
     var $match = $('#match');
     var $nextSdr = $('#next-sdr');
     var $addBtn = $('#add-btn');
     var $populateBtn = $('#populate-btn');
     var $switchBtn = $('#switch-btn');
+    var $goBigBtn = $('#go-big-btn');
 
     // Can be either 'add' or 'match'.
     var viewMode = 'add';
 
 
     // Setters
+
+    function setN(myN) {
+        n = myN;
+        setW(Math.floor(n * 0.02));
+        nextSdr = SDR.tools.getRandom(n, w);
+        sdrStack = [];
+    }
 
     function setW(myW) {
         w = myW;
@@ -141,7 +146,10 @@ $(function() {
         $tDisplay.html(t);
         $thetaDisplay.html(theta);
         $sparsityDisplay.html(sparsity.toFixed(2));
+        $thetaSlider.slider('value', theta);
         $thetaSlider.slider('option', 'max', w);
+        $tSlider.slider('value', t);
+        $tSlider.slider('option', 'max', w);
         if (! sdrStack || sdrStack.length < 2) {
             $switchBtn.prop('disabled', true);
         } else {
@@ -197,6 +205,16 @@ $(function() {
             if (viewMode == 'add') viewMode = 'match';
             else viewMode = 'add';
             switchView();
+        });
+        $goBigBtn.click(function() {
+            setN(2048);
+            setT(Math.floor(w * 0.25));
+            setTheta(Math.floor(w * 0.75));
+            drawSdrStack();
+            $goBigBtn.prop('disabled', true);
+            viewMode = 'add';
+            switchView();
+            updateUi();
         });
     }
 
@@ -276,6 +294,8 @@ $(function() {
             $addBtn.prop('disabled', false);
             $populateBtn.prop('disabled', false);
             drawNextSdr();
+            $('.btn-group').slideDown();
+            $('.match-instructions').slideUp();
         } else {
             $switchBtn.prop('disabled', true);
             $wSlider.slider('option', 'disabled', true);
