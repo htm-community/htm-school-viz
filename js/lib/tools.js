@@ -11,16 +11,6 @@ $(function() {
         return 0;
     }
 
-    // function factorial(n) {
-    //     var result = math.bignumber(1);
-    //     var bigI, i;
-    //     for (i = 1; i <= n; i++) {
-    //         bigI = math.bignumber(i);
-    //         result = math.multiply(bigI, result);
-    //     }
-    //     return result;
-    // }
-
     function overflowSafeUniqueness(n, w) {
         var bigN = math.bignumber(n);
         var bigW = math.bignumber(w);
@@ -182,6 +172,18 @@ $(function() {
 
         getExactMatchProbability: function(sdr) {
             return math.bignumber(1) / this.getUniqueness(sdr);
+        },
+
+        getOverlapScore: function(left, right) {
+            return this.population(this.overlap(left, right));
+        },
+
+        getMatchingBitIndices: function(left, right) {
+            var bits = [];
+            _.each(left, function(leftBit, i) {
+                if (leftBit && right[i]) bits.push(i);
+            });
+            return bits;
         },
 
         subsample: function(sdr, percentToSample) {

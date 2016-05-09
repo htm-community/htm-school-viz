@@ -9,7 +9,7 @@ svg {
 .slider {
     width: 800px;
 }
-svg:hover {
+#sdr-stack svg:hover {
     opacity: 0.5;
 }
 #next-sdr.highlight svg rect.on {
@@ -23,6 +23,8 @@ svg:hover {
     margin: 0;
     font-size: inherit;
 }
+
+
 button {
     margin: 20px 0 !important;
 }
@@ -49,4 +51,23 @@ svg#match-compare-svg {
     float:right;
     margin-right: 400px;
     display: none;
+}
+.sdr .meta {
+    float: right;
+    font-size: 8pt !important;
+    margin-left: -80px !important;
+    width: 200px;
+}
+.progress {
+    height: 14px;
+}
+.progress.match .progress-bar {
+    background-color: orangered;
+}
+#sdr-stack .sdr.match .meta {
+    background-color: lightpink;
+}
+
+rect.match {
+    fill: red !important;
 }

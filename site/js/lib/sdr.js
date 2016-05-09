@@ -81,29 +81,32 @@ $(function() {
                 }));
             }
 
+            // Add an empty container for metadata.
+            $container.append('<div class="meta"></div>');
             $container.append($svg);
             $container.css({
                 height: (size * heightMultiplyer) + 'px'
             });
 
             d3.select('#' + svgId)
-                .selectAll("rect")
+                .selectAll('rect')
                 .data(sdr)
                 .enter()
-                .append("rect")
-                .attr("x", function(d, i) {
+                .append('rect')
+                .attr('x', function(d, i) {
                     var offset = i % rowLength;
                     return offset * size;
                 })
-                .attr("y", function(d, i) {
+                .attr('y', function(d, i) {
                     var offset = Math.floor(i / rowLength);
                     return offset * size;
                 })
-                .attr("width", size)
-                .attr("height", size * heightMultiplyer - 1)
-                .attr("class", function(d) {
-                    if (d == 1) return "on";
-                    return "off";
+                .attr('index', function(d, i) { return i; })
+                .attr('width', size)
+                .attr('height', size * heightMultiplyer - 1)
+                .attr('class', function(d) {
+                    if (d == 1) return 'on';
+                    return 'off';
                 });
             if (slide) $svg.slideDown(100);
         },
@@ -160,31 +163,31 @@ $(function() {
             $container.append(svg);
 
             d3.select('#' + elId + '-svg')
-                .selectAll("rect")
+                .selectAll('rect')
                 .data(d3.range(0, left.length))
                 .enter()
-                .append("rect")
-                .attr("x", function(i) {
+                .append('rect')
+                .attr('x', function(i) {
                     var offset = i % rowLength;
                     return offset * size;
                 })
-                .attr("y", function(i) {
+                .attr('y', function(i) {
                     var offset = Math.floor(i / rowLength);
                     return offset * size;
                 })
-                .attr("width", size)
-                .attr("height", size)
-                .style("fill", function(i) {
+                .attr('width', size)
+                .attr('height', size)
+                .style('fill', function(i) {
                     var leftBit = left[i];
                     var rightBit = right[i];
                     if (leftBit == 1 && rightBit == 1) {
-                        return "red";
+                        return 'red';
                     } else if (leftBit == 1 && rightBit == 0) {
                         return leftColor;
                     } else if (leftBit == 0 && rightBit == 1) {
                         return rightColor;
                     }
-                    return "white";
+                    return 'white';
                 });
         },
 
