@@ -56,6 +56,14 @@ svg#match-compare-svg {
 .sdr.selected rect {
     stroke: #ffad7e;
 }
+/*.sdr .meta .marker {*/
+    /*width: 10px;*/
+    /*height: 10px;*/
+    /*background-color: white;*/
+/*}*/
+/*.sdr.selected .meta .marker {*/
+    /*background-color: #ffad7e;*/
+/*}*/
 .sdr .meta {
     float: right;
     font-size: 8pt !important;
@@ -74,7 +82,6 @@ svg#match-compare-svg {
 #sdr-stack .sdr.match .meta {
     background-color: lightpink;
 }
-
 rect.match {
     fill: red !important;
 }

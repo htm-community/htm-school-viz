@@ -31,7 +31,6 @@ $(function() {
     var $thetaDisplay = $('#theta-display');
     var $sparsityDisplay = $('#sparsity-display');
 
-    var $match = $('#match');
     var $nextSdr = $('#next-sdr');
     var $addBtn = $('#add-btn');
     var $populateBtn = $('#populate-btn');
@@ -67,51 +66,12 @@ $(function() {
 
     /* UI and Draw functions */
 
-    function drawSliders() {
-        $wSlider.slider({
-            min: 1, max: n, value: w, step: 1,
-            slide: function(event, ui) {
-                if (validate(ui.value, theta, t)) {
-                    setW(ui.value);
-                    drawNextSdr();
-                    updateUi();
-                } else {
-                    event.preventDefault();
-                }
-            }
-        });
-        $thetaSlider.slider({
-            min: 1, max: w, value: theta, step: 1,
-            disabled: true,
-            slide: function(event, ui) {
-                if (validate(w, ui.value, t)) {
-                    setTheta(ui.value);
-                    matchStack();
-                    updateUi();
-                }
-            }
-        });
-        $tSlider.slider({
-            min: 0, max: w - theta, value: t, step: 1,
-            disabled: true,
-            slide: function(event, ui) {
-                if (validate(w, theta, ui.value)) {
-                    setT(ui.value);
-                    matchSdr = SDR.tools.addBitNoise(originalMatchSdr, t);
-                    drawMatchSdr();
-                    matchStack();
-                    updateUi();
-                }
-            }
-        });
-    }
-
     function drawSdrStack() {
         $stack.html('');
         _.each(sdrStack, function(sdr, i) {
             var sdrId = 'sdr-' + i;
             $stack.prepend('<div id="' + sdrId + '" class="sdr">');
-            SDR.draw(sdr.slice(0, maxBitDisplay), sdrId, {
+            SDR.draw(getFirstElements(sdr, maxBitDisplay), sdrId, {
                 spartan: true,
                 size: bitSize,
                 stretch: bitStretch,
@@ -121,8 +81,14 @@ $(function() {
         });
     }
 
+    // Used to only display the first X elements in an SDR to reduce stress on
+    // the UI.
+    function getFirstElements(sdr, count) {
+        return sdr.slice(0, count);
+    }
+
     function drawNextSdr() {
-        SDR.draw(nextSdr.slice(0, maxBitDisplay), 'next-sdr', {
+        SDR.draw(getFirstElements(nextSdr, maxBitDisplay), 'next-sdr', {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
@@ -132,7 +98,7 @@ $(function() {
     }
 
     function drawMatchSdr() {
-        SDR.draw(matchSdr.slice(0, maxBitDisplay), 'next-sdr', {
+        SDR.draw(getFirstElements(matchSdr, maxBitDisplay), 'next-sdr', {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
@@ -179,7 +145,7 @@ $(function() {
     }
 
 
-    /* Handler functions */
+    /* Handler functions - all the event handling happens here. */
 
     function addButtonHandlers() {
         $addBtn.click(function() {
@@ -272,6 +238,47 @@ $(function() {
         });
     }
 
+    function drawSliders() {
+        $wSlider.slider({
+            min: 1, max: n, value: w, step: 1,
+            slide: function(event, ui) {
+                if (validate(ui.value, theta, t)) {
+                    setW(ui.value);
+                    drawNextSdr();
+                    updateUi();
+                } else {
+                    event.preventDefault();
+                }
+            }
+        });
+        $thetaSlider.slider({
+            min: 1, max: w, value: theta, step: 1,
+            disabled: true,
+            slide: function(event, ui) {
+                if (validate(w, ui.value, t)) {
+                    setTheta(ui.value);
+                    matchStack();
+                    updateUi();
+                }
+            }
+        });
+        $tSlider.slider({
+            min: 0, max: w - theta, value: t, step: 1,
+            disabled: true,
+            slide: function(event, ui) {
+                if (validate(w, theta, ui.value)) {
+                    setT(ui.value);
+                    matchSdr = SDR.tools.addBitNoise(originalMatchSdr, t);
+                    drawMatchSdr();
+                    matchStack();
+                    updateUi();
+                }
+            }
+        });
+    }
+
+
+
     /* Utils */
 
     function validate(testW, testTheta, testT, testMatch) {
@@ -314,7 +321,7 @@ $(function() {
         var percent = Math.min(Math.floor(overlap / theta * 100), 100);
         var clazz = '';
         if (overlap >= theta) clazz = 'match';
-        return '<div class="progress ' + clazz + '">'
+        return '<div class="marker"/><div class="progress ' + clazz + '">'
             + '<div class="progress-bar" role="progressbar" '
             + 'aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100" '
             + 'style="width: ' + percent + '%;">' + overlap + '</span></div></div>';
