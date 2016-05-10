@@ -6,10 +6,11 @@ $(function() {
     var n = 256;
     var w = 4;
     var sparsity = w / n;
-    var theta = Math.floor(w * (3/4));
+    var theta = w;
     var t = 0;
     var bitSize = 8;
     var bitStretch = 2;
+    var maxBitDisplay = 256;
 
     // SDRs
     var nextSdr = SDR.tools.getRandom(n, w);
@@ -110,7 +111,7 @@ $(function() {
         _.each(sdrStack, function(sdr, i) {
             var sdrId = 'sdr-' + i;
             $stack.prepend('<div id="' + sdrId + '" class="sdr">');
-            SDR.draw(sdr, sdrId, {
+            SDR.draw(sdr.slice(0, maxBitDisplay), sdrId, {
                 spartan: true,
                 size: bitSize,
                 stretch: bitStretch,
@@ -121,7 +122,7 @@ $(function() {
     }
 
     function drawNextSdr() {
-        SDR.draw(nextSdr, 'next-sdr', {
+        SDR.draw(nextSdr.slice(0, maxBitDisplay), 'next-sdr', {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
@@ -131,7 +132,7 @@ $(function() {
     }
 
     function drawMatchSdr() {
-        SDR.draw(matchSdr, 'next-sdr', {
+        SDR.draw(matchSdr.slice(0, maxBitDisplay), 'next-sdr', {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
@@ -196,7 +197,7 @@ $(function() {
         });
         $populateBtn.click(function() {
             sdrStack = sdrStack.concat(_.map(_.range(50), function() {
-                return SDR.tools.getRandom(n, _.random(w-1, w+1));
+                return SDR.tools.getRandom(n, w);
             }));
             drawSdrStack();
             updateUi();
