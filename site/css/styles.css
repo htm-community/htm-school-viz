@@ -28,6 +28,10 @@ p {
     font-size: 26pt;
     font-weight: bold;
 }
+.data-label small {
+    font-size: 18pt;
+    font-weight: normal;
+}
 
 .back-button {
     position: absolute;

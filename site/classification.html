@@ -24,73 +24,86 @@
 
     <h1>SDR Classification</h1>
 
-    <div id="dialog" title="Match Results"></div>
+    <!-- n -->
+    <div class="row">
+        <div class="col-md-1 data-label">n</div>
+        <div class="col-md-1" id="n-display">loading...</div>
+        <div class="col-md-4 slider">
+            <button id="go-big-btn" type="button" class="btn btn-warning">Go Big</button>
+        </div>
+        <div class="col-md-6"></div>
+    </div>
     
-    <table>
-        <tbody>
-        <tr>
-            <td class="data-label">n</td>
-            <td id="n-display" class="data">loading...</td>
-            <td>
-                <button id="go-big-btn" type="button" class="btn btn-warning">Go Big</button>
-            </td>
-        </tr>
-        <tr>
-            <td class="data-label">w</td>
-            <td id="w-display" class="data">loading...</td>
-            <td>
-                <div id="w-slider" class="slider"></div>
-            </td>
-        </tr>
-        <tr>
-            <td class="data-label">&theta;</td>
-            <td id="theta-display" class="data">loading...</td>
-            <td>
-                <div id="theta-slider" class="slider"></div>
-            </td>
-        </tr>
-        <tr>
-            <td class="data-label">t (bits of noise)</td>
-            <td id="t-display" class="data">loading...</td>
-            <td>
-                <div id="t-slider" class="slider"></div>
-            </td>
-        </tr>
-        <tr>
-            <td class="data-label">sparsity</td>
-            <td id="sparsity-display" class="data">loading...</td>
-            <td></td>
-        </tr>
-        </tbody>
-    </table>
+    <!-- w -->
+    <div class="row">
+        <div class="col-md-1 data-label">w</div>
+        <div class="col-md-1" id="w-display">loading...</div>
+        <div class="col-md-4 slider" id="w-slider"></div>
+        <div class="col-md-6"></div>
+    </div>
     
-    <table><tbody>
-        <tr>
-            <td>
-                <div id="next-sdr"></div>
-            </td>
-        </tr>
-        <tr>
-            <td align="center">
-                <div style="display:none" class="match-instructions">
-                    <p>Click on an SDR below to match.</p>
-                    <hr/>
-                </div>
-                <div class="btn-group" role="group">
-                    <button id="add-btn" type="button" class="btn btn-primary btn-lg">Add SDR to Stack</button>
-                    <button id="populate-btn" type="button" class="btn btn-primary btn-lg">Add Many SDRs to Stack</button>
-                </div>
-                <div class="btn-group" role="group">
-                    <button id="switch-btn" type="button" class="btn btn-warning btn-lg">Match</button>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <div id="sdr-stack"></div>
-            </td>
-        </tr>
-    </tbody></table>
+    <!-- theta -->
+    <div class="row">
+        <div class="col-md-1 data-label">&theta;</div>
+        <div class="col-md-1" id="theta-display">loading...</div>
+        <div class="col-md-4 slider" id="theta-slider"></div>
+        <div class="col-md-6"></div>
+    </div>
+    
+    <!-- t -->
+    <div class="row">
+        <div class="col-md-1 data-label">t <small>(bits of noise)</small></div>
+        <div class="col-md-1" id="t-display">loading...</div>
+        <div class="col-md-4 slider" id="t-slider"></div>
+        <div class="col-md-6"></div>
+    </div>
+    
+    <!-- sparsity -->
+    <div class="row">
+        <div class="col-md-1 data-label">sparsity</div>
+        <div class="col-md-1 value" id="sparsity-display">loading...</div>
+        <div class="col-md-4"></div>
+        <div class="col-md-6"></div>
+    </div>
+    
+    <!-- spacer -->
+    <div class="row">
+        <div class="col-md-12">
+            <hr/>
+        </div>
+    </div>
+    
+    <!-- next sdr / match sdr -->
+    <div class="row">
+        <div class="col-md-8" id="next-sdr"></div>
+        <div class="col-md-4"></div>
+    </div>
+    
+    <!-- labels / buttons -->
+    <div class="row">
+        <div class="col-md-12" align="center">
+            <div style="display:none" class="match-instructions">
+                <p>Click on an SDR below to match.</p>
+                <hr/>
+            </div>
+            <div class="btn-group" role="group">
+                <button id="add-btn" type="button" class="btn btn-primary btn-lg">Add SDR to Stack</button>
+                <button id="populate-btn" type="button" class="btn btn-primary btn-lg">Add Many SDRs to Stack</button>
+            </div>
+            <div class="btn-group" role="group">
+                <button id="switch-btn" type="button" class="btn btn-warning btn-lg">Match</button>
+            </div>
+        </div>
+    </div>
+    
+    
+    <!-- sdr stack -->
+    <div class="row">
+        <div class="col-md-4"></div>
+    </div>
+    
+    <div class="row" id="sdr-stack">
+    </div>
     
 
 </div>
