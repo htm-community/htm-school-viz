@@ -21,67 +21,37 @@ svg {
 #sdr-stack div {
     padding: 0;
     margin: 0;
-    font-size: inherit;
 }
-
 
 button {
     margin: 20px 0 !important;
 }
 
-#match-compare-container {
-    float:right;
+rect.match {
+    fill: red !important;
 }
 
-#match-compare {
-    margin-right: 400px;
-}
-
-#match-compare .props {
-    float: right;
-}
-
-svg#match-compare-svg {
-    width: 200px;
-    height: 200px;
-}
-
-#match {
-    width: 140px;
-    float:right;
-    margin-right: 400px;
-    display: none;
+.sdr {
+    padding-left: 20px !important;
 }
 
 .sdr.selected rect {
     stroke: #ffad7e;
 }
-/*.sdr .meta .marker {*/
-    /*width: 10px;*/
-    /*height: 10px;*/
-    /*background-color: white;*/
-/*}*/
-/*.sdr.selected .meta .marker {*/
-    /*background-color: #ffad7e;*/
-/*}*/
-.sdr .meta {
-    float: right;
-    font-size: 8pt !important;
-    /*margin-left: -80px !important;*/
-    width: 200px;
-}
 .progress {
     height: 14px;
+    font-size: 12pt;
+    font-weight: normal;
 }
 .progress-bar {
     line-height: inherit;
 }
-.progress.match .progress-bar {
+.sdr.match .progress-bar {
     background-color: orangered;
 }
-#sdr-stack .sdr.match .meta {
-    background-color: lightpink;
+.overlap {
+    padding-left: 100px !important;
 }
-rect.match {
-    fill: red !important;
+.sdr.selected {
+    background-color: #ffad7e;
 }

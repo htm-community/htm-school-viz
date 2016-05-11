@@ -81,8 +81,6 @@ $(function() {
                 }));
             }
 
-            // Add an empty container for metadata.
-            $container.append('<div class="meta"></div>');
             $container.append($svg);
             $container.css({
                 height: (size * heightMultiplyer) + 'px'

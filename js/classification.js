@@ -70,7 +70,13 @@ $(function() {
         $stack.html('');
         _.each(sdrStack, function(sdr, i) {
             var sdrId = 'sdr-' + i;
-            $stack.prepend('<div id="' + sdrId + '" class="sdr">');
+            $stack.prepend(
+                '<div class="row sdr">'
+              + '<div class="col-md-10 plot" id="' + sdrId + '"></div>'
+              //+ '<div class="col-md-1 marker"></div>'
+              + '<div class="col-md-2 overlap"></div>'
+              + '</div>'
+            );
             SDR.draw(getFirstElements(sdr, maxBitDisplay), sdrId, {
                 spartan: true,
                 size: bitSize,
@@ -233,7 +239,7 @@ $(function() {
                 $nextSdr.addClass('highlight');
                 $sdrSvg.parent().addClass('highlight');
                 drawMatchSdr();
-                $('#sdr-' + index).addClass('selected');
+                $('#sdr-' + index).parent().addClass('selected');
             }
         });
     }
@@ -316,17 +322,6 @@ $(function() {
         }
     }
 
-    function getUiMatchIndication(sdr, matchSdr) {
-        var overlap = SDR.tools.getOverlapScore(sdr, matchSdr);
-        var percent = Math.min(Math.floor(overlap / theta * 100), 100);
-        var clazz = '';
-        if (overlap >= theta) clazz = 'match';
-        return '<div class="marker"/><div class="progress ' + clazz + '">'
-            + '<div class="progress-bar" role="progressbar" '
-            + 'aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100" '
-            + 'style="width: ' + percent + '%;">' + overlap + '</span></div></div>';
-    }
-
     function reOrderStackByOverlapScore() {
         $stack.append($stack.children('div').detach().sort(function(left, right) {
             var leftOverlap = parseInt($(left).find('.progress-bar').text());
@@ -339,11 +334,19 @@ $(function() {
         var $nextSdr = $('#next-sdr-svg');
         $stack.find('div.sdr').each(function() {
             var $sdr = $(this);
-            var $meta = $sdr.find('.meta');
-            var id = parseInt($sdr.attr('id').split('-')[1]);
-            var sdr = sdrStack[id];
-            $meta.html(getUiMatchIndication(sdr, matchSdr));
-            //console.log('Updating sdr bit matches for %s', $sdr.attr('id'));
+            var id = $sdr.find('.plot').attr('id');
+            var index = parseInt(id.split('-')[1]);
+            var sdr = sdrStack[index];
+            var $marker = $sdr.find('.marker');
+            var $overlap = $sdr.find('.overlap');
+            var overlap = SDR.tools.getOverlapScore(sdr, matchSdr);
+            var percent = Math.min(Math.floor(overlap / theta * 100), 100);
+            var clazz = '';
+            if (overlap >= theta) clazz = 'match';
+            $marker.addClass(clazz);
+            $overlap.html('<div class="progress"><div class="progress-bar" role="progressbar" '
+                + 'aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100" '
+                + 'style="width: ' + percent + '%;">' + overlap + '</span></div></div></div>');
             updateUiForSdrMatch(sdr, $sdr, matchSdr);
             updateUiForSdrMatch(matchSdr, $nextSdr, sdr);
         });
