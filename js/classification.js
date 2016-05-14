@@ -116,7 +116,7 @@ $(function() {
     function updateUi() {
         $nDisplay.html(n);
         $wDisplay.html(w);
-        $tDisplay.html(t);
+        $tDisplay.html(t + ' (' + Math.round(t/w*100) + '%)');
         $thetaDisplay.html(theta);
         $sparsityDisplay.html(sparsity.toFixed(2));
         $thetaSlider.slider('value', theta);
@@ -301,6 +301,12 @@ $(function() {
     }
 
     function switchView() {
+        if (n > maxBitDisplay) {
+            $('#sdr-portion').html((maxBitDisplay / n * 100) + '%');
+            $('.big-warning').show();
+        } else {
+            $('.big-warning').hide();
+        }
         if (viewMode == 'add') {
             $wSlider.slider('option', 'disabled', false);
             $thetaSlider.slider('option', 'disabled', true);
@@ -310,6 +316,7 @@ $(function() {
             drawNextSdr();
             $('.btn-group').slideDown();
             $('.match-instructions').slideUp();
+            $('.next-match').hide();
         } else {
             $switchBtn.prop('disabled', true);
             $wSlider.slider('option', 'disabled', true);
@@ -319,6 +326,7 @@ $(function() {
             $nextSdr.html('');
             $('.btn-group').slideUp();
             $('.match-instructions').slideDown();
+            $('.next-match').show();
         }
     }
 

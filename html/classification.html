@@ -3,7 +3,16 @@
     <div class="col-md-1 data-label">n</div>
     <div class="col-md-1" id="n-display">loading...</div>
     <div class="col-md-4 slider">
-        <button id="go-big-btn" type="button" class="btn btn-warning">Go Big</button>
+        <div class="row">
+            <div class="col-md-2">
+                <button id="go-big-btn" type="button" class="btn btn-warning">Go Big</button>
+            </div>
+            <div class="col-md-10">
+                <div class="big-warning" style="display:none">
+                    <p class="bg-danger">Only <span id="sdr-portion"></span> of the SDRs on this page are being displayed!</p>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="col-md-6"></div>
 </div>
@@ -49,16 +58,18 @@
 
 <!-- next sdr / match sdr -->
 <div class="row">
-    <div class="col-md-8" id="next-sdr"></div>
-    <div class="col-md-4"></div>
+    <div class="col-md-10" id="next-sdr"></div>
+    <p class="col-md-2 next-match" style="display:none">
+        ⬅︎ Matching against the stack
+    </p>
 </div>
 
 <!-- labels / buttons -->
 <div class="row">
     <div class="col-md-12" align="center">
         <div style="display:none" class="match-instructions">
-            <p>Click on an SDR below to match.</p>
             <hr/>
+            <p>Click on an SDR below to match.</p>
         </div>
         <div class="btn-group" role="group">
             <button id="add-btn" type="button" class="btn btn-primary btn-lg">Add SDR to Stack</button>

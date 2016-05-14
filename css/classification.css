@@ -47,11 +47,22 @@ rect.match {
     line-height: inherit;
 }
 .sdr.match .progress-bar {
-    background-color: orangered;
+    background-color: #008000;
 }
 .overlap {
     padding-left: 100px !important;
 }
 .sdr.selected {
     background-color: #ffad7e;
+}
+.match-instructions p {
+    margin-bottom: 10px;
+}
+.next-match {
+    font-size: 16pt;
+    margin-top: -7px;
+}
+.big-warning p {
+    padding: 10px;
+    font-size: 14pt;
 }
