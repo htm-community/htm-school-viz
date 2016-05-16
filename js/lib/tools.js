@@ -211,6 +211,18 @@ $(function() {
                 }
                 return out;
             });
+        },
+
+        calculateFalsePositiveProbability: function(n, leftW, rightW, theta) {
+            var overlapSet = this._getOverlapSet(n, leftW, theta, rightW);
+            var rightUniqueness, falsePosProbability;
+            if (isFinite(overlapSet)) {
+                rightUniqueness = this._getUniqueness(n, rightW);
+                falsePosProbability = overlapSet.div(rightUniqueness);
+            } else {
+                falsePosProbability = NaN;
+            }
+            return falsePosProbability;
         }
 
     };

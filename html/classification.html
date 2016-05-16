@@ -45,7 +45,13 @@
 <div class="row">
     <div class="col-md-1 data-label">sparsity</div>
     <div class="col-md-1 value" id="sparsity-display">loading...</div>
-    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" id="fpp-on"> Calculate False Positive
+            </label>
+        </div>
+    </div>
     <div class="col-md-6"></div>
 </div>
 
@@ -67,6 +73,9 @@
 <!-- labels / buttons -->
 <div class="row">
     <div class="col-md-12" align="center">
+        <div id="false-positive-display" style="display:none">
+            Probability of False Positive: <span id="fpp-value"></span>
+        </div>
         <div style="display:none" class="match-instructions">
             <hr/>
             <p>Click on an SDR below to match.</p>

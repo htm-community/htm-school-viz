@@ -1,21 +1,26 @@
 $(function() {
 
-    // The functions below all rely on these values.
+    /* The functions below all rely on these values. */
+
+    // Primitives
     var n = 256;
     var w = 4;
     var sparsity = w / n;
-    var theta = Math.floor(w * 3/4);
-    var t = w - theta;
+    var theta = w;
+    var t = 0;
     var bitSize = 8;
     var bitStretch = 2;
+    var maxBitDisplay = 256;
 
+    // SDRs
     var nextSdr = SDR.tools.getRandom(n, w);
+    var originalMatchSdr = undefined;
     var matchSdr = undefined;
-    var stackMatchSdr = undefined;
     var sdrStack = [];
-    var sdrUnion = SDR.tools.getRandom(n, 0);
 
+    // UI elements
     var $stack = $('#sdr-stack');
+
     var $wSlider = $('#w-slider');
     var $tSlider = $('#t-slider');
     var $thetaSlider = $('#theta-slider');
@@ -27,14 +32,69 @@ $(function() {
     var $sparsityDisplay = $('#sparsity-display');
 
     var $nextSdr = $('#next-sdr');
-
     var $addBtn = $('#add-btn');
-    var $matchBtn = $('#match-btn');
+    var $populateBtn = $('#populate-btn');
+    var $switchBtn = $('#switch-btn');
+    var $goBigBtn = $('#go-big-btn');
 
+    // Can be either 'add' or 'match'.
     var viewMode = 'add';
 
+
+    // Setters
+
+    function setN(myN) {
+        n = myN;
+        setW(Math.floor(n * 0.02));
+        nextSdr = SDR.tools.getRandom(n, w);
+        sdrStack = [];
+    }
+
+    function setW(myW) {
+        w = myW;
+        sparsity = w / n;
+        nextSdr = SDR.tools.getRandom(n, w);
+    }
+
+    function setTheta(myTheta) {
+        theta = myTheta;
+    }
+
+    function setT(myT) {
+        t = myT;
+    }
+
+    /* UI and Draw functions */
+
+    function drawSdrStack() {
+        $stack.html('');
+        _.each(sdrStack, function(sdr, i) {
+            var sdrId = 'sdr-' + i;
+            $stack.prepend(
+                '<div class="row sdr">'
+                + '<div class="col-md-10 plot" id="' + sdrId + '"></div>'
+                    //+ '<div class="col-md-1 marker"></div>'
+                + '<div class="col-md-2 overlap"></div>'
+                + '</div>'
+            );
+            SDR.draw(getFirstElements(sdr, maxBitDisplay), sdrId, {
+                spartan: true,
+                size: bitSize,
+                stretch: bitStretch,
+                line: true,
+                slide: i == sdrStack.length - 1
+            });
+        });
+    }
+
+    // Used to only display the first X elements in an SDR to reduce stress on
+    // the UI.
+    function getFirstElements(sdr, count) {
+        return sdr.slice(0, count);
+    }
+
     function drawNextSdr() {
-        SDR.draw(nextSdr, 'next-sdr', {
+        SDR.draw(getFirstElements(nextSdr, maxBitDisplay), 'next-sdr', {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
@@ -44,7 +104,7 @@ $(function() {
     }
 
     function drawMatchSdr() {
-        SDR.draw(matchSdr, 'next-sdr', {
+        SDR.draw(getFirstElements(matchSdr, maxBitDisplay), 'next-sdr', {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
@@ -62,102 +122,180 @@ $(function() {
         });
     }
 
-    function drawSdrStack() {
-        $stack.html('');
-        _.each(sdrStack, function(sdr, i) {
-            var sdrId = 'sdr-' + i;
-            $stack.prepend('<div id="' + sdrId + '" class="sdr">');
-            SDR.draw(sdr, sdrId, {
-                spartan: true,
-                size: bitSize,
-                stretch: bitStretch,
-                line: true,
-                slide: i == sdrStack.length - 1
-            });
-        });
-    }
-
-    function calculateUnion() {
-        sdrUnion = SDR.tools.union(sdrUnion, nextSdr);
-    }
-
-    //function matchNextSdr() {
-    //    var nextPopulation = SDR.tools.population(nextSdr);
-    //    var overlap = SDR.tools.overlap(nextSdr, sdrUnion);
-    //    var bitsSame = SDR.tools.population(overlap);
-    //    var match = bitsSame == nextPopulation;
-    //    var message = '<h3>' + match + ': ' + bitsSame + ' bits overlap out of ' + nextPopulation + '.</h3>';
-    //    var $dialog = $('#dialog');
-    //    $dialog.html(message);
-    //    $dialog.dialog({
-    //        modal: true,
-    //        width: '400px',
-    //        buttons: {
-    //            Ok: function() {
-    //                $(this).dialog("close");
-    //            }
-    //        }
-    //    });
-    //}
-
-    function addNextSdr() {
-        $addBtn.prop('disabled', true);
-        $nextSdr.removeClass('highlight');
-        $('#next-sdr-svg').slideUp(100, function() {
-            $nextSdr.removeClass('highlight');
-            nextSdr = SDR.tools.getRandom(n, w);
-            drawNextSdr();
-            $addBtn.prop('disabled', false);
-        });
-        sdrStack.push(nextSdr);
-        calculateUnion();
-        drawSdrStack();
-        drawUnionSdr();
-    }
-
-    function switchView(mode) {
-        viewMode = mode;
-        updateUi();
-    }
 
     function updateUi() {
         $nDisplay.html(n);
         $wDisplay.html(w);
-        $tDisplay.html(t);
+        $tDisplay.html(t + ' (' + Math.round(t/w*100) + '%)');
         $thetaDisplay.html(theta);
         $sparsityDisplay.html(sparsity.toFixed(2));
-
-        if (viewMode == 'add') updateUiForAdding();
-        else updateUiForMatching();
-    }
-
-    function updateUiForAdding() {
-        $wSlider.slider('option', 'disabled', false);
-        $wSlider.slider('option', 'max', n);
-        $wSlider.slider('value', w);
-
-        $thetaSlider.slider('option', 'disabled', true);
-
-        $matchBtn.prop('disabled', true);
-        $addBtn.prop('disabled', false);
-    }
-
-    function updateUiForMatching() {
-        var matchW = SDR.tools.population(matchSdr);
-
-        $wSlider.slider('option', 'disabled', true);
-
-        $thetaSlider.slider('option', 'disabled', false);
-        $thetaSlider.slider('option', 'max', matchW);
         $thetaSlider.slider('value', theta);
-
-        $tSlider.slider('option', 'disabled', false);
-        $tSlider.slider('option', 'max', matchW - theta);
+        $thetaSlider.slider('option', 'max', w);
         $tSlider.slider('value', t);
-
-        $matchBtn.prop('disabled', false);
-        $addBtn.prop('disabled', true);
+        $tSlider.slider('option', 'max', w);
+        if (! sdrStack || sdrStack.length < 2) {
+            $switchBtn.prop('disabled', true);
+        } else {
+            $switchBtn.prop('disabled', false);
+        }
     }
+
+    function updateUiForSdrMatch(left, $left, right) {
+        var matches = SDR.tools.population(SDR.tools.overlap(right, left)) >= theta;
+        $left.removeClass('highlight');
+        if (matches) {
+            $left.addClass('match');
+        } else {
+            $left.removeClass('match');
+            $left.find('rect').each(function() {
+                var $rect = $(this);
+                var c = $rect.attr('class');
+                $rect.attr('class', c.replace('match', ''));
+            });
+        }
+        _.each(SDR.tools.getMatchingBitIndices(left, right), function(i) {
+            var $rect = $left.find('[index="' + i +'"]');
+            var c = $rect.attr('class');
+            $rect.attr('class', c + ' match');
+        });
+    }
+
+
+    /* Handler functions - all the event handling happens here. */
+
+    function addButtonHandlers() {
+        $addBtn.click(function() {
+            $addBtn.prop('disabled', true);
+            $nextSdr.removeClass('highlight');
+            $('#next-sdr-svg').slideUp(100, function() {
+                $nextSdr.removeClass('highlight');
+                nextSdr = SDR.tools.getRandom(n, w);
+                drawNextSdr();
+                $addBtn.prop('disabled', false);
+            });
+            sdrStack.push(nextSdr);
+            drawSdrStack();
+            updateUi();
+        });
+        $populateBtn.click(function() {
+            sdrStack = sdrStack.concat(_.map(_.range(50), function() {
+                return SDR.tools.getRandom(n, w);
+            }));
+            drawSdrStack();
+            updateUi();
+        });
+        $switchBtn.click(function() {
+            if (viewMode == 'add') viewMode = 'match';
+            else viewMode = 'add';
+            switchView();
+        });
+        $goBigBtn.click(function() {
+            setN(2048);
+            setT(Math.floor(w * 0.25));
+            setTheta(Math.floor(w * 0.75));
+            drawSdrStack();
+            $goBigBtn.prop('disabled', true);
+            viewMode = 'add';
+            switchView();
+            updateUi();
+        });
+    }
+
+    function addClickHandlers() {
+        $nextSdr.click(function(evt) {
+            var $rect = $(evt.target);
+            var on = undefined;
+            var index = undefined;
+            var bit = undefined;
+            var newClass = undefined;
+            if ($rect.prop('nodeName') == 'rect') {
+                on = $rect.attr('class');
+                index = parseInt($rect.attr('index'));
+                bit = 1;
+                newClass = 'on';
+                if (on == 'on') {
+                    bit = 0;
+                    newClass = '';
+                }
+                $rect.attr('class', newClass);
+                if (viewMode == 'add') {
+                    nextSdr[index] = bit;
+                } else {
+                    matchSdr[index] = bit;
+                    drawSdrStack();
+                    matchStack();
+                    drawMatchSdr();
+                }
+            }
+        });
+        $stack.click(function(evt) {
+            var $sdrSvg = undefined;
+            var id = undefined;
+            var index = undefined;
+            var matchW = undefined;
+            if (viewMode == 'match') {
+                $sdrSvg = $(evt.target).parent();
+                id = $sdrSvg.attr('id');
+                index = parseInt(id.split('-')[1]);
+                // The original match SDR will be a copy of the one clicked.
+                originalMatchSdr = sdrStack[index].slice(0);
+                // The match SDR will be mutated by the UI.
+                matchSdr = SDR.tools.addBitNoise(originalMatchSdr, t);
+                matchW = SDR.tools.population(matchSdr);
+                $tSlider.slider('option', 'disabled', false);
+                $tSlider.slider('option', 'max', matchW);
+                drawSdrStack();
+                matchStack();
+                $nextSdr.addClass('highlight');
+                $sdrSvg.parent().addClass('highlight');
+                drawMatchSdr();
+                $('#sdr-' + index).parent().addClass('selected');
+            }
+        });
+    }
+
+    function drawSliders() {
+        $wSlider.slider({
+            min: 1, max: n, value: w, step: 1,
+            slide: function(event, ui) {
+                if (validate(ui.value, theta, t)) {
+                    setW(ui.value);
+                    drawNextSdr();
+                    updateUi();
+                } else {
+                    event.preventDefault();
+                }
+            }
+        });
+        $thetaSlider.slider({
+            min: 1, max: w, value: theta, step: 1,
+            disabled: true,
+            slide: function(event, ui) {
+                if (validate(w, ui.value, t)) {
+                    setTheta(ui.value);
+                    matchStack();
+                    updateUi();
+                }
+            }
+        });
+        $tSlider.slider({
+            min: 0, max: w - theta, value: t, step: 1,
+            disabled: true,
+            slide: function(event, ui) {
+                if (validate(w, theta, ui.value)) {
+                    setT(ui.value);
+                    matchSdr = SDR.tools.addBitNoise(originalMatchSdr, t);
+                    drawMatchSdr();
+                    matchStack();
+                    updateUi();
+                }
+            }
+        });
+    }
+
+
+
+    /* Utils */
 
     function validate(testW, testTheta, testT, testMatch) {
         var matchW;
@@ -172,92 +310,81 @@ $(function() {
         }
     }
 
-    function drawAdd(myW, callback) {
-        var err = undefined;
-        if (validate(myW, theta, t)) {
-            w = myW;
-            sparsity = w / n;
-            nextSdr = SDR.tools.getRandom(n, w);
+    function calculateUnion() {
+        sdrUnion = SDR.tools.union(sdrUnion, nextSdr);
+    }
+
+    function switchView() {
+        if (n > maxBitDisplay) {
+            $('#sdr-portion').html((maxBitDisplay / n * 100) + '%');
+            $('.big-warning').show();
+        } else {
+            $('.big-warning').hide();
+        }
+        if (viewMode == 'add') {
+            $wSlider.slider('option', 'disabled', false);
+            $thetaSlider.slider('option', 'disabled', true);
+            $tSlider.slider('option', 'disabled', true);
+            $addBtn.prop('disabled', false);
+            $populateBtn.prop('disabled', false);
             drawNextSdr();
-            updateUi();
+            $('.btn-group').slideDown();
+            $('.match-instructions').slideUp();
+            $('.next-match').hide();
         } else {
-            err = new Error('Invalid values.');
+            $switchBtn.prop('disabled', true);
+            $wSlider.slider('option', 'disabled', true);
+            $thetaSlider.slider('option', 'disabled', false);
+            $addBtn.prop('disabled', true);
+            $populateBtn.prop('disabled', true);
+            $nextSdr.html('');
+            $('.btn-group').slideUp();
+            $('.match-instructions').slideDown();
+            $('.next-match').show();
         }
-        if (callback) callback(err);
     }
 
-    function drawMatch(myTheta, myT, callback) {
-        var err = undefined;
-        if (validate(w, myTheta, myT)) {
-            theta = myTheta;
-            t = myT;
-            matchSdr = SDR.tools.addBitNoise(stackMatchSdr, t);
-            drawMatchSdr();
-            updateUi();
-        } else {
-            err = new Error('Invalid values.');
-        }
-        if (callback) callback(err);
+    function reOrderStackByOverlapScore() {
+        $stack.append($stack.children('div').detach().sort(function(left, right) {
+            var leftOverlap = parseInt($(left).find('.progress-bar').text());
+            var rightOverlap = parseInt($(right).find('.progress-bar').text());
+            return rightOverlap - leftOverlap;
+        }));
     }
 
-    function drawSliders() {
-        $wSlider.slider({
-            min: 1, max: n, value: w, step: 1,
-            slide: function(event, ui) {
-                drawAdd(ui.value, function(err) {
-                    if (err) event.preventDefault();
-                });
-            }
-        });
-        $thetaSlider.slider({
-            min: 1, max: w, value: theta, step: 1,
-            disabled: true,
-            slide: function(event, ui) {
-                drawMatch(ui.value, t, function(err) {
-                    if (err) event.preventDefault();
-                });
-            }
-        });
-        $tSlider.slider({
-            min: 0, max: w - theta, value: t, step: 1,
-            disabled: true,
-            slide: function(event, ui) {
-                drawMatch(theta, ui.value, function(err) {
-                    if (err) event.preventDefault();
-                });
-            }
-        });
-    }
-
-    function addButtonClickHandler() {
-        $addBtn.click(addNextSdr);
-    }
-
-    function addSdrClickHandler() {
-        $stack.click(function(evt) {
-            var $sdrSvg = $(evt.target).parent();
-            var id = $sdrSvg.attr('id');
+    function matchStack() {
+        var $nextSdr = $('#next-sdr-svg');
+        $stack.find('div.sdr').each(function() {
+            var $sdr = $(this);
+            var id = $sdr.find('.plot').attr('id');
             var index = parseInt(id.split('-')[1]);
-            stackMatchSdr = sdrStack[index];
-            if (! validate(w, theta, t, SDR.tools.addBitNoise(stackMatchSdr, t))) {
-                evt.preventDefault();
-                evt.stopPropagation();
-            } else {
-                $stack.find('div.sdr').removeClass('highlight');
-                $nextSdr.addClass('highlight');
-                $sdrSvg.parent().addClass('highlight');
-                matchSdr = SDR.tools.addBitNoise(stackMatchSdr, t);
-                drawMatchSdr();
-                switchView('match');
-            }
+            var sdr = sdrStack[index];
+            var $marker = $sdr.find('.marker');
+            var $overlap = $sdr.find('.overlap');
+            var overlap = SDR.tools.getOverlapScore(sdr, matchSdr);
+            var percent = Math.min(Math.floor(overlap / theta * 100), 100);
+            var clazz = '';
+            if (overlap >= theta) clazz = 'match';
+            $marker.addClass(clazz);
+            $overlap.html('<div class="progress"><div class="progress-bar" role="progressbar" '
+                + 'aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100" '
+                + 'style="width: ' + percent + '%;">' + overlap + '</span></div></div></div>');
+            updateUiForSdrMatch(sdr, $sdr, matchSdr);
+            updateUiForSdrMatch(matchSdr, $nextSdr, sdr);
         });
+        reOrderStackByOverlapScore();
     }
 
-    drawSliders();
-    drawNextSdr(w);
-    drawUnionSdr();
-    addButtonClickHandler();
-    addSdrClickHandler();
-    switchView(viewMode);
+
+    function initializeUi() {
+        drawSliders();
+        addButtonHandlers();
+        addClickHandlers();
+        switchView();
+        drawNextSdr();
+        updateUi();
+    }
+
+    initializeUi();
 
 });

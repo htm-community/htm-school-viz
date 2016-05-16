@@ -31,9 +31,8 @@ $(function () {
     }
 
     function updateDisplayValues() {
-        var overlapSet, falsePosProbability;
+        var falsePosProbability;
         var wxPrime = SDR.tools.population(xprime);
-        var yUniqueness;
         if (theta > wxPrime) {
             theta = wxPrime;
         }
@@ -54,15 +53,13 @@ $(function () {
         $wySlider.slider('option', 'max', n);
         $wySlider.slider('option', 'min', wxPrime);
 
-        overlapSet = SDR.tools._getOverlapSet(n, wxPrime, theta, wy);
-        if (isFinite(overlapSet)) {
-            yUniqueness = SDR.tools._getUniqueness(n, wy);
-            falsePosProbability = overlapSet.div(yUniqueness).toPrecision(5);
-        } else {
-            falsePosProbability = '&infin;';
+        falsePosProbability =
+            SDR.tools.calculateFalsePositiveProbability(n, wxPrime, wy, theta);
+        if (! isNaN(falsePosProbability)) {
+            falsePosProbability = falsePosProbability.toPrecision(5);
         }
-
         $fpDisplay.html(falsePosProbability);
+
         if (sdrsMatch(xprime, y)) {
             $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
         } else {

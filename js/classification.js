@@ -30,15 +30,20 @@ $(function() {
     var $tDisplay = $('#t-display');
     var $thetaDisplay = $('#theta-display');
     var $sparsityDisplay = $('#sparsity-display');
+    var $fppDisplay = $('#false-positive-display');
+    var $fppValue = $('#fpp-value');
 
     var $nextSdr = $('#next-sdr');
     var $addBtn = $('#add-btn');
     var $populateBtn = $('#populate-btn');
     var $switchBtn = $('#switch-btn');
     var $goBigBtn = $('#go-big-btn');
+    var $fppCheck = $('#fpp-on');
 
     // Can be either 'add' or 'match'.
     var viewMode = 'add';
+    // Should we do an expensive operation?
+    var calcFpp = false;
 
 
     // Setters
@@ -148,6 +153,9 @@ $(function() {
             var c = $rect.attr('class');
             $rect.attr('class', c + ' match');
         });
+        if (calcFpp) {
+            $fppValue.html(calculateFalsePositive().toPrecision(5));
+        }
     }
 
 
@@ -242,6 +250,9 @@ $(function() {
                 $('#sdr-' + index).parent().addClass('selected');
             }
         });
+        $fppCheck.change(function() {
+            calcFpp = !! this.checked;
+        });
     }
 
     function drawSliders() {
@@ -287,6 +298,17 @@ $(function() {
 
     /* Utils */
 
+    function calculateFalsePositive() {
+        var fpps = _.map(sdrStack, function(sdr) {
+            var leftW = SDR.tools.population(sdr);
+            var rightW = SDR.tools.population(matchSdr);
+            return SDR.tools.calculateFalsePositiveProbability(n, leftW, rightW, theta);
+        });
+        return _.reduce(fpps, function(sum, fpp) {
+            return math.sum(sum, fpp);
+        }, math.bignumber(0.0));
+    }
+
     function validate(testW, testTheta, testT, testMatch) {
         var matchW;
         var wngood = testW <= n;
@@ -314,19 +336,21 @@ $(function() {
             $addBtn.prop('disabled', false);
             $populateBtn.prop('disabled', false);
             drawNextSdr();
-            $('.btn-group').slideDown();
+            $switchBtn.html('Match');
             $('.match-instructions').slideUp();
             $('.next-match').hide();
+            $fppValue.html('');
+            $fppDisplay.hide();
         } else {
-            $switchBtn.prop('disabled', true);
             $wSlider.slider('option', 'disabled', true);
             $thetaSlider.slider('option', 'disabled', false);
             $addBtn.prop('disabled', true);
             $populateBtn.prop('disabled', true);
             $nextSdr.html('');
-            $('.btn-group').slideUp();
+            $switchBtn.html('Add More');
             $('.match-instructions').slideDown();
             $('.next-match').show();
+            if (calcFpp) $fppDisplay.show();
         }
     }
 
@@ -357,6 +381,8 @@ $(function() {
                 + 'style="width: ' + percent + '%;">' + overlap + '</span></div></div></div>');
             updateUiForSdrMatch(sdr, $sdr, matchSdr);
             updateUiForSdrMatch(matchSdr, $nextSdr, sdr);
+            if (calcFpp) $fppDisplay.show();
+            else $fppDisplay.hide();
         });
         reOrderStackByOverlapScore();
     }

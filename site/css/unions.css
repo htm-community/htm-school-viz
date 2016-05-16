@@ -23,3 +23,13 @@ div.highlight svg rect.on {
 button {
     margin: 20px 0 !important;
 }
+.arrows {
+    height: 16px;
+    background-repeat: repeat-x;
+}
+.arrows.up {
+    background-image: url(../img/arrow-up-stretch.png);
+}
+.arrows.down {
+    background-image: url(../img/arrow-down-stretch.png);
+}
