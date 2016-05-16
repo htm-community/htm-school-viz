@@ -32,7 +32,7 @@ rect.match {
 }
 
 .sdr {
-    padding-left: 20px !important;
+    /*padding-left: 20px !important;*/
 }
 
 .sdr.selected rect {
