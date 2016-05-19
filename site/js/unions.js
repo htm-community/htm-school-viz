@@ -175,7 +175,6 @@ $(function() {
                 sdrCount++;
             });
             drawUnion();
-            sdrStack.push(nextSdr);
             drawSdrStack();
             updateUi();
         });
