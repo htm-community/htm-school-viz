@@ -67,3 +67,6 @@ rect.match {
     padding: 10px;
     font-size: 14pt;
 }
+.go-big {
+    margin: 0 !important;
+}

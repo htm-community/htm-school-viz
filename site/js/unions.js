@@ -24,7 +24,6 @@ $(function() {
     // UI elements
     var $stack = $('#sdr-stack');
 
-    var $wSlider = $('#w-slider');
     var $tSlider = $('#t-slider');
     var $thetaSlider = $('#theta-slider');
 
@@ -256,18 +255,6 @@ $(function() {
     }
 
     function drawSliders() {
-        $wSlider.slider({
-            min: 1, max: n, value: w, step: 1,
-            slide: function(event, ui) {
-                if (validate(ui.value, theta, t)) {
-                    setW(ui.value);
-                    drawNextSdr();
-                    updateUi();
-                } else {
-                    event.preventDefault();
-                }
-            }
-        });
         $thetaSlider.slider({
             min: 1, max: w, value: theta, step: 1,
             disabled: true,
@@ -334,7 +321,6 @@ $(function() {
             $('.big-warning').hide();
         }
         if (viewMode == 'add') {
-            $wSlider.slider('option', 'disabled', false);
             $thetaSlider.slider('option', 'disabled', true);
             $tSlider.slider('option', 'disabled', true);
             $addBtn.prop('disabled', false);
@@ -345,7 +331,6 @@ $(function() {
             $('.next-match').hide();
         } else {
             $switchBtn.prop('disabled', true);
-            $wSlider.slider('option', 'disabled', true);
             $thetaSlider.slider('option', 'disabled', false);
             $addBtn.prop('disabled', true);
             $populateBtn.prop('disabled', true);
