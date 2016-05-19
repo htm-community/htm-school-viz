@@ -51,26 +51,10 @@
         <div class="col-md-6"></div>
     </div>
     
-    <!-- theta -->
+    <!-- union density -->
     <div class="row">
-        <div class="col-md-1 data-label">&theta;</div>
-        <div class="col-md-1" id="theta-display">loading...</div>
-        <div class="col-md-4 slider" id="theta-slider"></div>
-        <div class="col-md-6"></div>
-    </div>
-    
-    <!-- t -->
-    <div class="row">
-        <div class="col-md-1 data-label">t <small>(bits of noise)</small></div>
-        <div class="col-md-1" id="t-display">loading...</div>
-        <div class="col-md-4 slider" id="t-slider"></div>
-        <div class="col-md-6"></div>
-    </div>
-    
-    <!-- sparsity -->
-    <div class="row">
-        <div class="col-md-1 data-label">sparsity</div>
-        <div class="col-md-1 value" id="sparsity-display">loading...</div>
+        <div class="col-md-1 data-label">union density</div>
+        <div class="col-md-1" id="union-density"></div>
         <div class="col-md-1" id="match"></div>
         <div class="col-md-1">
             SDRs in Union: <span id="sdr-count"></span>
@@ -104,7 +88,7 @@
                 <button id="populate-btn" type="button" class="btn btn-primary btn-lg">Add Many SDRs to Stack</button>
             </div>
             <div class="btn-group" role="group">
-                <button id="switch-btn" type="button" class="btn btn-warning btn-lg">Match</button>
+                <button id="match-btn" type="button" class="btn btn-warning btn-lg">Match Random</button>
             </div>
         </div>
     </div>
@@ -131,9 +115,6 @@
     <div class="row">
         <div class="col-md-12">
             <hr/>
-            <div style="display:none" class="match-instructions">
-                <p>Click on an SDR below to match.</p>
-            </div>
         </div>
     </div>
     

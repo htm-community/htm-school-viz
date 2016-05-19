@@ -70,3 +70,6 @@ rect.match {
 .go-big {
     margin: 0 !important;
 }
+#union-overlap {
+    padding-left: 20px;
+}
