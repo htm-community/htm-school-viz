@@ -9,27 +9,61 @@ svg {
 .slider {
     width: 800px;
 }
-svg:hover {
-    opacity: 0.5;
+#next-sdr.highlight svg rect.on {
+    fill: #008000;
 }
-div.highlight svg rect.on {
-    fill: #d37225;
+#sdr-stack div.highlight svg rect.on {
+    fill: #ffa500;
 }
 #sdr-stack div {
     padding: 0;
     margin: 0;
-    font-size: inherit;
 }
+
 button {
     margin: 20px 0 !important;
 }
-.arrows {
-    height: 16px;
-    background-repeat: repeat-x;
+
+rect.match {
+    fill: red !important;
 }
-.arrows.up {
-    background-image: url(../img/arrow-up-stretch.png);
+#match {
+    font-size: 20pt;
+    text-align: center;
+    padding: 20px;
+    border: solid grey 1px;
+    border-radius: 10px;
+    width: 140px;
 }
-.arrows.down {
-    background-image: url(../img/arrow-down-stretch.png);
+.sdr.selected rect {
+    stroke: #ffad7e;
+    opacity: 0.5;
+}
+.progress {
+    height: 14px;
+    font-size: 12pt;
+    font-weight: normal;
+}
+.progress-bar {
+    line-height: inherit;
+}
+.sdr.match .progress-bar {
+    background-color: #008000;
+}
+.overlap {
+    padding-left: 100px !important;
+}
+.sdr.selected {
+    background-color: #ffad7e;
+}
+.match-instructions p {
+    margin-bottom: 10px;
+}
+.next-match {
+    font-size: 16pt;
+    margin-top: -7px;
+}
+.big-warning p {
+    padding: 10px;
+    font-size: 14pt;
 }

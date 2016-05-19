@@ -223,6 +223,10 @@ $(function() {
                 falsePosProbability = NaN;
             }
             return falsePosProbability;
+        },
+
+        isMatch: function(left, right, theta) {
+            return this.population(this.overlap(left, right)) >= theta;
         }
 
     };

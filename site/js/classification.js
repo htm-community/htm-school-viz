@@ -32,6 +32,7 @@ $(function() {
     var $sparsityDisplay = $('#sparsity-display');
     var $fppDisplay = $('#false-positive-display');
     var $fppValue = $('#fpp-value');
+    var $sdrCount = $('#sdr-count');
 
     var $nextSdr = $('#next-sdr');
     var $addBtn = $('#add-btn');
@@ -103,8 +104,7 @@ $(function() {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
-            line: true,
-            slide: true
+            line: true
         });
     }
 
@@ -128,6 +128,7 @@ $(function() {
         $thetaSlider.slider('option', 'max', w);
         $tSlider.slider('value', t);
         $tSlider.slider('option', 'max', w);
+        $sdrCount.html(sdrStack.length);
         if (! sdrStack || sdrStack.length < 2) {
             $switchBtn.prop('disabled', true);
         } else {
@@ -293,8 +294,6 @@ $(function() {
             }
         });
     }
-
-
 
     /* Utils */
 

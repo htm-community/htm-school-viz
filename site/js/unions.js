@@ -11,11 +11,14 @@ $(function() {
     var bitSize = 8;
     var bitStretch = 2;
     var maxBitDisplay = 256;
+    var sdrCount = 0;
+    var populationIncrement = 20;
 
     // SDRs
     var nextSdr = SDR.tools.getRandom(n, w);
     var originalMatchSdr = undefined;
     var matchSdr = undefined;
+    var unionSdr = SDR.tools.getRandom(n, 0);
     var sdrStack = [];
 
     // UI elements
@@ -30,8 +33,13 @@ $(function() {
     var $tDisplay = $('#t-display');
     var $thetaDisplay = $('#theta-display');
     var $sparsityDisplay = $('#sparsity-display');
+    var $fppValue = $('#fpp-value');
+    var $sdrCount = $('#sdr-count');
+    var $match = $('#match');
+    var $unionOverlap = $('#union-overlap');
 
     var $nextSdr = $('#next-sdr');
+    var $unionSdr = $('#union-sdr');
     var $addBtn = $('#add-btn');
     var $populateBtn = $('#populate-btn');
     var $switchBtn = $('#switch-btn');
@@ -87,6 +95,16 @@ $(function() {
         });
     }
 
+    function drawUnion() {
+        $unionSdr.html('');
+        SDR.draw(getFirstElements(unionSdr, maxBitDisplay), 'union-sdr', {
+            spartan: true,
+            size: bitSize,
+            stretch: bitStretch,
+            line: true
+        });
+    }
+
     // Used to only display the first X elements in an SDR to reduce stress on
     // the UI.
     function getFirstElements(sdr, count) {
@@ -108,20 +126,9 @@ $(function() {
             spartan: true,
             size: bitSize,
             stretch: bitStretch,
-            line: true,
-            slide: true
-        });
-    }
-
-    function drawUnionSdr() {
-        SDR.draw(sdrUnion, 'sdr-union', {
-            spartan: true,
-            size: bitSize,
-            stretch: bitStretch,
             line: true
         });
     }
-
 
     function updateUi() {
         $nDisplay.html(n);
@@ -133,33 +140,14 @@ $(function() {
         $thetaSlider.slider('option', 'max', w);
         $tSlider.slider('value', t);
         $tSlider.slider('option', 'max', w);
+        $sdrCount.html(sdrCount);
+        $fppValue.html(calculateFalsePositive().toPrecision(5));
         if (! sdrStack || sdrStack.length < 2) {
             $switchBtn.prop('disabled', true);
         } else {
             $switchBtn.prop('disabled', false);
         }
     }
-
-    function updateUiForSdrMatch(left, $left, right) {
-        var matches = SDR.tools.population(SDR.tools.overlap(right, left)) >= theta;
-        $left.removeClass('highlight');
-        if (matches) {
-            $left.addClass('match');
-        } else {
-            $left.removeClass('match');
-            $left.find('rect').each(function() {
-                var $rect = $(this);
-                var c = $rect.attr('class');
-                $rect.attr('class', c.replace('match', ''));
-            });
-        }
-        _.each(SDR.tools.getMatchingBitIndices(left, right), function(i) {
-            var $rect = $left.find('[index="' + i +'"]');
-            var c = $rect.attr('class');
-            $rect.attr('class', c + ' match');
-        });
-    }
-
 
     /* Handler functions - all the event handling happens here. */
 
@@ -173,14 +161,22 @@ $(function() {
                 drawNextSdr();
                 $addBtn.prop('disabled', false);
             });
+            calculateUnion();
+            sdrCount++;
+            drawUnion();
             sdrStack.push(nextSdr);
             drawSdrStack();
             updateUi();
         });
         $populateBtn.click(function() {
-            sdrStack = sdrStack.concat(_.map(_.range(50), function() {
-                return SDR.tools.getRandom(n, w);
-            }));
+            _.times(populationIncrement, function() {
+                nextSdr = SDR.tools.getRandom(n, w);
+                sdrStack.push(nextSdr);
+                calculateUnion();
+                sdrCount++;
+            });
+            drawUnion();
+            sdrStack.push(nextSdr);
             drawSdrStack();
             updateUi();
         });
@@ -193,6 +189,9 @@ $(function() {
             setN(2048);
             setT(Math.floor(w * 0.25));
             setTheta(Math.floor(w * 0.75));
+            unionSdr = SDR.tools.getRandom(n, 0);
+            sdrCount = 0;
+            drawUnion();
             drawSdrStack();
             $goBigBtn.prop('disabled', true);
             viewMode = 'add';
@@ -223,8 +222,9 @@ $(function() {
                 } else {
                     matchSdr[index] = bit;
                     drawSdrStack();
-                    matchStack();
+                    matchUnion();
                     drawMatchSdr();
+                    drawUnion();
                 }
             }
         });
@@ -245,11 +245,12 @@ $(function() {
                 $tSlider.slider('option', 'disabled', false);
                 $tSlider.slider('option', 'max', matchW);
                 drawSdrStack();
-                matchStack();
+                matchUnion();
                 $nextSdr.addClass('highlight');
                 $sdrSvg.parent().addClass('highlight');
                 drawMatchSdr();
                 $('#sdr-' + index).parent().addClass('selected');
+                updateUi();
             }
         });
     }
@@ -273,7 +274,7 @@ $(function() {
             slide: function(event, ui) {
                 if (validate(w, ui.value, t)) {
                     setTheta(ui.value);
-                    matchStack();
+                    matchUnion();
                     updateUi();
                 }
             }
@@ -286,7 +287,7 @@ $(function() {
                     setT(ui.value);
                     matchSdr = SDR.tools.addBitNoise(originalMatchSdr, t);
                     drawMatchSdr();
-                    matchStack();
+                    matchUnion();
                     updateUi();
                 }
             }
@@ -294,6 +295,17 @@ $(function() {
     }
 
 
+    function calculateFalsePositive() {
+        var matchW = w;
+        var bigOne = math.bignumber(1.0);
+        if (matchSdr) matchW = math.bignumber(SDR.tools.population(matchSdr));
+        var sparsity = math.divide(matchW, n);
+        var inverseSparsity = math.subtract(bigOne, sparsity);
+        var t3 = math.pow(inverseSparsity, sdrCount);
+        var t4 = math.subtract(bigOne, t3);
+        var t5 = math.pow(t4, matchW);
+        return t5;
+    }
 
     /* Utils */
 
@@ -311,7 +323,7 @@ $(function() {
     }
 
     function calculateUnion() {
-        sdrUnion = SDR.tools.union(sdrUnion, nextSdr);
+        unionSdr = SDR.tools.union(unionSdr, nextSdr);
     }
 
     function switchView() {
@@ -344,35 +356,13 @@ $(function() {
         }
     }
 
-    function reOrderStackByOverlapScore() {
-        $stack.append($stack.children('div').detach().sort(function(left, right) {
-            var leftOverlap = parseInt($(left).find('.progress-bar').text());
-            var rightOverlap = parseInt($(right).find('.progress-bar').text());
-            return rightOverlap - leftOverlap;
-        }));
-    }
-
-    function matchStack() {
-        var $nextSdr = $('#next-sdr-svg');
-        $stack.find('div.sdr').each(function() {
-            var $sdr = $(this);
-            var id = $sdr.find('.plot').attr('id');
-            var index = parseInt(id.split('-')[1]);
-            var sdr = sdrStack[index];
-            var $marker = $sdr.find('.marker');
-            var $overlap = $sdr.find('.overlap');
-            var overlap = SDR.tools.getOverlapScore(sdr, matchSdr);
-            var percent = Math.min(Math.floor(overlap / theta * 100), 100);
-            var clazz = '';
-            if (overlap >= theta) clazz = 'match';
-            $marker.addClass(clazz);
-            $overlap.html('<div class="progress"><div class="progress-bar" role="progressbar" '
-                + 'aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100" '
-                + 'style="width: ' + percent + '%;">' + overlap + '</span></div></div></div>');
-            updateUiForSdrMatch(sdr, $sdr, matchSdr);
-            updateUiForSdrMatch(matchSdr, $nextSdr, sdr);
-        });
-        reOrderStackByOverlapScore();
+    function matchUnion() {
+        if (SDR.tools.isMatch(matchSdr, unionSdr, theta)) {
+            $match.html('MATCH').removeClass('bg-danger').addClass('bg-success');
+        } else {
+            $match.html('NOPE').removeClass('bg-success').addClass('bg-danger');
+        }
+        $unionOverlap.html('Overlap: ' + SDR.tools.getOverlapScore(matchSdr, unionSdr));
     }
 
 

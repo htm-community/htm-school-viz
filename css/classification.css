@@ -31,10 +31,6 @@ rect.match {
     fill: red !important;
 }
 
-.sdr {
-    /*padding-left: 20px !important;*/
-}
-
 .sdr.selected rect {
     stroke: #ffad7e;
 }

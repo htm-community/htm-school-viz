@@ -27,7 +27,7 @@ $(function () {
     var size = 30;
 
     function sdrsMatch(left, right) {
-        return SDR.tools.population(SDR.tools.overlap(left, right)) >= theta;
+        return SDR.tools.isMatch(left, right, theta);
     }
 
     function updateDisplayValues() {

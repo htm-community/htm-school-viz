@@ -45,7 +45,13 @@
 <div class="row">
     <div class="col-md-1 data-label">sparsity</div>
     <div class="col-md-1 value" id="sparsity-display">loading...</div>
-    <div class="col-md-4"></div>
+    <div class="col-md-1" id="match"></div>
+    <div class="col-md-1">
+        SDRs in Union: <span id="sdr-count"></span>
+    </div>
+    <div class="col-md-2">
+        Probability of False Positive: <span id="fpp-value"></span>
+    </div>
     <div class="col-md-6"></div>
 </div>
 
@@ -58,19 +64,15 @@
 
 <!-- next sdr / match sdr -->
 <div class="row">
-    <div class="col-md-10" id="next-sdr"></div>
+    <div class="col-md-10" id="next-sdr" class="sdr"></div>
     <p class="col-md-2 next-match" style="display:none">
-        ⬅︎ Matching against the stack
+        ⬅︎ Matching against the union
     </p>
 </div>
 
 <!-- labels / buttons -->
 <div class="row">
     <div class="col-md-12" align="center">
-        <div style="display:none" class="match-instructions">
-            <hr/>
-            <p>Click on an SDR below to match.</p>
-        </div>
         <div class="btn-group" role="group">
             <button id="add-btn" type="button" class="btn btn-primary btn-lg">Add SDR to Stack</button>
             <button id="populate-btn" type="button" class="btn btn-primary btn-lg">Add Many SDRs to Stack</button>
@@ -81,11 +83,21 @@
     </div>
 </div>
 
+<!-- spacer -->
+<div class="row">
+    <div class="col-md-12">
+        <hr/>
+        Union
+    </div>
+</div>
 
 <!-- union sdr -->
 <div class="row">
-    <div class="col-md-12">
-        <div id="sdr-union"></div>
+    <div class="col-md-10">
+        <div id="union-sdr"></div>
+    </div>
+    <div class="col-md-2">
+        <div id="union-overlap"></div>
     </div>
 </div>
 
@@ -93,6 +105,9 @@
 <div class="row">
     <div class="col-md-12">
         <hr/>
+        <div style="display:none" class="match-instructions">
+            <p>Click on an SDR below to match.</p>
+        </div>
     </div>
 </div>
 

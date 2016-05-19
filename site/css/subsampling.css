@@ -11,6 +11,7 @@ svg {
     padding: 20px;
     border: solid grey 1px;
     border-radius: 10px;
+    width: 140px;
 }
 .slider {
     width: 600px;
@@ -23,9 +24,6 @@ svg {
 }
 .data-label, .data {
     font-size: 20pt;
-}
-#match {
-    width: 140px;
 }
 #false-positive-display {
     font-size: 34pt;
