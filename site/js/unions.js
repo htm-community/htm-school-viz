@@ -194,6 +194,7 @@ $(function() {
             drawSdrStack();
             $goBigBtn.prop('disabled', true);
             viewMode = 'add';
+            matchSdr = undefined;
             switchView();
             updateUi();
         });
