@@ -65,3 +65,6 @@ rect.match {
 .go-big {
     margin: 0 !important;
 }
+#false-positive-display {
+    padding-top: 10px;
+}

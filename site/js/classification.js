@@ -133,6 +133,10 @@ $(function() {
         } else {
             $switchBtn.prop('disabled', false);
         }
+        if (calcFpp) {
+            $fppValue.html(calculateFalsePositive().toPrecision(5));
+            $fppDisplay.show();
+        }
     }
 
     function updateUiForSdrMatch(left, $left, right) {
@@ -153,9 +157,6 @@ $(function() {
             var c = $rect.attr('class');
             $rect.attr('class', c + ' match');
         });
-        if (calcFpp) {
-            $fppValue.html(calculateFalsePositive().toPrecision(5));
-        }
     }
 
 
