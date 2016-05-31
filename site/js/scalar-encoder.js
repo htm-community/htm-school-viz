@@ -55,7 +55,7 @@ $(function() {
             value: min,
             step: 1,
             slide: function(event, ui) {
-                if (validate(w, n, value, ui.value, max)) {
+                if (validate(w, n, ui.value, max)) {
                     min = ui.value;
                     updateUi();
                 } else event.preventDefault();
