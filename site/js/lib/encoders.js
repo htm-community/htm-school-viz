@@ -2,9 +2,7 @@ window.HTM = {};
 
 HTM.encoders = {};
 
-HTM.encoders.scalar = {};
-
-HTM.encoders.scalar.encode = function(n, w, minValue, maxValue, input) {
+HTM.encoders.scalar = function(n, w, minValue, maxValue, input) {
     var extentWidth = maxValue - minValue;
     // Distribute nBuckets points along the domain [minValue, maxValue],
     // including the endpoints. The resolution is the width of each band

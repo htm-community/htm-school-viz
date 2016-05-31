@@ -29,7 +29,7 @@ $(function() {
     function encodeScalar(input) {
         lastEncoding = encoding;
         lastValue = value;
-        encoding = HTM.encoders.scalar.encode(n, w, min, max, input);
+        encoding = HTM.encoders.scalar(n, w, min, max, input);
         if (lastEncoding && compare) {
             SDR.drawComparison(lastEncoding, encoding, 'encoding', {
                 spartan: true,
