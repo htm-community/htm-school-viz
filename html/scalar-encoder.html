@@ -3,52 +3,62 @@
 
         <div class="row">
             <!-- n -->
-            <div class="col-md-1 data-label">n</div>
+            <div class="col-md-2 data-label">n</div>
             <div class="col-md-3 description">
                 The number of bits in the output. Must be greater than or equal to w.
             </div>
             <div class="col-md-1" id="n-display">loading...</div>
-            <div class="col-md-7 slider" id="n-slider"></div>
+            <div class="col-md-6 slider" id="n-slider"></div>
         </div>
 
         <div class="row">
             <!-- w -->
-            <div class="col-md-1 data-label">w</div>
+            <div class="col-md-2 data-label">w</div>
             <div class="col-md-3 description">
                 The number of bits that are set to encode a single value -- the "width" of the output signal
             </div>
             <div class="col-md-1" id="w-display">loading...</div>
-            <div class="col-md-7 slider" id="w-slider"></div>
+            <div class="col-md-6 slider" id="w-slider"></div>
+        </div>
+
+        <div class="row">
+            <!-- buckets -->
+            <div class="col-md-2 data-label">buckets</div>
+            <div class="col-md-3"></div>
+            <div class="col-md-1" id="buckets-display">loading...</div>
+            <div class="col-md-6 description">
+                Conceptually, the set of possible outputs is a set of "buckets". If there are m buckets, the ScalarEncoder distributes m points along the domain [minValue, maxValue], including the endpoints. To figure out the bucket index of an input, it rounds the input to the nearest of these points.
+            </div>
         </div>
 
         <div class="row">
             <!-- min -->
-            <div class="col-md-1 data-label">min</div>
+            <div class="col-md-2 data-label">min</div>
             <div class="col-md-3 description">
                 The minimum value of the input signal, inclusive.
             </div>
             <div class="col-md-1" id="min-display">loading...</div>
-            <div class="col-md-7 slider" id="min-slider"></div>
+            <div class="col-md-6 slider" id="min-slider"></div>
         </div>
 
         <div class="row">
             <!-- max -->
-            <div class="col-md-1 data-label">max</div>
+            <div class="col-md-2 data-label">max</div>
             <div class="col-md-3 description">
                 The maximum value of the input signal, inclusive.
             </div>
             <div class="col-md-1" id="max-display">loading...</div>
-            <div class="col-md-7 slider" id="max-slider"></div>
+            <div class="col-md-6 slider" id="max-slider"></div>
         </div>
 
         <div class="row">
             <!-- value -->
-            <div class="col-md-1 data-label">value</div>
+            <div class="col-md-2 data-label">value</div>
             <div class="col-md-3 description">
                 Scalar value to encode.
             </div>
             <div class="col-md-1" id="value-display">loading...</div>
-            <div class="col-md-7 slider" id="value-slider"></div>
+            <div class="col-md-6 slider" id="value-slider"></div>
         </div>
 
         <div class="row">

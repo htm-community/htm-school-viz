@@ -2,6 +2,7 @@ $(function() {
 
     var n = 256;
     var w = 5;
+    var nBuckets = n - (w - 1);
     var minRange = [-100, 100];
     var min = Math.floor(_.mean(minRange));
     var maxRange = [100, 1000];
@@ -25,6 +26,7 @@ $(function() {
     var $wDisplay = $('#w-display');
     var $valueDisplay = $('#value-display');
     var $lastValueDisplay = $('#last-value-display');
+    var $bucketsDisplay = $('#buckets-display');
 
     function encodeScalar(input) {
         lastEncoding = encoding;
@@ -81,6 +83,7 @@ $(function() {
             slide: function(event, ui) {
                 if (validate(w, ui.value, min, max)) {
                     n = ui.value;
+                    nBuckets = n - (w - 1);
                     updateUi();
                 } else event.preventDefault();
             }
@@ -93,6 +96,7 @@ $(function() {
             slide: function(event, ui) {
                 if (validate(ui.value, n, min, max)) {
                     w = ui.value;
+                    nBuckets = n - (w - 1);
                     updateUi();
                 } else event.preventDefault();
             }
@@ -123,6 +127,7 @@ $(function() {
         $nDisplay.html(n);
         $valueDisplay.html(value);
         $lastValueDisplay.html(lastValue);
+        $bucketsDisplay.html(nBuckets);
         // Update slider bounds based on new values.
         $nSlider.slider('value', n);
         $wSlider.slider('option', 'max', n);

@@ -9,7 +9,7 @@ HTM.encoders.scalar = function(n, w, minValue, maxValue, input) {
     // between the points.
     var nBuckets = n - (w - 1);
     var nBands = nBuckets - 1;
-    var bucketWidth_ = extentWidth / nBands;
+    var bucketWidth = extentWidth / nBands;
     var i;
     var iBucket;
     var firstBit;
@@ -23,7 +23,7 @@ HTM.encoders.scalar = function(n, w, minValue, maxValue, input) {
         input = maxValue;
     }
 
-    iBucket = Math.round((input - minValue) / bucketWidth_);
+    iBucket = Math.round((input - minValue) / bucketWidth);
     firstBit = iBucket;
 
     _.times(n, function() {
