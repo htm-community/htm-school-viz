@@ -3,8 +3,8 @@ $(function() {
     var INITIAL_BUCKETS = 1000;
 
     /*
-    Translated from https://github.com/rhyolight/nupic/blob/17a2320b7e23f28de63522fb3c41af639c499639/src/nupic/encoders/random_distributed_scalar.py
-    */
+     Translated from https://github.com/rhyolight/nupic/blob/17a2320b7e23f28de63522fb3c41af639c499639/src/nupic/encoders/random_distributed_scalar.py
+     */
     function RDSE(resolution, n, w) {
         this.resolution = resolution;
         this.n = n;
@@ -226,45 +226,6 @@ $(function() {
         return output;
     };
 
-    window.HTM = {};
-    HTM.encoders = {};
-
-    HTM.encoders.scalar = function(n, w, minValue, maxValue, input) {
-        var extentWidth = maxValue - minValue;
-        // Distribute nBuckets points along the domain [minValue, maxValue],
-        // including the endpoints. The resolution is the width of each band
-        // between the points.
-        var nBuckets = n - (w - 1);
-        var nBands = nBuckets - 1;
-        var bucketWidth = extentWidth / nBands;
-        var i;
-        var iBucket;
-        var firstBit;
-        var output = [];
-
-        // Always clip input.
-        if (input < minValue) {
-            input = minValue;
-        }
-        if (input > maxValue ) {
-            input = maxValue;
-        }
-
-        iBucket = Math.round((input - minValue) / bucketWidth);
-        firstBit = iBucket;
-
-        _.times(n, function() {
-            output.push(0);
-        });
-
-        for (i = 0; i < w; i++) {
-            output[firstBit + i] = 1;
-        }
-
-        return output;
-    };
-
     HTM.encoders.RDSE = RDSE;
 
 });
-
