@@ -69,9 +69,13 @@ $(function() {
 
         bucketIdx = this._maxBuckets / 2 + parseInt(Math.round((x - this._offset) / this.resolution));
 
+        console.log('value: %s, bucket: %s', x, bucketIdx);
+
         if (bucketIdx < 0) {
+            console.log('reached min buckets');
             bucketIdx = 0;
         } else if (bucketIdx >= this._maxBuckets) {
+            console.log('reached max buckets');
             bucketIdx = this._maxBuckets - 1;
         }
         return [bucketIdx];

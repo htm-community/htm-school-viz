@@ -1,13 +1,13 @@
 $(function() {
 
-    var n = 120;
-    var w = 20;
+    var n = 400;
+    var w = 21;
     var resolution = 1.0;
     var lastEncoding = undefined;
     var encoding = undefined;
     var min = 0;
     var max = 1000;
-    var value = 50;
+    var value = 500;
     var lastValue = undefined;
     var compare = false;
     var rdse = undefined;
@@ -124,8 +124,8 @@ $(function() {
         $nSlider.slider('value', n);
         $wSlider.slider('option', 'max', n);
         $wSlider.slider('value', w);
-        $valueSlider.slider('option', 'min', min - 100);
-        $valueSlider.slider('option', 'max', max + 100);
+        $valueSlider.slider('option', 'min', min);
+        $valueSlider.slider('option', 'max', max);
         encodeScalar(value);
     }
 
