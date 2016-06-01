@@ -1,6 +1,6 @@
 $(function() {
 
-    var n = 121;
+    var n = 120;
     var w = 20;
     var resolution = 1.0;
     var lastEncoding = undefined;
@@ -23,6 +23,7 @@ $(function() {
     var $valueDisplay = $('#value-display');
     var $lastValueDisplay = $('#last-value-display');
     var $resolutionDisplay = $('#resolution-display');
+    var $bucketsDisplay = $('#buckets-display');
 
     function initParamsChanged(rdse) {
         return w !== rdse.w
@@ -85,9 +86,9 @@ $(function() {
         });
         $resolutionSlider.slider({
             min: 0,
-            max: 10,
+            max: 5,
             value: resolution,
-            step: 0.25,
+            step: 0.01,
             slide: function(event, ui) {
                 resolution = ui.value;
                 updateUi();
@@ -118,6 +119,7 @@ $(function() {
         $valueDisplay.html(value);
         $resolutionDisplay.html(resolution);
         $lastValueDisplay.html(lastValue);
+        if (rdse) $bucketsDisplay.html(_.size(rdse.bucketMap));
         // Update slider bounds based on new values.
         $nSlider.slider('value', n);
         $wSlider.slider('option', 'max', n);

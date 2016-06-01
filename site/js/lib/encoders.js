@@ -199,7 +199,6 @@ $(function() {
         }
 
         if (_.keys(this.bucketMap).indexOf(index.toString()) == -1) {
-            console.log("Adding additional buckets to handle index=%s", index);
             this._createBucket(index);
         }
         return this.bucketMap[index];
