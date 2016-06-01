@@ -199,7 +199,7 @@ $(function() {
             index = this._maxBuckets - 1;
         }
 
-        if (_.keys(this.bucketMap).indexOf(index) == -1) {
+        if (_.keys(this.bucketMap).indexOf(index.toString()) == -1) {
             console.log("Adding additional buckets to handle index=%s", index);
             this._createBucket(index);
         }
