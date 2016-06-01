@@ -22,12 +22,19 @@ $(function() {
     var $wDisplay = $('#w-display');
     var $valueDisplay = $('#value-display');
     var $lastValueDisplay = $('#last-value-display');
+    var $resolutionDisplay = $('#resolution-display');
+
+    function initParamsChanged(rdse) {
+        return w !== rdse.w
+            || n !== rdse.n
+            || resolution !== rdse.resolution;
+    }
 
     function encodeScalar(input) {
         lastEncoding = encoding;
         lastValue = value;
 
-        if (! rdse) {
+        if (! rdse || initParamsChanged(rdse)) {
             rdse = new HTM.encoders.RDSE(resolution, n, w);
         }
 
@@ -109,6 +116,7 @@ $(function() {
         $wDisplay.html(w);
         $nDisplay.html(n);
         $valueDisplay.html(value);
+        $resolutionDisplay.html(resolution);
         $lastValueDisplay.html(lastValue);
         // Update slider bounds based on new values.
         $nSlider.slider('value', n);

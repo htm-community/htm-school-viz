@@ -164,7 +164,6 @@ $(function() {
     RDSE.prototype._createBucket = function(index) {
         //Create the given bucket index. Recursively create as many in-between
         //bucket indices as necessary.
-        console.log("createBucket(%s) (should not be negative)", index);
         if (index < this.minIndex) {
             if (index == this.minIndex - 1) {
                 // Create a new representation that has exactly w-1 overlapping bits

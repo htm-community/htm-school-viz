@@ -26,9 +26,7 @@
         <div class="row">
             <!-- resolution -->
             <div class="col-md-2 data-label">resolution</div>
-            <div class="col-md-3"></div>
-            <div class="col-md-1" id="resolution-display">loading...</div>
-            <div class="col-md-6 description">
+            <div class="col-md-3 description">
                 A floating point positive number denoting the resolution
                 of the output representation. Numbers within
                 [offset-resolution/2, offset+resolution/2] will fall into
@@ -36,6 +34,8 @@
                 Adjacent buckets will differ in one bit. resolution is a
                 required parameter.
             </div>
+            <div class="col-md-1" id="resolution-display">loading...</div>
+            <div class="col-md-6 slider" id="resolution-slider"></div>
         </div>
 
         <div class="row">
