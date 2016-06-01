@@ -12,6 +12,7 @@ $(function() {
     var value = 50;
     var lastValue = undefined;
     var compare = false;
+    var scalarEncoder = undefined;
 
     var $minSlider = $('#min-slider');
     var $maxSlider = $('#max-slider');
@@ -28,10 +29,21 @@ $(function() {
     var $lastValueDisplay = $('#last-value-display');
     var $bucketsDisplay = $('#buckets-display');
 
+    function initParamsChanged(e) {
+        return w !== e.w
+            || n !== e.n
+            || min !== e.minValue
+            || max !== e.maxValue;
+    }
+
+
     function encodeScalar(input) {
+        if (! scalarEncoder || initParamsChanged(scalarEncoder)) {
+            scalarEncoder = new HTM.encoders.ScalarEncoder(n, w, min, max);
+        }
         lastEncoding = encoding;
         lastValue = value;
-        encoding = HTM.encoders.scalar(n, w, min, max, input);
+        encoding = scalarEncoder.encode(input);
         if (lastEncoding && compare) {
             SDR.drawComparison(lastEncoding, encoding, 'encoding', {
                 spartan: true,
