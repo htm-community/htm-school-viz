@@ -2,36 +2,37 @@ $(function() {
 
     var n = 121;
     var w = 20;
-    var nBuckets = n - (w - 1);
-    var minRange = [-100, 100];
-    var min = Math.floor(_.mean(minRange));
-    var maxRange = [100, 1000];
-    var max = 100;
+    var resolution = 1.0;
     var lastEncoding = undefined;
     var encoding = undefined;
+    var min = 0;
+    var max = 1000;
     var value = 50;
     var lastValue = undefined;
     var compare = false;
+    var rdse = undefined;
 
-    var $minSlider = $('#min-slider');
-    var $maxSlider = $('#max-slider');
     var $nSlider = $('#n-slider');
     var $wSlider = $('#w-slider');
     var $valueSlider = $('#value-slider');
+    var $resolutionSlider = $('#resolution-slider');
     var $compareSwitch = $('#compare').bootstrapSwitch({state: false});
 
-    var $minDisplay = $('#min-display');
-    var $maxDisplay = $('#max-display');
     var $nDisplay = $('#n-display');
     var $wDisplay = $('#w-display');
     var $valueDisplay = $('#value-display');
     var $lastValueDisplay = $('#last-value-display');
-    var $bucketsDisplay = $('#buckets-display');
 
     function encodeScalar(input) {
         lastEncoding = encoding;
         lastValue = value;
-        encoding = HTM.encoders.scalar(n, w, min, max, input);
+
+        if (! rdse) {
+            rdse = new HTM.encoders.RDSE(resolution, n, w);
+        }
+
+        encoding = rdse.encode(input);
+
         if (lastEncoding && compare) {
             SDR.drawComparison(lastEncoding, encoding, 'encoding', {
                 spartan: true,
@@ -51,30 +52,6 @@ $(function() {
     }
 
     function drawSliders() {
-        $minSlider.slider({
-            min: minRange[0],
-            max: minRange[1],
-            value: min,
-            step: 1,
-            slide: function(event, ui) {
-                if (validate(w, n, ui.value, max)) {
-                    min = ui.value;
-                    updateUi();
-                } else event.preventDefault();
-            }
-        });
-        $maxSlider.slider({
-            min: maxRange[0],
-            max: maxRange[1],
-            value: max,
-            step: 1,
-            slide: function(event, ui) {
-                if (validate(w, n, min, ui.value)) {
-                    max = ui.value;
-                    updateUi();
-                } else event.preventDefault();
-            }
-        });
         $nSlider.slider({
             min: 0,
             max: 2048,
@@ -83,7 +60,6 @@ $(function() {
             slide: function(event, ui) {
                 if (validate(w, ui.value, min, max)) {
                     n = ui.value;
-                    nBuckets = n - (w - 1);
                     updateUi();
                 } else event.preventDefault();
             }
@@ -96,9 +72,18 @@ $(function() {
             slide: function(event, ui) {
                 if (validate(ui.value, n, min, max)) {
                     w = ui.value;
-                    nBuckets = n - (w - 1);
                     updateUi();
                 } else event.preventDefault();
+            }
+        });
+        $resolutionSlider.slider({
+            min: 0,
+            max: 10,
+            value: resolution,
+            step: 0.25,
+            slide: function(event, ui) {
+                resolution = ui.value;
+                updateUi();
             }
         });
         $valueSlider.slider({
@@ -121,13 +106,10 @@ $(function() {
 
     function updateUi() {
         // Update display values.
-        $minDisplay.html(min);
-        $maxDisplay.html(max);
         $wDisplay.html(w);
         $nDisplay.html(n);
         $valueDisplay.html(value);
         $lastValueDisplay.html(lastValue);
-        $bucketsDisplay.html(nBuckets);
         // Update slider bounds based on new values.
         $nSlider.slider('value', n);
         $wSlider.slider('option', 'max', n);

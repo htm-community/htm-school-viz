@@ -1,7 +1,7 @@
 $(function() {
 
-    var n = 256;
-    var w = 5;
+    var n = 121;
+    var w = 20;
     var nBuckets = n - (w - 1);
     var minRange = [-100, 100];
     var min = Math.floor(_.mean(minRange));
