@@ -121,14 +121,13 @@ $(function() {
             var svg = $('<svg id="' + elId + '-svg">');
             var $container = $('#' + elId);
             var overlapScore = SDR.tools.population(SDR.tools.overlap(left, right));
-            if (size > size * 15 / rowLength) {
-                size = size * 15 / rowLength;
-            }
 
             if (line) {
                 rowLength = left.length;
             } else if (! staticSize && size > size * 15 / rowLength) {
-                size = size * 15 / rowLength;
+                if (size > size * 15 / rowLength) {
+                    size = size * 15 / rowLength;
+                }
             }
 
             if (opts.colors) {

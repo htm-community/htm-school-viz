@@ -109,6 +109,7 @@ $(function() {
     function addHandlers() {
         $compareSwitch.on('switchChange.bootstrapSwitch', function(evt, state) {
             compare = state;
+            updateUi();
         });
     }
 
