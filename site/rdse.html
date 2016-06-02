@@ -32,62 +32,34 @@
             <div class="row">
                 <!-- n -->
                 <div class="col-md-2 data-label">n</div>
-                <div class="col-md-3 description">
-                    The number of bits in the output. Must be greater than or equal
-                    to w.
-                </div>
                 <div class="col-md-1" id="n-display">loading...</div>
-                <div class="col-md-6 slider" id="n-slider"></div>
+                <div class="col-md-9 slider" id="n-slider"></div>
             </div>
     
             <div class="row">
                 <!-- w -->
                 <div class="col-md-2 data-label">w</div>
-                <div class="col-md-3 description">
-                    The number of bits that are set to encode a single value
-                    -- the "width" of the output signal
-                </div>
                 <div class="col-md-1" id="w-display">loading...</div>
-                <div class="col-md-6 slider" id="w-slider"></div>
+                <div class="col-md-9 slider" id="w-slider"></div>
             </div>
     
             <div class="row">
                 <!-- resolution -->
                 <div class="col-md-2 data-label">resolution</div>
-                <div class="col-md-3 description">
-                    A floating point positive number denoting the resolution
-                    of the output representation. Numbers within
-                    [offset-resolution/2, offset+resolution/2] will fall into
-                    the same bucket and thus have an identical representation.
-                    Adjacent buckets will differ in one bit. resolution is a
-                    required parameter.
-                </div>
                 <div class="col-md-1" id="resolution-display">loading...</div>
-                <div class="col-md-6 slider" id="resolution-slider"></div>
+                <div class="col-md-9 slider" id="resolution-slider"></div>
             </div>
     
             <div class="row">
-                <!-- value -->
-                <div class="col-md-2 data-label">value</div>
-                <div class="col-md-3 description">
-                    Scalar value to encode.
-                </div>
-                <div class="col-md-1" id="value-display">loading...</div>
-                <div class="col-md-6 slider" id="value-slider"></div>
-            </div>
-    
-            <div class="row">
-                <div class="col-md-12">
-                    <hr/>
-                </div>
+                <!-- buckets -->
+                <div class="col-md-2 data-label">buckets</div>
+                <div class="col-md-1" id="buckets-display">loading...</div>
+                <div class="col-md-9"></div>
             </div>
     
             <div class="row">
                 <!-- comparison view -->
                 <div class="col-md-2 data-label">compare</div>
-                <div class="col-md-3 description">
-                    Compare this encoding to the last encoding?
-                </div>
                 <div class="col-md-2">
                     <input type="checkbox" id="compare" checked>
                 </div>
@@ -102,13 +74,10 @@
             </div>
     
             <div class="row">
-                <!-- buckets -->
-                <div class="col-md-2 data-label">buckets</div>
-                <div class="col-md-3 description">
-                    How many buckets within the RDSE.
-                </div>
-                <div class="col-md-1" id="buckets-display">loading...</div>
-                <div class="col-md-6"></div>
+                <!-- value -->
+                <div class="col-md-2 data-label">value</div>
+                <div class="col-md-1" id="value-display">loading...</div>
+                <div class="col-md-6 slider" id="value-slider"></div>
             </div>
     
         </div>

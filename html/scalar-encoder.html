@@ -27,7 +27,12 @@
             <div class="col-md-3"></div>
             <div class="col-md-1" id="buckets-display">loading...</div>
             <div class="col-md-6 description">
-                Conceptually, the set of possible outputs is a set of "buckets". If there are m buckets, the ScalarEncoder distributes m points along the domain [minValue, maxValue], including the endpoints. To figure out the bucket index of an input, it rounds the input to the nearest of these points.
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <hr/>
             </div>
         </div>
 
@@ -52,13 +57,9 @@
         </div>
 
         <div class="row">
-            <!-- value -->
-            <div class="col-md-2 data-label">value</div>
-            <div class="col-md-3 description">
-                Scalar value to encode.
+            <div class="col-md-12">
+                <hr/>
             </div>
-            <div class="col-md-1" id="value-display">loading...</div>
-            <div class="col-md-6 slider" id="value-slider"></div>
         </div>
 
         <div class="row">
@@ -70,8 +71,7 @@
             <div class="col-md-2">
                 <input type="checkbox" id="compare" checked>
             </div>
-            <div class="col-md-3 data-label">Last value:</div>
-            <div class="col-md-2" id="last-value-display"></div>
+            <div class="col-md-5"></div>
         </div>
 
         <div class="row">
@@ -84,6 +84,31 @@
                 <input type="checkbox" id="periodic">
             </div>
             <div class="col-md-5"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <hr/>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- value -->
+            <div class="col-md-2 data-label">value</div>
+            <div class="col-md-3 description">
+                Scalar value to encode.
+            </div>
+            <div class="col-md-1" id="value-display">loading...</div>
+            <div class="col-md-6 slider" id="value-slider"></div>
+        </div>
+
+        <div class="row">
+            <!-- last value -->
+            <div class="col-md-2 data-label">last value</div>
+            <div class="col-md-3 description">
+            </div>
+            <div class="col-md-1" id="last-value-display">loading...</div>
+            <div class="col-md-6"></div>
         </div>
 
     </div>
