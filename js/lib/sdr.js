@@ -116,10 +116,18 @@ $(function() {
             var leftColor = "orange";
             var rightColor = "green";
             var size = opts.size || POINT_SIZE;
+            var line = opts.line;
+            var staticSize = opts.staticSize;
             var svg = $('<svg id="' + elId + '-svg">');
             var $container = $('#' + elId);
             var overlapScore = SDR.tools.population(SDR.tools.overlap(left, right));
             if (size > size * 15 / rowLength) {
+                size = size * 15 / rowLength;
+            }
+
+            if (line) {
+                rowLength = left.length;
+            } else if (! staticSize && size > size * 15 / rowLength) {
                 size = size * 15 / rowLength;
             }
 
