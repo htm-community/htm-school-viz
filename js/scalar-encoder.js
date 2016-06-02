@@ -12,6 +12,7 @@ $(function() {
     var value = 50;
     var lastValue = undefined;
     var compare = false;
+    var periodic = false;
     var scalarEncoder = undefined;
 
     var $minSlider = $('#min-slider');
@@ -19,7 +20,8 @@ $(function() {
     var $nSlider = $('#n-slider');
     var $wSlider = $('#w-slider');
     var $valueSlider = $('#value-slider');
-    var $compareSwitch = $('#compare').bootstrapSwitch({state: false});
+    var $compareSwitch = $('#compare').bootstrapSwitch({state: compare});
+    var $periodicSwitch = $('#periodic').bootstrapSwitch({state: periodic});
 
     var $minDisplay = $('#min-display');
     var $maxDisplay = $('#max-display');
@@ -30,7 +32,9 @@ $(function() {
     var $bucketsDisplay = $('#buckets-display');
 
     function initParamsChanged(e) {
-        return w !== e.w
+        return e instanceof HTM.encoders.ScalarEncoder && periodic
+            || e instanceof HTM.encoders.PeriodicScalarEncoder && ! periodic
+            || w !== e.w
             || n !== e.n
             || min !== e.minValue
             || max !== e.maxValue;
@@ -39,7 +43,11 @@ $(function() {
 
     function encodeScalar(input) {
         if (! scalarEncoder || initParamsChanged(scalarEncoder)) {
-            scalarEncoder = new HTM.encoders.ScalarEncoder(n, w, min, max);
+            if (periodic) {
+                scalarEncoder = new HTM.encoders.PeriodicScalarEncoder(n, w, min, max);
+            } else {
+                scalarEncoder = new HTM.encoders.ScalarEncoder(n, w, min, max);
+            }
         }
         lastEncoding = encoding;
         lastValue = value;
@@ -128,11 +136,22 @@ $(function() {
     function addHandlers() {
         $compareSwitch.on('switchChange.bootstrapSwitch', function(evt, state) {
             compare = state;
+            updateUi();
+        });
+        $periodicSwitch.on('switchChange.bootstrapSwitch', function(evt, state) {
+            periodic = state;
+            updateUi();
         });
     }
 
     function updateUi() {
         // Update display values.
+        var defaultMin = min - 100;
+        var defaultMax = max + 100;
+        if (periodic) {
+            defaultMin = min;
+            defaultMax = max - 1;
+        }
         $minDisplay.html(min);
         $maxDisplay.html(max);
         $wDisplay.html(w);
@@ -144,8 +163,8 @@ $(function() {
         $nSlider.slider('value', n);
         $wSlider.slider('option', 'max', n);
         $wSlider.slider('value', w);
-        $valueSlider.slider('option', 'min', min - 100);
-        $valueSlider.slider('option', 'max', max + 100);
+        $valueSlider.slider('option', 'min', defaultMin);
+        $valueSlider.slider('option', 'max', defaultMax);
         encodeScalar(value);
     }
 
