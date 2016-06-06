@@ -83,7 +83,7 @@ $(function() {
 
             $container.append($svg);
             $container.css({
-                height: (size * heightMultiplyer) + 'px'
+                height: (size * heightMultiplyer * (sdr.length / rowLength)) + 'px'
             });
 
             d3.select('#' + svgId)

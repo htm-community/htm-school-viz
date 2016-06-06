@@ -41,18 +41,15 @@ $(function () {
             });
             SDR.drawComparison(lastDowEncoding, dowEncoding, 'dow-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: 40
             });
             SDR.drawComparison(lastWeekendEncoding, weekendEncoding, 'weekend-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: 40
             });
             SDR.drawComparison(lastTodEncoding, todEncoding, 'tod-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: 40
             });
             SDR.drawComparison(lastEncoding, encoding, 'encoding', {
                 spartan: true,
@@ -65,18 +62,15 @@ $(function () {
             });
             SDR.draw(dowEncoding, 'dow-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: 40
             });
             SDR.draw(weekendEncoding, 'weekend-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: 40
             });
             SDR.draw(todEncoding, 'tod-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: 40
             });
             SDR.draw(encoding, 'encoding', {
                 spartan: true,
