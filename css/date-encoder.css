@@ -2,11 +2,12 @@
     font-size: 14pt;
 }
 .sdr svg {
-    width: 1000px;
-    height: 1000px;
+    width: 300px;
+    height: 300px;
 }
-.sdr.line svg {
-    width: 1000px;
+.big svg {
+    width: 600px;
+    height: 600px;
 }
 #value-display {
     font-size: 26pt;

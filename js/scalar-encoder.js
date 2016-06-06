@@ -44,7 +44,7 @@ $(function() {
     function encodeScalar(input) {
         if (! scalarEncoder || initParamsChanged(scalarEncoder)) {
             if (periodic) {
-                scalarEncoder = new HTM.encoders.PeriodicScalarEncoder(n, w, min, max);
+                scalarEncoder = new HTM.encoders.PeriodicScalarEncoder(n, w, null, min, max);
             } else {
                 scalarEncoder = new HTM.encoders.ScalarEncoder(n, w, min, max);
             }

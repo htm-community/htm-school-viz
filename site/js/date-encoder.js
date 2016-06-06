@@ -13,6 +13,8 @@ $(function () {
     var encoding = undefined;
     var lastEncoding = undefined;
     var compare = false;
+    var rectSize = 20;
+    var bigRectSize = 30;
 
     var $datePicker = $('#datetimepicker1').datetimepicker({
         defaultDate: date,
@@ -37,50 +39,44 @@ $(function () {
         if (lastEncoding && compare) {
             SDR.drawComparison(lastSeasonEncoding, seasonEncoding, 'season-sdr', {
                 spartan: true,
-                size: 40
+                size: rectSize
             });
             SDR.drawComparison(lastDowEncoding, dowEncoding, 'dow-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: rectSize
             });
             SDR.drawComparison(lastWeekendEncoding, weekendEncoding, 'weekend-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: rectSize
             });
             SDR.drawComparison(lastTodEncoding, todEncoding, 'tod-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: rectSize
             });
             SDR.drawComparison(lastEncoding, encoding, 'encoding', {
                 spartan: true,
-                size: 40
+                size: bigRectSize
             });
         } else {
             SDR.draw(seasonEncoding, 'season-sdr', {
                 spartan: true,
-                size: 40
+                size: rectSize
             });
             SDR.draw(dowEncoding, 'dow-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: rectSize
             });
             SDR.draw(weekendEncoding, 'weekend-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: rectSize
             });
             SDR.draw(todEncoding, 'tod-sdr', {
                 spartan: true,
-                size: 40,
-                line: true
+                size: rectSize
             });
             SDR.draw(encoding, 'encoding', {
                 spartan: true,
-                size: 40
+                size: bigRectSize
             });
         }
     }

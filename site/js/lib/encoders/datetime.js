@@ -1,21 +1,23 @@
 $(function() {
 
+    var DEFAULT_BUCKET_WIDTH = 21;
+
     function DateEncoder() {
         this.width = 0;
         this.description = [];
         this.name = name;
 
-        this.seasonEncoder = new HTM.encoders.PeriodicScalarEncoder(366, 92, 0, 366);
-        this.width += 366;
+        this.seasonEncoder = new HTM.encoders.PeriodicScalarEncoder(null, DEFAULT_BUCKET_WIDTH, 91.5, 0, 366);
+        this.width += this.seasonEncoder.getWidth();
 
-        this.dayOfWeekEncoder = new HTM.encoders.PeriodicScalarEncoder(7, 1, 0, 7);
-        this.width += 7;
+        this.dayOfWeekEncoder = new HTM.encoders.PeriodicScalarEncoder(null, DEFAULT_BUCKET_WIDTH, 1, 0, 7);
+        this.width += this.dayOfWeekEncoder.getWidth();
 
-        this.weekendEncoder = new HTM.encoders.PeriodicScalarEncoder(2, 1, 0, 2);
-        this.width += 2;
+        this.weekendEncoder = new HTM.encoders.PeriodicScalarEncoder(null, DEFAULT_BUCKET_WIDTH, 1, 0, 2);
+        this.width += this.weekendEncoder.getWidth();
 
-        this.timeOfDayEncoder = new HTM.encoders.PeriodicScalarEncoder(24, 4, 0, 24);
-        this.width += 24;
+        this.timeOfDayEncoder = new HTM.encoders.PeriodicScalarEncoder(null, DEFAULT_BUCKET_WIDTH, 9.49, 0, 24);
+        this.width += this.timeOfDayEncoder.getWidth();
     }
 
     DateEncoder.prototype.encodeSeason= function(input) {

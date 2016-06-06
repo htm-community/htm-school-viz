@@ -49,18 +49,44 @@ $(function() {
         return output;
     };
 
-    function PeriodicScalarEncoder(n, w, minValue, maxValue) {
-        var extentWidth = maxValue - minValue;
+    function PeriodicScalarEncoder(n, w, radius, minValue, maxValue) {
+        var neededBuckets;
         // Distribute nBuckets points along the domain [minValue, maxValue],
         // including the endpoints. The resolution is the width of each band
         // between the points.
-        var nBuckets = n;
-        this.n = n;
+
+        if ((! n && ! radius)
+            || (n && radius)) {
+            throw new Error('Exactly one of n / radius must be defined.');
+        }
+
         this.w = w;
-        this.bucketWidth = extentWidth / nBuckets;
+        this.radius = radius;
         this.minValue = minValue;
         this.maxValue = maxValue;
+
+        this.range = maxValue - minValue;
+
+        if (n) {
+            this.n = n;
+            this.radius = this.w * (this.range / this.n);
+            this.bucketWidth = this.range / this.n;
+        } else {
+            this.bucketWidth = this.radius / this.w;
+            neededBuckets = Math.ceil((this.range) / this.bucketWidth);
+            if (neededBuckets > this.w) {
+                this.n = neededBuckets;
+            } else {
+                this.n = this.w + 1;
+            }
+            //this.n = parseInt(Math.ceil(this.w * (this.range / this.radius)));
+        }
+
     }
+
+    PeriodicScalarEncoder.prototype.getWidth = function() {
+        return this.n;
+    };
 
     PeriodicScalarEncoder.prototype.encode = function(input) {
         var output = [];
@@ -105,38 +131,3 @@ $(function() {
     HTM.encoders.PeriodicScalarEncoder = PeriodicScalarEncoder;
 
 });
-
-//HTM.encoders.scalar = function(n, w, minValue, maxValue, input) {
-//    var extentWidth = maxValue - minValue;
-//    // Distribute nBuckets points along the domain [minValue, maxValue],
-//    // including the endpoints. The resolution is the width of each band
-//    // between the points.
-//    var nBuckets = n - (w - 1);
-//    var nBands = nBuckets - 1;
-//    var bucketWidth = extentWidth / nBands;
-//    var i;
-//    var iBucket;
-//    var firstBit;
-//    var output = [];
-//
-//    // Always clip input.
-//    if (input < minValue) {
-//        input = minValue;
-//    }
-//    if (input > maxValue ) {
-//        input = maxValue;
-//    }
-//
-//    iBucket = Math.round((input - minValue) / bucketWidth);
-//    firstBit = iBucket;
-//
-//    _.times(n, function() {
-//        output.push(0);
-//    });
-//
-//    for (i = 0; i < w; i++) {
-//        output[firstBit + i] = 1;
-//    }
-//
-//    return output;
-//};
