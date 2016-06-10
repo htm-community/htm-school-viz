@@ -1,7 +1,7 @@
 $(function () {
 
     var date = moment();
-    var encoder = new HTM.encoders.DateEncoder();
+    var encoder = undefined;
     var seasonEncoding = undefined;
     var lastSeasonEncoding = undefined;
     var dowEncoding = undefined;
@@ -15,13 +15,21 @@ $(function () {
     var compare = false;
     var rectSize = 20;
     var bigRectSize = 30;
+    var bucketWidth = 21;
+    var dowBucketWidth = bucketWidth;
+    var weekendBucketWidth = bucketWidth;
+    var todBucketWidth = bucketWidth;
+    var seasonBucketWidth = bucketWidth;
 
-    var $datePicker = $('#datetimepicker1').datetimepicker({
-        defaultDate: date,
-        keepOpen: true,
-        showTodayButton: true
-    });
-    var $compareSwitch = $('#compare').bootstrapSwitch({state: false});
+    var $widthSlider = undefined;
+    var $dowSlider = undefined;
+    var $weekendSlider = undefined;
+    var $todSlider = undefined;
+    var $seasonSlider = undefined;
+    var $datePicker = undefined;
+    var $compareSwitch = undefined;
+
+    var $widthDisplayValue = $('#width-display-value');
 
 
     function encodeDate(d) {
@@ -30,10 +38,11 @@ $(function () {
         lastWeekendEncoding = weekendEncoding;
         lastTodEncoding = todEncoding;
         lastEncoding = encoding;
-        seasonEncoding = encoder.encodeSeason(d);
-        dowEncoding = encoder.encodeDayOfWeek(d);
-        weekendEncoding = encoder.encodeWeekend(d);
-        todEncoding = encoder.encodeTimeOfDay(d);
+        encoder = new HTM.encoders.DateEncoder(bucketWidth);
+        seasonEncoding = encoder.encodeSeason(d, seasonBucketWidth);
+        dowEncoding = encoder.encodeDayOfWeek(d, dowBucketWidth);
+        weekendEncoding = encoder.encodeWeekend(d, weekendBucketWidth);
+        todEncoding = encoder.encodeTimeOfDay(d, todBucketWidth);
         encoding = encoder.encode(d);
 
         if (lastEncoding && compare) {
@@ -81,6 +90,78 @@ $(function () {
         }
     }
 
+    function acceptOnlyOdds(val, event) {
+        var isOdd = val % 2 == 0;
+        if (isOdd) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        return isOdd;
+    }
+
+    function initComponents() {
+        $datePicker = $('#datetimepicker1').datetimepicker({
+            defaultDate: date,
+            keepOpen: true,
+            showTodayButton: true
+        });
+        $compareSwitch = $('#compare').bootstrapSwitch({state: false});
+        $widthSlider = $('#width-slider').slider({
+            min: 0,
+            max: 100,
+            value: bucketWidth,
+            slide: function(event, ui) {
+                if (acceptOnlyOdds(ui.value, event)) return;
+                bucketWidth = ui.value;
+                dowBucketWidth = bucketWidth;
+                weekendBucketWidth = bucketWidth;
+                todBucketWidth = bucketWidth;
+                seasonBucketWidth = bucketWidth;
+                updateUi();
+            }
+        });
+        $dowSlider = $('#dow-slider').slider({
+            min: 0,
+            max: 100,
+            value: dowBucketWidth,
+            slide: function(event, ui) {
+                if (acceptOnlyOdds(ui.value, event)) return;
+                dowBucketWidth = ui.value;
+                updateUi();
+            }
+        });
+        $weekendSlider = $('#weekend-slider').slider({
+            min: 0,
+            max: 100,
+            value: weekendBucketWidth,
+            slide: function(event, ui) {
+                if (acceptOnlyOdds(ui.value, event)) return;
+                weekendBucketWidth = ui.value;
+                updateUi();
+            }
+        });
+        $todSlider = $('#tod-slider').slider({
+            min: 0,
+            max: 100,
+            value: todBucketWidth,
+            slide: function(event, ui) {
+                if (acceptOnlyOdds(ui.value, event)) return;
+                todBucketWidth = ui.value;
+                updateUi();
+            }
+        });
+        $seasonSlider = $('#season-slider').slider({
+            min: 0,
+            max: 100,
+            value: seasonBucketWidth,
+            slide: function(event, ui) {
+                if (acceptOnlyOdds(ui.value, event)) return;
+                seasonBucketWidth = ui.value;
+                updateUi();
+            }
+        });
+    }
+
     function addHandlers() {
         $datePicker.on('dp.change', function(e) {
             date = e.date;
@@ -94,9 +175,11 @@ $(function () {
 
     function updateUi() {
         encodeDate(date);
+        $widthDisplayValue.html(bucketWidth);
     }
 
     function initUi() {
+        initComponents();
         addHandlers();
         updateUi();
     }
