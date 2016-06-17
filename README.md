@@ -1,6 +1,6 @@
 # [Sparse Distributed Representations](https://github.com/numenta/nupic/wiki/Sparse-Distributed-Representations) Visualizations
 
-## [See it live](http://htm-community.github.io/sdr-viz/index.html)
+## [See it live](http://htm-community.github.io/htm-school-viz/index.html)
 
 ## View It
 

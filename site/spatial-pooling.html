@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-    <title>Exact Matching</title>
+    <title>Spatial Pooling</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="css/third/jquery-ui.min.css">
     <link rel="stylesheet" href="css/third/bootstrap-switch.css">
     <link rel="stylesheet" href="css/third/bootstrap-datetimepicker.min.css">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/exact-matching.css">
+    <link rel="stylesheet" href="css/spatial-pooling.css">
 </head>
 
 <body>
@@ -24,58 +24,8 @@
         <a href="index.html">BACK</a>
     </div>
 
-    <h1>Exact Matching</h1>
+    <h1>Spatial Pooling</h1>
 
-    <table>
-        <tbody>
-    
-        <tr>
-            <td colspan="3">
-    
-                <table id="sdr-props">
-                    <tbody>
-                        <tr>
-                            <td class="data-label">n</td>
-                            <td id="n-display" class="data">loading...</td>
-                            <td><div id="n-slider" class="slider"></td>
-                        </tr>
-                        <tr>
-                            <td class="data-label">w</td>
-                            <td id="w-display" class="data">loading...</td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td class="data-label">sparsity</td>
-                            <td id="sparsity-display" class="data">loading...</td>
-                            <td>
-                                <div id="sparsity-slider" class="slider"></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-    
-            </td>
-    
-        </tr>
-    
-        </tbody>
-    </table>
-    
-    <hr/>
-    
-    <table>
-        <tbody>
-    
-        <tr>
-            <td id="sdr" colspan="2"></td>
-            <td id="props" style="width:400px" class="wrapword">
-                <p>Probability that two random SDRs with these parameters will be an exact match:</p>
-                <div id="probability-display"></div>
-            </td>
-        </tr>
-    
-        </tbody>
-    </table>
 
 </div>
 
@@ -113,7 +63,7 @@
 <script src="js/lib/encoders/rdse.js"></script>
 <script src="js/lib/encoders/datetime.js"></script>
 
-<script src="js/exact-matching.js"></script>
+<script src="js/spatial-pooling.js"></script>
 
 <a href="https://github.com/nupic-community/htm-school-viz"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
 

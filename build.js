@@ -23,7 +23,7 @@ function templateNameToTitle(filename) {
     words = _.map(words, function(word) {
         return word.substr(0,1).toUpperCase() + word.substr(1);
     });
-    title = 'SDR ' + words.join(' ');
+    title = words.join(' ');
     return title;
 }
 
