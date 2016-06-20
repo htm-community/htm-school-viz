@@ -1,8 +1,17 @@
+import random
+import json
+
 import web
+import numpy as np
+
+from nupic.research.spatial_pooler import SpatialPooler as SP
+
+global sp
 
 urls = (
   "/", "Index",
   "/client/(.+)", "Client",
+  "/_sp/", "SPInterface",
 )
 app = web.application(urls, globals())
 render = web.template.render('tmpl/')
@@ -37,6 +46,24 @@ class Client:
         templateNameToTitle(name),
         htmlFile.read()
       )
+
+class SPInterface:
+
+  def POST(self):
+    global sp
+    params = json.loads(web.data())
+    sp = SP(**params)
+    web.header("Content-Type", "application/json")
+    return json.dumps({"result": "success"})
+
+  def PUT(self):
+    input = web.data()
+    activeCols = np.zeros(sp._numColumns, dtype="uint32")
+    inputArray = np.array([int(bit) for bit in input.split(",")])
+    sp.compute(inputArray, False, activeCols)
+    web.header("Content-Type", "application/json")
+    response = {"activeColumns": [int(bit) for bit in activeCols.tolist()]}
+    return json.dumps(response)
 
 
 if __name__ == "__main__":

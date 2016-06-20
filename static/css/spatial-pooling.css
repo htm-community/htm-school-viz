@@ -1,0 +1,19 @@
+#input-grid {
+    height: 404px;
+}
+
+#input-grid text:hover, #input-grid text.run {
+    fill: red;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#input-encoding-svg {
+    width: 500px;
+    height: 500px;
+}
+
+#active-columns-svg {
+    width: 800px;
+    height: 800px;
+}
