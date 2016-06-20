@@ -1,5 +1,9 @@
+*.pyc
 node_modules/
 .idea/
+
+# virtualenv
+venv/
 
 # Script I use to deploy to GH-Pages.
 deploy.sh

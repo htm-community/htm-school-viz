@@ -2,6 +2,7 @@
 var chokidar = require('chokidar');
 var build = require('./build');
 
+build();
 
 chokidar.watch(['css', 'html', 'img', 'js', 'tmpl'], {
     ignored: /[\/\\]\./,
@@ -10,3 +11,4 @@ chokidar.watch(['css', 'html', 'img', 'js', 'tmpl'], {
     console.log('%s: %s', event, path);
     build();
 });
+
