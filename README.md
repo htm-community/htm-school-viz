@@ -1,22 +1,30 @@
-# [Sparse Distributed Representations](https://github.com/numenta/nupic/wiki/Sparse-Distributed-Representations) Visualizations
+# HTM School Visualizations
 
-## [See it live](http://htm-community.github.io/htm-school-viz/index.html)
+These are supporting visualizations for the [HTM School](https://www.youtube.com/playlist?list=PL3yXMgtrZmDqhsFQzwUC9V8MeeVOQ7eZ9) educational video series. 
 
-## View It
+## Stack
 
-    open index.html
+This is a web application with a Python server (so we can run [NuPIC](https://github.com/numenta/nupic) and a JavaScript frontend.
 
-## Build It
+### Server
 
-If you change any templates, CSS, or JS, you'll need to build again.
+- [web.py]()
 
-    npm install .
-    node build.js
+### Client
 
-## Develop It
+- Bootstrap
+- Lodash
+- jQuery
+- jQuery UI
+- Handlebars
+- Moment
 
-If you want to automatically built out the site while you are making changes to client-side CSS, HTML, or JS.
+## Install
 
-    node monitor.js
+    pip install -r requirements.txt
 
-Now you can edit the source files and they will be automatically build so you can see their changes immediately.
+## Run
+
+    python server.py
+
+View on <http://localhost:8080/>.
