@@ -17,3 +17,16 @@
     width: 800px;
     height: 800px;
 }
+.data-label {
+    font-size: 14pt;
+}
+#loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(100, 100, 100, 0.6);
+    text-align: center;
+    padding-top: 200px;
+}
