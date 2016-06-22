@@ -257,8 +257,6 @@ $(function() {
     }
 
     function runOnePointThroughSp(point, callback) {
-        console.log('processing point:');
-        console.log(point);
         var sf = point['San Francisco'];
         var nyc = point['New York'];
         var austin = point['Austin'];
@@ -379,29 +377,39 @@ $(function() {
               .attr("dy", ".35em")
               .text(function(d) { return d.name; });
 
-          var focus = svg.append("g")
-              .attr("class", "focus")
-              .style("display", "none");
-
-          focus.append("circle")
-              .attr("r", 4.5);
-
-          focus.append("text")
-              .attr("x", 9)
-              .attr("dy", ".35em");
-
-          svg.append("rect")
-              .attr("class", "overlay")
-              .attr("width", width)
-              .attr("height", height);
+        //   var focus = svg.append("g")
+        //       .attr("class", "focus")
+        //       .style("display", "none");
+          //
+        //   focus.append("circle")
+        //       .attr("r", 4.5);
+          //
+        //   focus.append("text")
+        //       .attr("x", 9)
+        //       .attr("dy", ".35em");
+          //
+        //   svg.append("rect")
+        //       .attr("class", "overlay")
+        //       .attr("width", width)
+        //       .attr("height", height);
 
 
           var dataCopy = data.slice();
+          var marker = svg.append("g")
+            .attr("class", "marker")
+            .append("path")
+            .style("stroke", "red")
+            .style("stroke-width", 4);
 
           function processRest(callback) {
               var point;
+              var xVal;
               if (dataCopy.length == 0) return callback();
               point = dataCopy.shift();
+              xVal = x(point.date);
+
+              marker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
+
               runOnePointThroughSp(point, function(error) {
                   if (error) return callback(error);
                   setTimeout(function() {
