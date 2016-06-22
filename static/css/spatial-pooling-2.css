@@ -1,0 +1,62 @@
+#input-grid {
+    height: 404px;
+}
+
+#input-grid text:hover, #input-grid text.run {
+    fill: red;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#encoding-svg {
+    width: 500px;
+    height: 500px;
+}
+
+#active-columns-svg {
+    width: 500px;
+    height: 500px;
+}
+.data-label {
+    font-size: 14pt;
+}
+#loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(100, 100, 100, 0.6);
+    text-align: center;
+    padding-top: 200px;
+}
+
+#input-chart {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus circle {
+  fill: none;
+  stroke: steelblue;
+}
