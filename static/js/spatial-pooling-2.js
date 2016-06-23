@@ -252,13 +252,13 @@ $(function() {
         encoding = encoding.concat(scalarEncoder.encode(sf));
         encoding = encoding.concat(scalarEncoder.encode(nyc));
         encoding = encoding.concat(scalarEncoder.encode(austin));
-        // Display encoding in UI.
-        SDR.draw(encoding, 'encoding', {
-            spartan: true,
-            size: 30
-        });
         // Run encoding through SP.
         spClient.compute(encoding, function(spBits) {
+            // Display encoding in UI.
+            SDR.draw(encoding, 'encoding', {
+                spartan: true,
+                size: 30
+            });
             // Display active columns in UI.
             SDR.draw(spBits.activeColumns, 'active-columns', {
                 spartan: true,
@@ -409,12 +409,7 @@ $(function() {
 
         dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
 
-        runOnePointThroughSp(point, function (error) {
-            if (error) return callback(error);
-            setTimeout(function () {
-                stepThroughData(callback);
-            }, 500);
-        });
+        runOnePointThroughSp(point, stepThroughData);
     }
 
     function addDataControlHandlers() {
