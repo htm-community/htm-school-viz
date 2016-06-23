@@ -24,11 +24,7 @@ $(function() {
             url: url,
             data: encoding.join(','),
             success: function(response) {
-                console.log(response);
                 callback(response);
-            },
-            complete: function() {
-                console.log(arguments);
             },
             dataType: 'JSON'
         });
