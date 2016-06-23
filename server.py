@@ -69,15 +69,16 @@ class SPInterface:
       connectedSynapseIndices = []
 
       for i, synapse in enumerate(connectedSynapses):
-
-        # FAST: simply appending the index.
-        #       (350ms round trip from client)
+        # FAST: simply appending the index. (350ms round trip from client)
         # connectedSynapseIndices.append(i)
 
-        # SLOW: If I use a simple condition against the synapse to make the
-        #       decision whether to add add the index to the connected list, it
-        #       slows way down.
-        #       (2750ms round trip from client)
+        # SLOW: Converting to scalar before comparison. (1350ms)
+        if np.asscalar(synapse) == 1.0:
+          connectedSynapseIndices.append(i)
+
+        # SLOWEST: If I use a simple condition against the synapse to make the
+        #          decision whether to add add the index to the connected list,
+        #           it slows way down. (2750ms round trip from client)
         if synapse == 1.0:
           connectedSynapseIndices.append(i)
 
@@ -85,7 +86,7 @@ class SPInterface:
 
     response = {
       "activeColumns": [int(bit) for bit in activeCols.tolist()],
-      # "connectedSynapses": colConnectedSynapses,
+      "connectedSynapses": colConnectedSynapses,
     }
 
     return json.dumps(response)
