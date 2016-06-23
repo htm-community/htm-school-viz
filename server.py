@@ -62,7 +62,32 @@ class SPInterface:
     inputArray = np.array([int(bit) for bit in input.split(",")])
     sp.compute(inputArray, False, activeCols)
     web.header("Content-Type", "application/json")
-    response = {"activeColumns": [int(bit) for bit in activeCols.tolist()]}
+    colConnectedSynapses = []
+    for colIndex in range(0, sp.getNumColumns()):
+      connectedSynapses = []
+      sp.getConnectedSynapses(colIndex, connectedSynapses)
+      connectedSynapseIndices = []
+
+      for i, synapse in enumerate(connectedSynapses):
+
+        # FAST: simply appending the index.
+        #       (350ms round trip from client)
+        # connectedSynapseIndices.append(i)
+
+        # SLOW: If I use a simple condition against the synapse to make the
+        #       decision whether to add add the index to the connected list, it
+        #       slows way down.
+        #       (2750ms round trip from client)
+        if synapse == 1.0:
+          connectedSynapseIndices.append(i)
+
+      colConnectedSynapses.append(connectedSynapseIndices)
+
+    response = {
+      "activeColumns": [int(bit) for bit in activeCols.tolist()],
+      # "connectedSynapses": colConnectedSynapses,
+    }
+
     return json.dumps(response)
 
 

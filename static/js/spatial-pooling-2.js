@@ -436,9 +436,11 @@ $(function() {
             if (err) throw err;
         });
     }
+
     function pause() {
         playing = false;
     }
+
     function stop() {
         var $play = $('#play');
         playing = false;
