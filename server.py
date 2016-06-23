@@ -79,8 +79,8 @@ class SPInterface:
         # SLOWEST: If I use a simple condition against the synapse to make the
         #          decision whether to add add the index to the connected list,
         #           it slows way down. (2750ms round trip from client)
-        if synapse == 1.0:
-          connectedSynapseIndices.append(i)
+        # if synapse == 1.0:
+        #   connectedSynapseIndices.append(i)
 
       colConnectedSynapses.append(connectedSynapseIndices)
 
