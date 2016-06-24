@@ -1,28 +1,33 @@
-<div class="row" id="sp-boolean-params">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-4 data-label">global inhibition</div>
-                <div class="col-md-2">
-                    <input type="checkbox" id="globalInhibition">
+<div id="sp-params" style="display:none">
+
+    <div class="row" id="sp-boolean-params">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-4 data-label">global inhibition</div>
+                    <div class="col-md-2">
+                        <input type="checkbox" id="globalInhibition">
+                    </div>
+                    <div class="col-md-6"></div>
                 </div>
-                <div class="col-md-6"></div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-4 data-label">wrap around</div>
-                <div class="col-md-2">
-                    <input type="checkbox" id="wrapAround">
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-4 data-label">wrap around</div>
+                    <div class="col-md-2">
+                        <input type="checkbox" id="wrapAround">
+                    </div>
+                    <div class="col-md-6"></div>
                 </div>
-                <div class="col-md-6"></div>
             </div>
         </div>
     </div>
+
+    <div class="row" id="sp-scalar-params">
+    </div>
+
 </div>
 
-<div class="row" id="sp-scalar-params">
-</div>
 
 <hr/>
 
@@ -59,8 +64,11 @@
 
 <div class="row">
     <div class="col-md-6" id="input-chart"></div>
-    <div class="col-md-3" id="encoding"></div>
-    <div class="col-md-3" id="active-columns"></div>
+    <div class="col-md-6">
+        <svg id="visualization" width="1200" height="600"></svg>
+    </div>
+    <!--<div class="col-md-3" id="encoding"></div>-->
+    <!--<div class="col-md-3" id="active-columns"></div>-->
 </div>
 
 <div class="row">

@@ -63,30 +63,30 @@ class SPInterface:
     sp.compute(inputArray, False, activeCols)
     web.header("Content-Type", "application/json")
     colConnectedSynapses = []
+    colPotentialPools = []
     for colIndex in range(0, sp.getNumColumns()):
+
       connectedSynapses = []
-      sp.getConnectedSynapses(colIndex, connectedSynapses)
       connectedSynapseIndices = []
+      sp.getConnectedSynapses(colIndex, connectedSynapses)
+
+      # potentialPool = []
+      # potentialPoolIndices = []
+      # sp.getPotential(colIndex, potentialPool)
 
       for i, synapse in enumerate(connectedSynapses):
-        # FAST: simply appending the index. (350ms round trip from client)
-        # connectedSynapseIndices.append(i)
-
-        # SLOW: Converting to scalar before comparison. (1350ms)
         if np.asscalar(synapse) == 1.0:
           connectedSynapseIndices.append(i)
-
-        # SLOWEST: If I use a simple condition against the synapse to make the
-        #          decision whether to add add the index to the connected list,
-        #           it slows way down. (2750ms round trip from client)
-        # if synapse == 1.0:
-        #   connectedSynapseIndices.append(i)
+        # if np.asscalar(potentialPool[i]) == 1.0:
+        #   potentialPoolIndices.append(i)
 
       colConnectedSynapses.append(connectedSynapseIndices)
+      # colPotentialPools.append(potentialPoolIndices)
 
     response = {
       "activeColumns": [int(bit) for bit in activeCols.tolist()],
       "connectedSynapses": colConnectedSynapses,
+      # "potentialPool": colPotentialPools,
     }
 
     return json.dumps(response)

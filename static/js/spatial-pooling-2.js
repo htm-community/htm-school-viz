@@ -10,6 +10,9 @@ $(function() {
 
     var data, dataCursor;
     var dataMarker;
+    var inputEncoding;
+    var activeColumns;
+    var connectedSynapses;
     var playing = false;
 
     var spClient;
@@ -199,9 +202,6 @@ $(function() {
                         event.preventDefault();
                     } else {
                         val.val = ui.value;
-                        initSp(function() {
-                            updateUi();
-                        });
                     }
                 },
                 slide: function(event, ui) {
@@ -239,6 +239,20 @@ $(function() {
         });
     }
 
+    function draw() {
+        
+        //// Display encoding in UI.
+        //SDR.draw(inputEncoding, 'encoding', {
+        //    spartan: true,
+        //    size: 30
+        //});
+        //// Display active columns in UI.
+        //SDR.draw(activeColumns, 'active-columns', {
+        //    spartan: true,
+        //    size: 30
+        //});
+    }
+
     function runOnePointThroughSp(point, callback) {
         var sf = point['San Francisco'];
         var nyc = point['New York'];
@@ -252,18 +266,12 @@ $(function() {
         encoding = encoding.concat(scalarEncoder.encode(sf));
         encoding = encoding.concat(scalarEncoder.encode(nyc));
         encoding = encoding.concat(scalarEncoder.encode(austin));
+        inputEncoding = encoding;
         // Run encoding through SP.
         spClient.compute(encoding, function(spBits) {
-            // Display encoding in UI.
-            SDR.draw(encoding, 'encoding', {
-                spartan: true,
-                size: 30
-            });
-            // Display active columns in UI.
-            SDR.draw(spBits.activeColumns, 'active-columns', {
-                spartan: true,
-                size: 30
-            });
+            activeColumns = spBits.activeColumns;
+            connectedSynapses = spBits.connectedSynapses;
+            draw();
             callback();
         });
     }
@@ -451,10 +459,12 @@ $(function() {
     }
 
     initSp(function() {
-        renderParams();
-        drawInputChart('#input-chart');
-        addDataControlHandlers();
-        updateUi();
+        initSp(function() {
+            renderParams();
+            drawInputChart('#input-chart');
+            addDataControlHandlers();
+            updateUi();
+        });
     });
 
 });

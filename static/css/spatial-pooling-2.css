@@ -51,12 +51,7 @@
   stroke: steelblue;
   stroke-width: 1.5px;
 }
-.overlay {
-  fill: none;
-  pointer-events: all;
-}
-
-.focus circle {
-  fill: none;
-  stroke: steelblue;
+svg#visualization {
+    border: solid 1px slategrey;
+    background-color: white;
 }
