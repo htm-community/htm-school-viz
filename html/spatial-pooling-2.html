@@ -39,7 +39,7 @@
             </div>
             <div class="col-md-8">
                 <div class="player text-center">
-                    <button type="button" id="button_bw" class="btn disabled">
+                    <button type="button" id="prev" class="btn disabled">
                       <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
                     </button>
                     <button type="button" id="play" class="btn">
@@ -50,7 +50,7 @@
                         <span class="glyphicon glyphicon-stop"
                               aria-hidden="true"></span>
                     </button>
-                    <button type="button" id="button_fw" class="btn disabled">
+                    <button type="button" id="next" class="btn">
                         <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
                     </button>
                 </div>
@@ -65,10 +65,11 @@
 <div class="row">
     <div class="col-md-6" id="input-chart"></div>
     <div class="col-md-6">
-        <svg id="visualization" width="1200" height="600"></svg>
+        <svg id="visualization" width="1200" height="800">
+            <g id="encoding"></g>
+            <g id="active-columns"></g>
+        </svg>
     </div>
-    <!--<div class="col-md-3" id="encoding"></div>-->
-    <!--<div class="col-md-3" id="active-columns"></div>-->
 </div>
 
 <div class="row">

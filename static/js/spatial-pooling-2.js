@@ -119,13 +119,20 @@ $(function() {
 
     var transformDateIntoXValue;
 
-    function loading(isLoading) {
+    function loading(isLoading, isModal) {
+        if (isModal == undefined) {
+            isModal = true;
+        }
         if (isLoading) {
             waitingForServer = true;
+            if (! isModal) {
+                $loading.addClass('little');
+            }
             $loading.show();
         } else {
             waitingForServer = false;
             $loading.hide();
+            $loading.removeClass('little');
         }
     }
 
@@ -239,44 +246,60 @@ $(function() {
         });
     }
 
-    function draw() {
-        
-        //// Display encoding in UI.
-        //SDR.draw(inputEncoding, 'encoding', {
-        //    spartan: true,
-        //    size: 30
-        //});
-        //// Display active columns in UI.
-        //SDR.draw(activeColumns, 'active-columns', {
-        //    spartan: true,
-        //    size: 30
-        //});
+    function drawSdrs() {
+        var rectSize = 14;
+        var rowLength = Math.floor(Math.sqrt(inputEncoding.length));
+        var startX = 20;
+        var startY = 20;
+        $('#encoding').html('');
+        $('#active-columns').html('');
+        d3.select('#encoding')
+            .selectAll('rect')
+            .data(inputEncoding)
+            .enter()
+                .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
+            .attr('x', function(d, i) {
+                var offset = i % rowLength;
+                return offset * rectSize + startX;
+            })
+            .attr('y', function(d, i) {
+                var offset = Math.floor(i / rowLength);
+                return offset * rectSize + startY;
+            })
+            .attr('index', function(d, i) { return i; })
+            .attr('class', function(d) {
+                if (d == 1) return 'on';
+                return 'off';
+            })
+        ;
+        rowLength = Math.floor(Math.sqrt(activeColumns.length));
+        startX = 540;
+        d3.select('#active-columns')
+            .selectAll('rect')
+            .data(activeColumns)
+            .enter()
+            .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
+            .attr('x', function(d, i) {
+                var offset = i % rowLength;
+                return offset * rectSize + startX;
+            })
+            .attr('y', function(d, i) {
+                var offset = Math.floor(i / rowLength);
+                return offset * rectSize + startY;
+            })
+            .attr('index', function(d, i) { return i; })
+            .attr('class', function(d) {
+                if (d == 1) return 'on';
+                return 'off';
+            })
+        ;
     }
 
-    function runOnePointThroughSp(point, callback) {
-        var sf = point['San Francisco'];
-        var nyc = point['New York'];
-        var austin = point['Austin'];
-        var encoding = [];
-        // Update UI display of current data point.
-        $sfDisplay.html(sf);
-        $nyDisplay.html(nyc);
-        $auDisplay.html(austin);
-        // Encode data point into SDR.
-        encoding = encoding.concat(scalarEncoder.encode(sf));
-        encoding = encoding.concat(scalarEncoder.encode(nyc));
-        encoding = encoding.concat(scalarEncoder.encode(austin));
-        inputEncoding = encoding;
-        // Run encoding through SP.
-        spClient.compute(encoding, function(spBits) {
-            activeColumns = spBits.activeColumns;
-            connectedSynapses = spBits.connectedSynapses;
-            draw();
-            callback();
-        });
-    }
-
-    function drawInputChart(elId) {
+    function drawInputChart(elId, callback) {
         var margin = {top: 20, right: 20, bottom: 20, left: 20},
             width = 1000 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom;
@@ -402,22 +425,49 @@ $(function() {
                 .style("stroke", "red")
                 .style("stroke-width", 4);
 
+            if (callback) callback();
+
         });
 
     }
 
-    function stepThroughData(callback) {
-        var point;
-        var xVal;
-        if (!playing || dataCursor == data.length - 1) {
-            return callback();
-        }
-        point = data.shift();
-        xVal = transformDateIntoXValue(point.date);
+    function runOnePointThroughSp(callback) {
+        var point = data[dataCursor];
+        var sf = point['San Francisco'];
+        var nyc = point['New York'];
+        var austin = point['Austin'];
+        var encoding = [];
+        var xVal = transformDateIntoXValue(point.date);
 
         dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
 
-        runOnePointThroughSp(point, stepThroughData);
+        // Update UI display of current data point.
+        $sfDisplay.html(sf);
+        $nyDisplay.html(nyc);
+        $auDisplay.html(austin);
+        // Encode data point into SDR.
+        encoding = encoding.concat(scalarEncoder.encode(sf));
+        encoding = encoding.concat(scalarEncoder.encode(nyc));
+        encoding = encoding.concat(scalarEncoder.encode(austin));
+        inputEncoding = encoding;
+        // Run encoding through SP.
+        loading(true, false);
+        spClient.compute(encoding, function(spBits) {
+            activeColumns = spBits.activeColumns;
+            connectedSynapses = spBits.connectedSynapses;
+            drawSdrs();
+            dataCursor++;
+            loading(false);
+            if (callback) callback();
+        });
+    }
+
+    function stepThroughData(callback) {
+        if (!playing || dataCursor == data.length - 1) {
+            if (callback) callback();
+            return;
+        }
+        runOnePointThroughSp(stepThroughData);
     }
 
     function addDataControlHandlers() {
@@ -434,6 +484,8 @@ $(function() {
                 $btn.toggleClass('btn-success');
             } else if (this.id == 'stop') {
                 stop();
+            } else if (this.id='next') {
+                runOnePointThroughSp();
             }
         });
     }
@@ -459,10 +511,10 @@ $(function() {
     }
 
     initSp(function() {
-        initSp(function() {
-            renderParams();
-            drawInputChart('#input-chart');
+        renderParams();
+        drawInputChart('#input-chart', function() {
             addDataControlHandlers();
+            runOnePointThroughSp();
             updateUi();
         });
     });

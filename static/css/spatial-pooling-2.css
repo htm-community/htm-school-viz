@@ -8,15 +8,6 @@
     cursor: pointer;
 }
 
-#encoding-svg {
-    width: 500px;
-    height: 500px;
-}
-
-#active-columns-svg {
-    width: 500px;
-    height: 500px;
-}
 .data-label {
     font-size: 14pt;
 }
@@ -29,6 +20,15 @@
     background-color: rgba(100, 100, 100, 0.6);
     text-align: center;
     padding-top: 200px;
+}
+
+#loading.little {
+    right: inherit;
+    left: inherit;
+    bottom: inherit;
+    background-color: inherit;
+    padding: 0;
+    margin-left: 400px;
 }
 
 #input-chart {
