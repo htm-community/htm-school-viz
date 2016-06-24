@@ -180,19 +180,17 @@ $(function() {
 
     function addInputClickHander() {
         $('text').click(function(evt) {
-            loading(true);
             inputValue = parseInt($(this).html());
             inputEncoding = scalarEncoder.encode(inputValue);
-            SDR.draw(inputEncoding, 'input-encoding', {
-                spartan: true,
-                size: 30
-            });
             spClient.compute(inputEncoding, function(spBits) {
+                SDR.draw(inputEncoding, 'input-encoding', {
+                    spartan: true,
+                    size: 30
+                });
                 SDR.draw(spBits.activeColumns, 'active-columns', {
                     spartan: true,
                     size: 30
                 });
-                loading(false);
             });
         });
     }
