@@ -1,0 +1,41 @@
+<div class="row" id="sp-params">
+    <div class="scalar">
+        <div class="row">
+            {{#each sides}}
+                <div class="col-md-6">
+                    {{# each this}}
+                        <div class="row">
+                            <div class="col-md-4 data-label">{{name}}</div>
+                            <div class="col-md-2 data" id="{{id}}-display"></div>
+                            <div class="col-md-6 slider" id="{{id}}"></div>
+                        </div>
+                    {{/each}}
+                </div>
+            {{/each}}
+        </div>
+    </div>
+    <div class="boolean">
+        <div class="row">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-4 data-label">global inhibition</div>
+                        <div class="col-md-2">
+                            <input type="checkbox" id="globalInhibition">
+                        </div>
+                        <div class="col-md-6"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-4 data-label">wrap around</div>
+                        <div class="col-md-2">
+                            <input type="checkbox" id="wrapAround">
+                        </div>
+                        <div class="col-md-6"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

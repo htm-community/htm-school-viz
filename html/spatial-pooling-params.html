@@ -1,27 +1,4 @@
-<div class="row" id="sp-boolean-params">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-4 data-label">global inhibition</div>
-                <div class="col-md-2">
-                    <input type="checkbox" id="globalInhibition">
-                </div>
-                <div class="col-md-6"></div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-4 data-label">wrap around</div>
-                <div class="col-md-2">
-                    <input type="checkbox" id="wrapAround">
-                </div>
-                <div class="col-md-6"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row" id="sp-scalar-params">
+<div class="row" id="sp-params">
 </div>
 
 <hr/>
@@ -41,26 +18,3 @@
 <div id="loading" style="display:none">
     <img src="/static/img/ajax-loader.gif"/>
 </div>
-
-<script id="sp-scalar-params-tmpl" type="text/x-handlebars-template">
-    <div class="row">
-        <div class="col-md-6">
-            {{# each left}}
-                {{> spScalarSliderTmpl }}
-            {{/each}}
-        </div>
-        <div class="col-md-6">
-            {{# each right}}
-                {{> spScalarSliderTmpl }}
-            {{/each}}
-        </div>
-    </div>
-</script>
-
-<script id="sp-scalar-slider-tmpl" type="text/x-handlebars-template">
-    <div class="row">
-        <div class="col-md-4 data-label">{{name}}</div>
-        <div class="col-md-2 data" id="{{id}}-display"></div>
-        <div class="col-md-6 slider" id="{{id}}"></div>
-    </div>
-</script>

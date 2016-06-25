@@ -3,7 +3,7 @@ $(function() {
     function SpatialPoolerClient() {}
 
     SpatialPoolerClient.prototype.initialize = function(params, callback) {
-        var url = '/_sp/'
+        var url = '/_sp/';
         this.params = params;
         $.ajax({
             type: 'POST',
