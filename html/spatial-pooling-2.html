@@ -1,30 +1,18 @@
-<div class="row" id="sp-boolean-params">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-4 data-label">global inhibition</div>
-                <div class="col-md-2">
-                    <input type="checkbox" id="globalInhibition">
-                </div>
-                <div class="col-md-6"></div>
+<div class="modal fade" id="sp-params-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Spatial Pooling Parameters</h4>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-4 data-label">wrap around</div>
-                <div class="col-md-2">
-                    <input type="checkbox" id="wrapAround">
-                </div>
-                <div class="col-md-6"></div>
-            </div>
-        </div>
-    </div>
-</div>
+            <div id="sp-params" class="modal-body"></div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
-<div class="row" id="sp-scalar-params">
-</div>
-
-<hr/>
+<button type="button" id="show-sp-params" class="btn btn-primary btn-md" data-toggle="modal" data-target="#sp-params-modal">
+    Show SP Params
+</button>
 
 <div class="row">
     <div class="col-md-6">
@@ -34,9 +22,9 @@
             </div>
             <div class="col-md-8">
                 <div class="player text-center">
-                    <!-- <button type="button" id="button_bw" class="btn">
+                    <button type="button" id="prev" class="btn disabled">
                       <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
-                    </button> -->
+                    </button>
                     <button type="button" id="play" class="btn">
                         <span class="glyphicon glyphicon-play"
                               aria-hidden="true"></span>
@@ -45,9 +33,9 @@
                         <span class="glyphicon glyphicon-stop"
                               aria-hidden="true"></span>
                     </button>
-                    <!-- <button type="button" id="button_fw" class="btn">
+                    <button type="button" id="next" class="btn">
                         <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
-                    </button> -->
+                    </button>
                 </div>
             </div>
         </div>
@@ -59,8 +47,12 @@
 
 <div class="row">
     <div class="col-md-6" id="input-chart"></div>
-    <div class="col-md-3" id="encoding"></div>
-    <div class="col-md-3" id="active-columns"></div>
+    <div class="col-md-6">
+        <svg id="visualization" width="1200" height="800">
+            <g id="encoding"></g>
+            <g id="active-columns"></g>
+        </svg>
+    </div>
 </div>
 
 <div class="row">

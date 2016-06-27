@@ -17,9 +17,6 @@
     width: 800px;
     height: 800px;
 }
-.data-label {
-    font-size: 14pt;
-}
 #loading {
     position: absolute;
     top: 0;

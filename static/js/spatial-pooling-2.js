@@ -10,6 +10,9 @@ $(function() {
 
     var data, dataCursor;
     var dataMarker;
+    var inputEncoding;
+    var activeColumns;
+    var connectedSynapses;
     var playing = false;
 
     var spClient;
@@ -17,89 +20,9 @@ $(function() {
     // SP params we are not allowing user to change
     var inputDimensions = [inputN * 3];
     var columnDimensions = [2048];
-    // SP boolean params
-    var globalInhibition = true;
-    var wrapAround = true;
-    // SP scalar params we'll turn into sliders for adjustment
-    var spScalarParams = {
-        potentialRadius: {
-            val: 16,
-            min: 0,
-            max: 128,
-            name: 'potential radius'
-        },
-        potentialPct: {
-            val: 0.85,
-            min: 0.0,
-            max: 1.0,
-            name: 'potential percent'
-        },
-        localAreaDensity: {
-            val: -1.0,
-            min: -1.0,
-            max: 10.0,
-            name: 'local area density'
-        },
-        numActiveColumnsPerInhArea: {
-            val: 10.0,
-            min: 0.0,
-            max: 100.0,
-            name: 'number of active columns per inhibition area'
-        },
-        stimulusThreshold: {
-            val: 0,
-            min: 0,
-            max: 10,
-            name: 'stimulus threshold'
-        },
-        synPermInactiveDec: {
-            val: 0.008,
-            min: 0.0,
-            max: 1.0,
-            name: 'synaptic permanence inactive decrement'
-        },
-        synPermActiveInc: {
-            val: 0.05,
-            min: 0.0,
-            max: 1.0,
-            name: 'synaptic permanence active increment'
-        },
-        synPermConnected: {
-            val: 0.10,
-            min: 0.0,
-            max: 1.0,
-            name: 'synaptic permanence connected'
-        },
-        minPctOverlapDutyCycle: {
-            val: 0.001,
-            min: 0.0,
-            max: 1.0,
-            name: 'minimum percent overlap duty cycle'
-        },
-        minPctActiveDutyCycle: {
-            val: 0.001,
-            min: 0.0,
-            max: 1.0,
-            name: 'minimum percent active duty cycle'
-        },
-        dutyCyclePeriod: {
-            val: 1000,
-            min: 0,
-            max: 10000,
-            name: 'duty cycle period'
-        },
-        maxBoost: {
-            val: 1.0,
-            min: 0.0,
-            max: 10.0,
-            name: 'max boost'
-        }
-    };
-
-    var $spScalarParams = $('#sp-scalar-params');
-
-    var $globalInhibitionSwitch = $('#globalInhibition').bootstrapSwitch({state: globalInhibition});
-    var $wrapAroundSwitch = $('#wrapAround').bootstrapSwitch({state: wrapAround});
+    var spParams = new HTM.utils.sp.Params(
+        'sp-params', inputDimensions, columnDimensions
+    );
 
     var $sfDisplay = $('#sf-display');
     var $nyDisplay = $('#ny-display');
@@ -109,166 +32,92 @@ $(function() {
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
 
-    // Handlebars templates
-    var spScalarSliderTmpl = Handlebars.compile($('#sp-scalar-slider-tmpl').html());
-    var spScalarParamsTmpl = Handlebars.compile($('#sp-scalar-params-tmpl').html());
-    Handlebars.registerPartial('spScalarSliderTmpl', spScalarSliderTmpl);
-
     var transformDateIntoXValue;
 
-    function loading(isLoading) {
+    function loading(isLoading, isModal) {
+        if (isModal == undefined) {
+            isModal = true;
+        }
         if (isLoading) {
             waitingForServer = true;
+            if (! isModal) {
+                $loading.addClass('little');
+            }
             $loading.show();
         } else {
             waitingForServer = false;
             $loading.hide();
-        }
-    }
-
-    function calculateSliderStep(min, max, val) {
-        var range = max - min;
-        if (Number.isInteger(val)) {
-            if (val >= 1000) {
-                return 10;
-            } else {
-                return 1;
-            }
-        } else {
-            if (range <= 1) {
-                if (val < 0.01) {
-                    return 0.001;
-                } else {
-                    return 0.01;
-                }
-            } else if (range < 10) {
-                return 0.1;
-            }
+            $loading.removeClass('little');
         }
     }
 
     function initSp(callback) {
-        var spParams = {
-            inputDimensions: inputDimensions,
-            columnDimensions: columnDimensions,
-            globalInhibition: globalInhibition,
-            wrapAround: wrapAround
-        };
-        // Grab the user-controlled parameters from the interface object.
-        _.each(spScalarParams, function(val, codeName) {
-            spParams[codeName] = val.val;
-        });
         spClient = new HTM.SpatialPoolerClient();
         loading(true);
-        spClient.initialize(spParams, function() {
-            loading(false);
-            callback();
-        });
-    }
-
-    function renderParams() {
-        var data = {left: [], right: []};
-        var count = 0;
-        _.each(spScalarParams, function(val, codeName) {
-            var viewObj = {
-                id: codeName,
-                name: val.name
-            };
-            if (count % 2 == 0) {
-                data.left.push(viewObj);
+        spClient.initialize(spParams.getParams(), function() {
+            if (inputEncoding) {
+                runOnePointThroughSp(null, true);
             } else {
-                data.right.push(viewObj);
+                loading(false);
             }
-            count++;
-        });
-        $spScalarParams.html(spScalarParamsTmpl(data));
-        // Render sliders and capture DOM elements associtated with these params
-        // after rendering.
-        _.each(spScalarParams, function(val, codeName) {
-            var step = calculateSliderStep(val.min, val.max, val.val);
-            val.sliderEl = $('#' + codeName);
-            val.displayEl = $('#' + codeName + '-display');
-            val.sliderEl.slider({
-                value: val.val,
-                min: val.min,
-                max: val.max,
-                step: step,
-                change: function(event, ui) {
-                    if (waitingForServer) {
-                        console.log('Sorry, still waiting for server-side SP...');
-                        event.preventDefault();
-                    } else {
-                        val.val = ui.value;
-                        initSp(function() {
-                            updateUi();
-                        });
-                    }
-                },
-                slide: function(event, ui) {
-                    val.displayEl.html(ui.value);
-                }
-            });
-        });
-        $globalInhibitionSwitch.on('switchChange.bootstrapSwitch', function(event, state) {
-            if (waitingForServer) {
-                console.log('Sorry, still waiting for server-side SP...');
-                event.preventDefault();
-            } else {
-                globalInhibition = state;
-                initSp(function() {
-                    updateUi();
-                });
-            }
-        });
-        $wrapAroundSwitch.on('switchChange.bootstrapSwitch', function(event, state) {
-            if (waitingForServer) {
-                console.log('Sorry, still waiting for server-side SP...');
-                event.preventDefault();
-            } else {
-                wrapAround = state;
-                initSp(function() {
-                    updateUi();
-                });
-            }
+            if (callback) callback();
         });
     }
 
-    function updateUi() {
-        _.each(spScalarParams, function(val, codeName) {
-            val.displayEl.html(val.val);
-        });
+    function drawSdrs() {
+        var rectSize = 14;
+        var rowLength = Math.floor(Math.sqrt(inputEncoding.length));
+        var startX = 20;
+        var startY = 20;
+        $('#encoding').html('');
+        $('#active-columns').html('');
+        d3.select('#encoding')
+            .selectAll('rect')
+            .data(inputEncoding)
+            .enter()
+                .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
+            .attr('x', function(d, i) {
+                var offset = i % rowLength;
+                return offset * rectSize + startX;
+            })
+            .attr('y', function(d, i) {
+                var offset = Math.floor(i / rowLength);
+                return offset * rectSize + startY;
+            })
+            .attr('index', function(d, i) { return i; })
+            .attr('class', function(d) {
+                if (d == 1) return 'on';
+                return 'off';
+            })
+        ;
+        rowLength = Math.floor(Math.sqrt(activeColumns.length));
+        startX = 540;
+        d3.select('#active-columns')
+            .selectAll('rect')
+            .data(activeColumns)
+            .enter()
+            .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
+            .attr('x', function(d, i) {
+                var offset = i % rowLength;
+                return offset * rectSize + startX;
+            })
+            .attr('y', function(d, i) {
+                var offset = Math.floor(i / rowLength);
+                return offset * rectSize + startY;
+            })
+            .attr('index', function(d, i) { return i; })
+            .attr('class', function(d) {
+                if (d == 1) return 'on';
+                return 'off';
+            })
+        ;
     }
 
-    function runOnePointThroughSp(point, callback) {
-        var sf = point['San Francisco'];
-        var nyc = point['New York'];
-        var austin = point['Austin'];
-        var encoding = [];
-        // Update UI display of current data point.
-        $sfDisplay.html(sf);
-        $nyDisplay.html(nyc);
-        $auDisplay.html(austin);
-        // Encode data point into SDR.
-        encoding = encoding.concat(scalarEncoder.encode(sf));
-        encoding = encoding.concat(scalarEncoder.encode(nyc));
-        encoding = encoding.concat(scalarEncoder.encode(austin));
-        // Run encoding through SP.
-        spClient.compute(encoding, function(spBits) {
-            // Display encoding in UI.
-            SDR.draw(encoding, 'encoding', {
-                spartan: true,
-                size: 30
-            });
-            // Display active columns in UI.
-            SDR.draw(spBits.activeColumns, 'active-columns', {
-                spartan: true,
-                size: 30
-            });
-            callback();
-        });
-    }
-
-    function drawInputChart(elId) {
+    function drawInputChart(elId, callback) {
         var margin = {top: 20, right: 20, bottom: 20, left: 20},
             width = 1000 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom;
@@ -394,22 +243,51 @@ $(function() {
                 .style("stroke", "red")
                 .style("stroke-width", 4);
 
+            if (callback) callback();
+
         });
 
     }
 
-    function stepThroughData(callback) {
-        var point;
-        var xVal;
-        if (!playing || dataCursor == data.length - 1) {
-            return callback();
-        }
-        point = data.shift();
-        xVal = transformDateIntoXValue(point.date);
+    function runOnePointThroughSp(callback, preventAdvance) {
+        var point = data[dataCursor];
+        var sf = point['San Francisco'];
+        var nyc = point['New York'];
+        var austin = point['Austin'];
+        var encoding = [];
+        var xVal = transformDateIntoXValue(point.date);
 
         dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
 
-        runOnePointThroughSp(point, stepThroughData);
+        // Update UI display of current data point.
+        $sfDisplay.html(sf);
+        $nyDisplay.html(nyc);
+        $auDisplay.html(austin);
+        // Encode data point into SDR.
+        encoding = encoding.concat(scalarEncoder.encode(sf));
+        encoding = encoding.concat(scalarEncoder.encode(nyc));
+        encoding = encoding.concat(scalarEncoder.encode(austin));
+        inputEncoding = encoding;
+        // Run encoding through SP.
+        loading(true, false);
+        spClient.compute(encoding, function(spBits) {
+            activeColumns = spBits.activeColumns;
+            connectedSynapses = spBits.connectedSynapses;
+            drawSdrs();
+            if (preventAdvance == undefined || ! preventAdvance) {
+                dataCursor++;
+            }
+            loading(false);
+            if (callback) callback();
+        });
+    }
+
+    function stepThroughData(callback) {
+        if (!playing || dataCursor == data.length - 1) {
+            if (callback) callback();
+            return;
+        }
+        runOnePointThroughSp(stepThroughData);
     }
 
     function addDataControlHandlers() {
@@ -426,6 +304,8 @@ $(function() {
                 $btn.toggleClass('btn-success');
             } else if (this.id == 'stop') {
                 stop();
+            } else if (this.id='next') {
+                runOnePointThroughSp();
             }
         });
     }
@@ -450,11 +330,15 @@ $(function() {
         drawInputChart('#input-chart');
     }
 
-    initSp(function() {
-        renderParams();
-        drawInputChart('#input-chart');
-        addDataControlHandlers();
-        updateUi();
+    spParams.render(function() {
+        initSp(function() {
+            drawInputChart('#input-chart', function() {
+                addDataControlHandlers();
+                runOnePointThroughSp();
+            });
+        });
+    }, function() {
+        initSp();
     });
 
 });
