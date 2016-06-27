@@ -17,8 +17,15 @@ $(function() {
         });
     };
 
-    SpatialPoolerClient.prototype.compute = function(encoding, callback) {
+    SpatialPoolerClient.prototype.compute = function(encoding, opts, callback) {
         var url = '/_sp/';
+
+        if (typeof(opts) == 'function') {
+            callback = opts;
+        } else {
+            url += '?' + $.param(opts);
+        }
+
         $.ajax({
             type: 'PUT',
             url: url,

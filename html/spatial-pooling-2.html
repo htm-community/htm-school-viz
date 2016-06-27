@@ -42,14 +42,7 @@
     </div>
     <div class="col-md-3">Encoding</div>
     <div class="col-md-3">
-        <div class="row">
-            <div class="col-md-6">
-                SP Active Columns
-            </div>
-            <div class="col-md-6">
-                heatmap <input type="checkbox" id="heatmap">
-            </div>
-        </div>
+        SP Active Columns
     </div>
 </div>
 
@@ -57,7 +50,7 @@
 <div class="row">
     <div class="col-md-6" id="input-chart"></div>
     <div class="col-md-6">
-        <svg id="visualization" width="1200" height="800">
+        <svg id="visualization" width="1200" height="690">
             <g id="encoding"></g>
             <g id="active-columns"></g>
         </svg>
@@ -75,8 +68,14 @@
             <div class="col-md-2" id="au-display"></div>
         </div>
     </div>
-    <div class="col-md-3"></div>
-    <div class="col-md-3"></div>
+    <div class="col-md-2">
+        heatmap <input type="checkbox" id="heatmap">
+    </div>
+    <div class="col-md-2">
+        connected <input type="checkbox" id="connected">
+    </div>
+    <div class="col-md-2">
+    </div>
 </div>
 
 <div id="loading" style="display:none">

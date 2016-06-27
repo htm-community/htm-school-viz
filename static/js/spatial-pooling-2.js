@@ -13,7 +13,8 @@ $(function() {
     var inputEncoding;
     var activeColumns;
     var overlaps;
-    //var connectedSynapses;
+    var connectedSynapses;
+
     var playing = false;
 
     var spClient;
@@ -25,6 +26,9 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
+    var $activeColumns = $('#active-columns');
+    var $inputEncoding = $('#encoding');
+
     var $sfDisplay = $('#sf-display');
     var $nyDisplay = $('#ny-display');
     var $auDisplay = $('#au-display');
@@ -34,6 +38,7 @@ $(function() {
     var waitingForServer = false;
 
     var heatmap = false;
+    var getConnectedSynapses = false;
 
     var transformDateIntoXValue;
 
@@ -88,7 +93,7 @@ $(function() {
         var startX = 20;
         var startY = 20;
 
-        $('#encoding').html('');
+        $inputEncoding.html('');
 
         d3.select('#encoding')
             .selectAll('rect')
@@ -106,16 +111,15 @@ $(function() {
                 return offset * rectSize + startY;
             })
             .attr('index', function(d, i) { return i; })
-            .attr('class', function(d) {
-                if (d == 1) return 'on';
-                return 'off';
+            .attr('fill', function(d) {
+                return ( d == 1 ? 'steelblue' : 'white')
             })
         ;
 
         rowLength = Math.floor(Math.sqrt(activeColumns.length));
         startX = 540;
 
-        $('#active-columns').html('');
+        $activeColumns.html('');
         d3.select('#active-columns')
             .selectAll('rect')
             .data(activeColumns)
@@ -300,16 +304,35 @@ $(function() {
         inputEncoding = encoding;
         // Run encoding through SP.
         loading(true, false);
-        spClient.compute(encoding, function(spBits) {
+        spClient.compute(encoding, {
+            returnConnectedSynapses: getConnectedSynapses
+        }, function(spBits) {
             activeColumns = spBits.activeColumns;
-            //connectedSynapses = spBits.connectedSynapses;
+            connectedSynapses = spBits.connectedSynapses;
             overlaps = spBits.overlaps;
             drawSdrs();
+            addSdrInteractionHandlers();
             if (preventAdvance == undefined || ! preventAdvance) {
                 dataCursor++;
             }
             loading(false);
             if (callback) callback();
+        });
+    }
+
+    function addSdrInteractionHandlers() {
+        $activeColumns.on('mousemove', function(evt) {
+            if (getConnectedSynapses) {
+                var bitIndex = evt.target.getAttribute('index');
+                var connections = connectedSynapses[parseInt(bitIndex)];
+                $inputEncoding.find('rect').attr('class', '');
+                _.each(connections, function(i) {
+                    $inputEncoding.find('[index="' + i + '"]').attr('class', 'connected');
+                });
+            }
+        });
+        $activeColumns.on('mouseout', function() {
+            $inputEncoding.find('rect').attr('class', '');
         });
     }
 
@@ -319,6 +342,12 @@ $(function() {
         }).on('switchChange.bootstrapSwitch', function(event, state) {
             heatmap = state;
             drawSdrs();
+        });
+        $('#connected').bootstrapSwitch({
+            size: 'small'
+        }).on('switchChange.bootstrapSwitch', function(event, state) {
+            getConnectedSynapses = state;
+            runOnePointThroughSp(null, true);
         });
     }
 

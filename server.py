@@ -14,7 +14,7 @@ urls = (
   "/_sp/", "SPInterface",
 )
 app = web.application(urls, globals())
-render = web.template.render('tmpl/')
+render = web.template.render("tmpl/")
 
 
 def templateNameToTitle(name):
@@ -57,30 +57,18 @@ class SPInterface:
     return json.dumps({"result": "success"})
 
   def PUT(self):
-    input = web.data()
+    requestInput = web.input()
+    encoding = web.data()
+    returnConnectedSynapses = "false"
+    if "returnConnectedSynapses" in requestInput:
+      returnConnectedSynapses = requestInput["returnConnectedSynapses"]
     activeCols = np.zeros(sp._numColumns, dtype="uint32")
-    inputArray = np.array([int(bit) for bit in input.split(",")])
+    inputArray = np.array([int(bit) for bit in encoding.split(",")])
     sp.compute(inputArray, False, activeCols)
     web.header("Content-Type", "application/json")
 
+    # Overlaps are cheap, so always return them. 
     overlaps = sp.getOverlaps()
-
-    # colConnectedSynapses = []
-    # colPotentialPools = []
-    # for colIndex in range(0, sp.getNumColumns()):
-    #   connectedSynapses = []
-    #   connectedSynapseIndices = []
-    #   sp.getConnectedSynapses(colIndex, connectedSynapses)
-    #   # potentialPool = []
-    #   # potentialPoolIndices = []
-    #   # sp.getPotential(colIndex, potentialPool)
-    #   for i, synapse in enumerate(connectedSynapses):
-    #     if np.asscalar(synapse) == 1.0:
-    #       connectedSynapseIndices.append(i)
-    #     # if np.asscalar(potentialPool[i]) == 1.0:
-    #     #   potentialPoolIndices.append(i)
-    #   colConnectedSynapses.append(connectedSynapseIndices)
-    #   # colPotentialPools.append(potentialPoolIndices)
 
     response = {
       "activeColumns": [int(bit) for bit in activeCols.tolist()],
@@ -88,6 +76,21 @@ class SPInterface:
       # "connectedSynapses": colConnectedSynapses,
       # "potentialPool": colPotentialPools,
     }
+
+    # Connected synapses are not cheap, so only return when asked.
+    if returnConnectedSynapses == "true":
+      colConnectedSynapses = []
+      colPotentialPools = []
+      for colIndex in range(0, sp.getNumColumns()):
+        connectedSynapses = []
+        connectedSynapseIndices = []
+        sp.getConnectedSynapses(colIndex, connectedSynapses)
+        for i, synapse in enumerate(connectedSynapses):
+          if np.asscalar(synapse) == 1.0:
+            connectedSynapseIndices.append(i)
+        colConnectedSynapses.append(connectedSynapseIndices)
+
+      response["connectedSynapses"] = colConnectedSynapses
 
     return json.dumps(response)
 
