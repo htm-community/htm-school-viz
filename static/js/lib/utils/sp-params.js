@@ -1,9 +1,5 @@
 $(function() {
 
-    var $wrapAroundDisplay = $('#wrap-around-display');
-    var $globalInhibition;
-    var $globalInhibitionDisplay = $('#global-inhibition-display');
-
     // Handlebars templates
     var spParamTmpl;
 
@@ -104,6 +100,10 @@ $(function() {
         }
     }
 
+    function loadCss() {
+        $('head').append('<link rel="stylesheet" href="/static/css/lib/sp-params.css">');
+    }
+
     function loadTemplates(callback) {
         $.get('/static/tmpl/sp-params.hbs', function(tmpl) {
             spParamTmpl = Handlebars.compile(tmpl);
@@ -113,8 +113,10 @@ $(function() {
 
     function SPParams(el, inputDimensions, columnDimensions) {
         this.el = el;
-        this.scalarParams = {};
-        this.params = _.merge(this.scalarParams, spScalarParams);
+        this.params = _.merge({}, spScalarParams);
+        _.each(this.params, function(p) {
+            p.type = 'scalar';
+        });
         this.params.globalInhibition = {val: true};
         this.params.wrapAround = {val: true};
         this.params.inputDimensions = {val: inputDimensions};
@@ -137,10 +139,12 @@ $(function() {
         return out;
     };
 
-    SPParams.prototype.render = function(valuesChanged, renderDone) {
+    SPParams.prototype.render = function(renderDone, valuesChanged) {
         var me = this;
         var data = {sides: [[],[]]};
         var count = 0;
+
+        loadCss();
 
         loadTemplates(function() {
             _.each(spScalarParams, function(val, codeName) {
@@ -152,30 +156,29 @@ $(function() {
                 count++;
             });
             $('#' + me.el).html(spParamTmpl(data));
-            // Render sliders and capture DOM elements associtated with these params
+            // Render sliders and capture DOM elements associated with these params
             // after rendering.
-            _.each(spScalarParams, function(val, codeName) {
-                var step = calculateSliderStep(val.min, val.max, val.val);
-                val.sliderEl = $('#' + codeName);
-                val.displayEl = $('#' + codeName + '-display');
-                val.sliderEl.slider({
-                    value: val.val,
-                    min: val.min,
-                    max: val.max,
-                    step: step,
-                    change: function(event, ui) {
-                        if (waitingForServer) {
-                            console.log('Sorry, still waiting for server-side SP...');
-                            event.preventDefault();
-                        } else {
+            _.each(me.params, function(val, codeName) {
+                var step;
+                if (val.type && val.type == 'scalar') {
+                    step = calculateSliderStep(val.min, val.max, val.val);
+                    val.sliderEl = $('#' + codeName);
+                    val.displayEl = $('#' + codeName + '-display');
+                    val.sliderEl.slider({
+                        value: val.val,
+                        min: val.min,
+                        max: val.max,
+                        step: step,
+                        change: function(event, ui) {
                             val.val = ui.value;
                             me._updateUi();
+                            valuesChanged();
+                        },
+                        slide: function(event, ui) {
+                            val.displayEl.html(ui.value);
                         }
-                    },
-                    slide: function(event, ui) {
-                        val.displayEl.html(ui.value);
-                    }
-                });
+                    });
+                }
             });
             var $globalInhibitionSwitch = $('#globalInhibition').bootstrapSwitch({state: globalInhibition});
             var $wrapAroundSwitch = $('#wrapAround').bootstrapSwitch({state: wrapAround});
@@ -189,6 +192,7 @@ $(function() {
                 me._updateUi();
                 valuesChanged();
             });
+            me._updateUi();
             if (renderDone) renderDone();
         });
     };

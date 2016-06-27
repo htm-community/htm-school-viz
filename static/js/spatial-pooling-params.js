@@ -100,12 +100,12 @@ $(function() {
     }
 
     spParams.render(function() {
-        initSp();
-    }, function() {
         initSp(function() {
             renderInputGrid();
             addInputClickHander();
         });
+    }, function() {
+        initSp();
     });
 
 });
