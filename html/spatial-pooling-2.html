@@ -1,35 +1,18 @@
-<div id="sp-params" style="display:none">
-
-    <div class="row" id="sp-boolean-params">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="row">
-                    <div class="col-md-4 data-label">global inhibition</div>
-                    <div class="col-md-2">
-                        <input type="checkbox" id="globalInhibition">
-                    </div>
-                    <div class="col-md-6"></div>
-                </div>
+<div class="modal fade" id="sp-params-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Spatial Pooling Parameters</h4>
             </div>
-            <div class="col-md-6">
-                <div class="row">
-                    <div class="col-md-4 data-label">wrap around</div>
-                    <div class="col-md-2">
-                        <input type="checkbox" id="wrapAround">
-                    </div>
-                    <div class="col-md-6"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <div id="sp-params" class="modal-body"></div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
-    <div class="row" id="sp-scalar-params">
-    </div>
-
-</div>
-
-
-<hr/>
+<button type="button" id="show-sp-params" class="btn btn-primary btn-md" data-toggle="modal" data-target="#sp-params-modal">
+    Show SP Params
+</button>
 
 <div class="row">
     <div class="col-md-6">

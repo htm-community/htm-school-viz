@@ -170,9 +170,13 @@ $(function() {
                         max: val.max,
                         step: step,
                         change: function(event, ui) {
-                            val.val = ui.value;
-                            me._updateUi();
-                            valuesChanged();
+                            if (val.val == ui.value) {
+                                event.preventDefault();
+                            } else {
+                                val.val = ui.value;
+                                me._updateUi();
+                                valuesChanged();
+                            }
                         },
                         slide: function(event, ui) {
                             val.displayEl.html(ui.value);

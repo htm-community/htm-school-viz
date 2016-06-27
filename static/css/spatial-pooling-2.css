@@ -51,3 +51,14 @@ svg#visualization {
     border: solid 1px slategrey;
     background-color: white;
 }
+.modal-dialog {
+    width: 80%;
+}
+.modal-content .row {
+    margin: 0;
+}
+button#show-sp-params {
+    position: absolute;
+    left: 807px;
+    top: 30px;
+}

@@ -20,89 +20,9 @@ $(function() {
     // SP params we are not allowing user to change
     var inputDimensions = [inputN * 3];
     var columnDimensions = [2048];
-    // SP boolean params
-    var globalInhibition = true;
-    var wrapAround = true;
-    // SP scalar params we'll turn into sliders for adjustment
-    var spScalarParams = {
-        potentialRadius: {
-            val: 16,
-            min: 0,
-            max: 128,
-            name: 'potential radius'
-        },
-        potentialPct: {
-            val: 0.85,
-            min: 0.0,
-            max: 1.0,
-            name: 'potential percent'
-        },
-        localAreaDensity: {
-            val: -1.0,
-            min: -1.0,
-            max: 10.0,
-            name: 'local area density'
-        },
-        numActiveColumnsPerInhArea: {
-            val: 10.0,
-            min: 0.0,
-            max: 100.0,
-            name: 'number of active columns per inhibition area'
-        },
-        stimulusThreshold: {
-            val: 0,
-            min: 0,
-            max: 10,
-            name: 'stimulus threshold'
-        },
-        synPermInactiveDec: {
-            val: 0.008,
-            min: 0.0,
-            max: 1.0,
-            name: 'synaptic permanence inactive decrement'
-        },
-        synPermActiveInc: {
-            val: 0.05,
-            min: 0.0,
-            max: 1.0,
-            name: 'synaptic permanence active increment'
-        },
-        synPermConnected: {
-            val: 0.10,
-            min: 0.0,
-            max: 1.0,
-            name: 'synaptic permanence connected'
-        },
-        minPctOverlapDutyCycle: {
-            val: 0.001,
-            min: 0.0,
-            max: 1.0,
-            name: 'minimum percent overlap duty cycle'
-        },
-        minPctActiveDutyCycle: {
-            val: 0.001,
-            min: 0.0,
-            max: 1.0,
-            name: 'minimum percent active duty cycle'
-        },
-        dutyCyclePeriod: {
-            val: 1000,
-            min: 0,
-            max: 10000,
-            name: 'duty cycle period'
-        },
-        maxBoost: {
-            val: 1.0,
-            min: 0.0,
-            max: 10.0,
-            name: 'max boost'
-        }
-    };
-
-    var $spScalarParams = $('#sp-scalar-params');
-
-    var $globalInhibitionSwitch = $('#globalInhibition').bootstrapSwitch({state: globalInhibition});
-    var $wrapAroundSwitch = $('#wrapAround').bootstrapSwitch({state: wrapAround});
+    var spParams = new HTM.utils.sp.Params(
+        'sp-params', inputDimensions, columnDimensions
+    );
 
     var $sfDisplay = $('#sf-display');
     var $nyDisplay = $('#ny-display');
@@ -111,11 +31,6 @@ $(function() {
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
-
-    // Handlebars templates
-    var spScalarSliderTmpl = Handlebars.compile($('#sp-scalar-slider-tmpl').html());
-    var spScalarParamsTmpl = Handlebars.compile($('#sp-scalar-params-tmpl').html());
-    Handlebars.registerPartial('spScalarSliderTmpl', spScalarSliderTmpl);
 
     var transformDateIntoXValue;
 
@@ -136,113 +51,16 @@ $(function() {
         }
     }
 
-    function calculateSliderStep(min, max, val) {
-        var range = max - min;
-        if (Number.isInteger(val)) {
-            if (val >= 1000) {
-                return 10;
-            } else {
-                return 1;
-            }
-        } else {
-            if (range <= 1) {
-                if (val < 0.01) {
-                    return 0.001;
-                } else {
-                    return 0.01;
-                }
-            } else if (range < 10) {
-                return 0.1;
-            }
-        }
-    }
-
     function initSp(callback) {
-        var spParams = {
-            inputDimensions: inputDimensions,
-            columnDimensions: columnDimensions,
-            globalInhibition: globalInhibition,
-            wrapAround: wrapAround
-        };
-        // Grab the user-controlled parameters from the interface object.
-        _.each(spScalarParams, function(val, codeName) {
-            spParams[codeName] = val.val;
-        });
         spClient = new HTM.SpatialPoolerClient();
         loading(true);
-        spClient.initialize(spParams, function() {
-            loading(false);
-            callback();
-        });
-    }
-
-    function renderParams() {
-        var data = {left: [], right: []};
-        var count = 0;
-        _.each(spScalarParams, function(val, codeName) {
-            var viewObj = {
-                id: codeName,
-                name: val.name
-            };
-            if (count % 2 == 0) {
-                data.left.push(viewObj);
+        spClient.initialize(spParams.getParams(), function() {
+            if (inputEncoding) {
+                runOnePointThroughSp(null, true);
             } else {
-                data.right.push(viewObj);
+                loading(false);
             }
-            count++;
-        });
-        $spScalarParams.html(spScalarParamsTmpl(data));
-        // Render sliders and capture DOM elements associtated with these params
-        // after rendering.
-        _.each(spScalarParams, function(val, codeName) {
-            var step = calculateSliderStep(val.min, val.max, val.val);
-            val.sliderEl = $('#' + codeName);
-            val.displayEl = $('#' + codeName + '-display');
-            val.sliderEl.slider({
-                value: val.val,
-                min: val.min,
-                max: val.max,
-                step: step,
-                change: function(event, ui) {
-                    if (waitingForServer) {
-                        console.log('Sorry, still waiting for server-side SP...');
-                        event.preventDefault();
-                    } else {
-                        val.val = ui.value;
-                    }
-                },
-                slide: function(event, ui) {
-                    val.displayEl.html(ui.value);
-                }
-            });
-        });
-        $globalInhibitionSwitch.on('switchChange.bootstrapSwitch', function(event, state) {
-            if (waitingForServer) {
-                console.log('Sorry, still waiting for server-side SP...');
-                event.preventDefault();
-            } else {
-                globalInhibition = state;
-                initSp(function() {
-                    updateUi();
-                });
-            }
-        });
-        $wrapAroundSwitch.on('switchChange.bootstrapSwitch', function(event, state) {
-            if (waitingForServer) {
-                console.log('Sorry, still waiting for server-side SP...');
-                event.preventDefault();
-            } else {
-                wrapAround = state;
-                initSp(function() {
-                    updateUi();
-                });
-            }
-        });
-    }
-
-    function updateUi() {
-        _.each(spScalarParams, function(val, codeName) {
-            val.displayEl.html(val.val);
+            if (callback) callback();
         });
     }
 
@@ -431,7 +249,7 @@ $(function() {
 
     }
 
-    function runOnePointThroughSp(callback) {
+    function runOnePointThroughSp(callback, preventAdvance) {
         var point = data[dataCursor];
         var sf = point['San Francisco'];
         var nyc = point['New York'];
@@ -456,7 +274,9 @@ $(function() {
             activeColumns = spBits.activeColumns;
             connectedSynapses = spBits.connectedSynapses;
             drawSdrs();
-            dataCursor++;
+            if (preventAdvance == undefined || ! preventAdvance) {
+                dataCursor++;
+            }
             loading(false);
             if (callback) callback();
         });
@@ -510,13 +330,15 @@ $(function() {
         drawInputChart('#input-chart');
     }
 
-    initSp(function() {
-        renderParams();
-        drawInputChart('#input-chart', function() {
-            addDataControlHandlers();
-            runOnePointThroughSp();
-            updateUi();
+    spParams.render(function() {
+        initSp(function() {
+            drawInputChart('#input-chart', function() {
+                addDataControlHandlers();
+                runOnePointThroughSp();
+            });
         });
+    }, function() {
+        initSp();
     });
 
 });
