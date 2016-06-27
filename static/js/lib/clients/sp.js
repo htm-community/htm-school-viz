@@ -30,6 +30,5 @@ $(function() {
         });
     };
 
-
     window.HTM.SpatialPoolerClient = SpatialPoolerClient;
 });

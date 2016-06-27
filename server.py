@@ -62,30 +62,30 @@ class SPInterface:
     inputArray = np.array([int(bit) for bit in input.split(",")])
     sp.compute(inputArray, False, activeCols)
     web.header("Content-Type", "application/json")
-    colConnectedSynapses = []
-    colPotentialPools = []
-    for colIndex in range(0, sp.getNumColumns()):
 
-      connectedSynapses = []
-      connectedSynapseIndices = []
-      sp.getConnectedSynapses(colIndex, connectedSynapses)
+    overlaps = sp.getOverlaps()
 
-      # potentialPool = []
-      # potentialPoolIndices = []
-      # sp.getPotential(colIndex, potentialPool)
-
-      for i, synapse in enumerate(connectedSynapses):
-        if np.asscalar(synapse) == 1.0:
-          connectedSynapseIndices.append(i)
-        # if np.asscalar(potentialPool[i]) == 1.0:
-        #   potentialPoolIndices.append(i)
-
-      colConnectedSynapses.append(connectedSynapseIndices)
-      # colPotentialPools.append(potentialPoolIndices)
+    # colConnectedSynapses = []
+    # colPotentialPools = []
+    # for colIndex in range(0, sp.getNumColumns()):
+    #   connectedSynapses = []
+    #   connectedSynapseIndices = []
+    #   sp.getConnectedSynapses(colIndex, connectedSynapses)
+    #   # potentialPool = []
+    #   # potentialPoolIndices = []
+    #   # sp.getPotential(colIndex, potentialPool)
+    #   for i, synapse in enumerate(connectedSynapses):
+    #     if np.asscalar(synapse) == 1.0:
+    #       connectedSynapseIndices.append(i)
+    #     # if np.asscalar(potentialPool[i]) == 1.0:
+    #     #   potentialPoolIndices.append(i)
+    #   colConnectedSynapses.append(connectedSynapseIndices)
+    #   # colPotentialPools.append(potentialPoolIndices)
 
     response = {
       "activeColumns": [int(bit) for bit in activeCols.tolist()],
-      "connectedSynapses": colConnectedSynapses,
+      "overlaps": overlaps.tolist(),
+      # "connectedSynapses": colConnectedSynapses,
       # "potentialPool": colPotentialPools,
     }
 

@@ -9,10 +9,12 @@ h1 {
 rect {
     stroke: #9b9b9b;
     shape-rendering: crispEdges;
-    fill: white;
 }
 rect.on {
     fill: steelblue;
+}
+rect.off {
+    fill: white;
 }
 p {
     margin: 0;

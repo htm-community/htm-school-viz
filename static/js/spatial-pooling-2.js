@@ -12,7 +12,8 @@ $(function() {
     var dataMarker;
     var inputEncoding;
     var activeColumns;
-    var connectedSynapses;
+    var overlaps;
+    //var connectedSynapses;
     var playing = false;
 
     var spClient;
@@ -32,7 +33,24 @@ $(function() {
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
 
+    var heatmap = false;
+
     var transformDateIntoXValue;
+
+    /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
+    function getGreenToRed(percent){
+        var r, g;
+        percent = 100 - percent;
+        r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
+        g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
+        return rgbToHex(r, g, 0);
+    }
+
+    /* From http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
+    function rgbToHex(r, g, b) {
+        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -69,8 +87,9 @@ $(function() {
         var rowLength = Math.floor(Math.sqrt(inputEncoding.length));
         var startX = 20;
         var startY = 20;
+
         $('#encoding').html('');
-        $('#active-columns').html('');
+
         d3.select('#encoding')
             .selectAll('rect')
             .data(inputEncoding)
@@ -92,8 +111,11 @@ $(function() {
                 return 'off';
             })
         ;
+
         rowLength = Math.floor(Math.sqrt(activeColumns.length));
         startX = 540;
+
+        $('#active-columns').html('');
         d3.select('#active-columns')
             .selectAll('rect')
             .data(activeColumns)
@@ -110,9 +132,17 @@ $(function() {
                 return offset * rectSize + startY;
             })
             .attr('index', function(d, i) { return i; })
-            .attr('class', function(d) {
-                if (d == 1) return 'on';
-                return 'off';
+            .attr('fill', function(d, i) {
+                var overlap;
+                var percentOverlap;
+                var color = ( d == 1 ? 'steelblue' : 'white');
+                if (heatmap) {
+                    if (d == 1) { return 'red'; }
+                    overlap = overlaps[i];
+                    percentOverlap = overlap / spParams.getParams().potentialRadius * 100;
+                    color = '#' + getGreenToRed(percentOverlap);
+                }
+                return color;
             })
         ;
     }
@@ -272,13 +302,23 @@ $(function() {
         loading(true, false);
         spClient.compute(encoding, function(spBits) {
             activeColumns = spBits.activeColumns;
-            connectedSynapses = spBits.connectedSynapses;
+            //connectedSynapses = spBits.connectedSynapses;
+            overlaps = spBits.overlaps;
             drawSdrs();
             if (preventAdvance == undefined || ! preventAdvance) {
                 dataCursor++;
             }
             loading(false);
             if (callback) callback();
+        });
+    }
+
+    function addViewOptionHandlers() {
+        $('#heatmap').bootstrapSwitch({
+            size: 'small'
+        }).on('switchChange.bootstrapSwitch', function(event, state) {
+            heatmap = state;
+            drawSdrs();
         });
     }
 
@@ -334,6 +374,7 @@ $(function() {
         initSp(function() {
             drawInputChart('#input-chart', function() {
                 addDataControlHandlers();
+                addViewOptionHandlers();
                 runOnePointThroughSp();
             });
         });
