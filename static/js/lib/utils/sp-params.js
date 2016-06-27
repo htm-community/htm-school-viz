@@ -9,7 +9,8 @@ $(function() {
             val: 16,
             min: 0,
             max: 128,
-            name: 'potential radius'
+            name: 'potential radius',
+            disabled: true
         },
         potentialPct: {
             val: 0.85,
@@ -129,6 +130,12 @@ $(function() {
                 val.displayEl.html(val.val);
             }
         });
+        // Now disable the potential radius if global inhibition is turned on.
+        var enabled = "enable";
+        if (this.params.globalInhibition.val) {
+            enabled = "disable";
+        }
+        this.params.potentialRadius.sliderEl.slider(enabled);
     };
 
     SPParams.prototype.getParams = function() {
@@ -169,6 +176,7 @@ $(function() {
                         min: val.min,
                         max: val.max,
                         step: step,
+                        disabled: val.disabled,
                         change: function(event, ui) {
                             if (val.val == ui.value) {
                                 event.preventDefault();
@@ -187,12 +195,12 @@ $(function() {
             var $globalInhibitionSwitch = $('#globalInhibition').bootstrapSwitch({state: globalInhibition});
             var $wrapAroundSwitch = $('#wrapAround').bootstrapSwitch({state: wrapAround});
             $globalInhibitionSwitch.on('switchChange.bootstrapSwitch', function(event, state) {
-                me.params.globalInhibition = state;
+                me.params.globalInhibition.val = state;
                 me._updateUi();
                 valuesChanged();
             });
             $wrapAroundSwitch.on('switchChange.bootstrapSwitch', function(event, state) {
-                me.params.wrapAround = state;
+                me.params.wrapAround.val = state;
                 me._updateUi();
                 valuesChanged();
             });
