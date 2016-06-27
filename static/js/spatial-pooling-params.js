@@ -18,12 +18,16 @@ $(function() {
 
     var spClient;
 
+    var getConnectedSynapses = false;
+
     // SP params we are not allowing user to change
     var inputDimensions = [inputN];
     var columnDimensions = [2048];
     var spParams = new HTM.utils.sp.Params(
         'sp-params', inputDimensions, columnDimensions
     );
+
+    var spViz = new HTM.utils.sp.SPViz('sp-viz');
 
     var $loading = $('#loading');
 
@@ -67,15 +71,16 @@ $(function() {
         $('text').click(function() {
             inputValue = parseInt($(this).html());
             inputEncoding = scalarEncoder.encode(inputValue);
-            spClient.compute(inputEncoding, function(spBits) {
-                SDR.draw(inputEncoding, 'input-encoding', {
-                    spartan: true,
-                    size: 30
-                });
-                SDR.draw(spBits.activeColumns, 'active-columns', {
-                    spartan: true,
-                    size: 30
-                });
+            spClient.compute(inputEncoding, {
+                returnConnectedSynapses: getConnectedSynapses
+            }, function(spBits) {
+                spViz.render(
+                    inputEncoding,
+                    spBits.activeColumns,
+                    spBits.overlaps,
+                    spBits.connectedSynapses,
+                    spParams.getParams().potentialRadius
+                );
             });
         });
     }
@@ -85,12 +90,17 @@ $(function() {
         loading(true);
         spClient.initialize(spParams.getParams(), function() {
             if (inputEncoding) {
-                spClient.compute(inputEncoding, function(spBits) {
+                spClient.compute(inputEncoding, {
+                    returnConnectedSynapses: getConnectedSynapses
+                }, function(spBits) {
                     loading(false);
-                    SDR.draw(spBits.activeColumns, 'active-columns', {
-                        spartan: true,
-                        size: 30
-                    });
+                    spViz.render(
+                        inputEncoding,
+                        spBits.activeColumns,
+                        spBits.overlaps,
+                        spBits.connectedSynapses,
+                        spParams.getParams().potentialRadius
+                    );
                 });
             } else {
                 loading(false);
@@ -98,6 +108,23 @@ $(function() {
             if (callback) callback();
         });
     }
+
+    spViz.onConnectedSynapseChange(function(value) {
+        getConnectedSynapses = value;
+        loading(true);
+        spClient.compute(inputEncoding, {
+            returnConnectedSynapses: getConnectedSynapses
+        }, function(spBits) {
+            loading(false);
+            spViz.render(
+                inputEncoding,
+                spBits.activeColumns,
+                spBits.overlaps,
+                spBits.connectedSynapses,
+                spParams.getParams().potentialRadius
+            );
+        });
+    });
 
     spParams.render(function() {
         initSp(function() {

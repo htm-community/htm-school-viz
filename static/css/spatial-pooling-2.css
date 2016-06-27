@@ -62,7 +62,3 @@ button#show-sp-params {
     left: 807px;
     top: 30px;
 }
-rect.connected {
-    stroke-width: 6px;
-    stroke: red;
-}

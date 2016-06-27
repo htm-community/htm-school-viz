@@ -28,6 +28,10 @@ $(function() {
         }
     }
 
+    function loadCss() {
+        $('head').append('<link rel="stylesheet" href="/static/css/lib/sp-viz.css">');
+    }
+
     function SPViz(el) {
         this.$el = $('#' + el);
         this.heatmap = false;
@@ -45,14 +49,22 @@ $(function() {
         me.overlaps = overlaps;
         me.connectedSynapses = connectedSynapses;
         me.potentialRadius = potentialRadius;
+
+        loadCss();
         loadTemplates(function() {
             me.$el.html(spVizTmpl());
             me.$inputEncoding = me.$el.find('#input-encoding');
             me.$activeColumns = me.$el.find('#active-columns');
-            me._drawSdrs();
-            me._addViewOptionHandlers();
-            me._addSdrInteractionHandlers();
+            me.$overlapDisplay = me.$el.find('#overlap-display');
+            me._rawRender();
         });
+    };
+
+    SPViz.prototype._rawRender = function(connectedSynapses) {
+        if (connectedSynapses) me.connectedSynapses = connectedSynapses;
+        this._drawSdrs();
+        this._addViewOptionHandlers();
+        this._addSdrInteractionHandlers();
     };
 
     SPViz.prototype._drawSdrs = function() {
@@ -134,13 +146,16 @@ $(function() {
         var $activeColumns = this.$activeColumns;
 
         $activeColumns.on('mousemove', function(evt) {
+            var bitIndex = parseInt(evt.target.getAttribute('index'));
             if (me.getConnectedSynapses) {
-                var bitIndex = evt.target.getAttribute('index');
-                var connections = connectedSynapses[parseInt(bitIndex)];
+                var connections = connectedSynapses[bitIndex];
                 $inputEncoding.find('rect').attr('class', '');
                 _.each(connections, function(i) {
                     $inputEncoding.find('[index="' + i + '"]').attr('class', 'connected');
                 });
+            }
+            if (me.heatmap) {
+                me.$overlapDisplay.html(me.overlaps[bitIndex]);
             }
         });
         $activeColumns.on('mouseout', function() {

@@ -294,6 +294,7 @@ $(function() {
 
     spViz.onConnectedSynapseChange(function(value) {
         getConnectedSynapses = value;
+        runOnePointThroughSp(null, true);
     });
 
     spParams.render(function() {
