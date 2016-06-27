@@ -2,3 +2,7 @@ rect.connected {
     stroke-width: 6px;
     stroke: red;
 }
+rect.pool{
+    stroke-width: 6px;
+    stroke: orange;
+}

@@ -36,18 +36,21 @@ $(function() {
         this.$el = $('#' + el);
         this.heatmap = false;
         this.getConnectedSynapses = false;
+        this.getPotentialPools = false;
     }
 
     SPViz.prototype.render = function(inputEncoding,
                                       activeColumns,
                                       overlaps,
                                       connectedSynapses,
+                                      potentialPools,
                                       potentialRadius) {
         var me = this;
         me.inputEncoding = inputEncoding;
         me.activeColumns = activeColumns;
         me.overlaps = overlaps;
         me.connectedSynapses = connectedSynapses;
+        me.potentialPools = potentialPools;
         me.potentialRadius = potentialRadius;
 
         loadCss();
@@ -142,14 +145,21 @@ $(function() {
     SPViz.prototype._addSdrInteractionHandlers = function() {
         var me = this;
         var connectedSynapses = this.connectedSynapses;
+        var potentialPools = this.potentialPools;
         var $inputEncoding = this.$inputEncoding;
         var $activeColumns = this.$activeColumns;
 
         $activeColumns.on('mousemove', function(evt) {
             var bitIndex = parseInt(evt.target.getAttribute('index'));
+            $inputEncoding.find('rect').attr('class', '');
+            if (me.getPotentialPools) {
+                var pools = potentialPools[bitIndex];
+                _.each(pools, function(i) {
+                    $inputEncoding.find('[index="' + i + '"]').attr('class', 'pool');
+                });
+            }
             if (me.getConnectedSynapses) {
                 var connections = connectedSynapses[bitIndex];
-                $inputEncoding.find('rect').attr('class', '');
                 _.each(connections, function(i) {
                     $inputEncoding.find('[index="' + i + '"]').attr('class', 'connected');
                 });
@@ -177,14 +187,23 @@ $(function() {
             state: me.getConnectedSynapses
         }).on('switchChange.bootstrapSwitch', function(event, state) {
             me.getConnectedSynapses = state;
-            if (me.__onConnectedSynapseChange) {
-                me.__onConnectedSynapseChange(state);
+            if (me.__onViewOptionChange) {
+                me.__onViewOptionChange(me.getConnectedSynapses, me.getPotentialPools);
+            }
+        });
+        this.$el.find('#potential').bootstrapSwitch({
+            size: 'small',
+            state: me.getPotentialPools
+        }).on('switchChange.bootstrapSwitch', function(event, state) {
+            me.getPotentialPools = state;
+            if (me.__onViewOptionChange) {
+                me.__onViewOptionChange(me.getConnectedSynapses, me.getPotentialPools);
             }
         });
     };
 
-    SPViz.prototype.onConnectedSynapseChange = function(func) {
-        this.__onConnectedSynapseChange = func;
+    SPViz.prototype.onViewOptionChange = function(func) {
+        this.__onViewOptionChange = func;
     };
 
     window.HTM.utils.sp.SPViz = SPViz;

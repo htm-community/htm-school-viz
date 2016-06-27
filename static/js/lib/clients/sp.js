@@ -5,6 +5,11 @@ $(function() {
     SpatialPoolerClient.prototype.initialize = function(params, callback) {
         var url = '/_sp/';
         this.params = params;
+        // First validate the params. If globalInhibition is on, remove the
+        // potentialRadius parameter.
+        if (params.globalInhibition) {
+            delete params.potentialRadius;
+        }
         $.ajax({
             type: 'POST',
             url: url,

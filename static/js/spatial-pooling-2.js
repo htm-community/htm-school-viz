@@ -16,6 +16,7 @@ $(function() {
     var connectedSynapses;
 
     var getConnectedSynapses = false;
+    var getPotentialPools = false;
 
     var playing = false;
 
@@ -224,16 +225,17 @@ $(function() {
         // Run encoding through SP.
         loading(true, false);
         spClient.compute(encoding, {
-            returnConnectedSynapses: getConnectedSynapses
+            getConnectedSynapses: getConnectedSynapses,
+            getPotentialPools: getPotentialPools
         }, function(spBits) {
             activeColumns = spBits.activeColumns;
-            connectedSynapses = spBits.connectedSynapses;
             overlaps = spBits.overlaps;
             spViz.render(
                 inputEncoding,
                 activeColumns,
                 overlaps,
-                connectedSynapses,
+                spBits.connectedSynapses,
+                spBits.potentialPools,
                 spParams.getParams().potentialRadius
             );
             if (preventAdvance == undefined || ! preventAdvance) {
@@ -292,8 +294,9 @@ $(function() {
         drawInputChart('#input-chart');
     }
 
-    spViz.onConnectedSynapseChange(function(value) {
-        getConnectedSynapses = value;
+    spViz.onViewOptionChange(function(returnConnectedSynapses, returnPotentialPools) {
+        getConnectedSynapses = returnConnectedSynapses;
+        getPotentialPools = returnPotentialPools;
         runOnePointThroughSp(null, true);
     });
 

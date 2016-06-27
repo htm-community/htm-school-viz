@@ -19,6 +19,7 @@ $(function() {
     var spClient;
 
     var getConnectedSynapses = false;
+    var getPotentialPools = false;
 
     // SP params we are not allowing user to change
     var inputDimensions = [inputN];
@@ -72,7 +73,8 @@ $(function() {
             inputValue = parseInt($(this).html());
             inputEncoding = scalarEncoder.encode(inputValue);
             spClient.compute(inputEncoding, {
-                returnConnectedSynapses: getConnectedSynapses
+                getConnectedSynapses: getConnectedSynapses,
+                getPotentialPools: getPotentialPools
             }, function(spBits) {
                 spViz.render(
                     inputEncoding,
@@ -91,7 +93,8 @@ $(function() {
         spClient.initialize(spParams.getParams(), function() {
             if (inputEncoding) {
                 spClient.compute(inputEncoding, {
-                    returnConnectedSynapses: getConnectedSynapses
+                    getConnectedSynapses: getConnectedSynapses,
+                    getPotentialPools: getPotentialPools
                 }, function(spBits) {
                     loading(false);
                     spViz.render(
@@ -109,11 +112,13 @@ $(function() {
         });
     }
 
-    spViz.onConnectedSynapseChange(function(value) {
-        getConnectedSynapses = value;
+    spViz.onViewOptionChange(function(showConnectedSynapses, showPotentialPools) {
+        getConnectedSynapses = showConnectedSynapses;
+        getPotentialPools = showPotentialPools;
         loading(true);
         spClient.compute(inputEncoding, {
-            returnConnectedSynapses: getConnectedSynapses
+            getConnectedSynapses: getConnectedSynapses,
+            getPotentialPools: getPotentialPools
         }, function(spBits) {
             loading(false);
             spViz.render(
@@ -121,6 +126,7 @@ $(function() {
                 spBits.activeColumns,
                 spBits.overlaps,
                 spBits.connectedSynapses,
+                spBits.potentialPools,
                 spParams.getParams().potentialRadius
             );
         });

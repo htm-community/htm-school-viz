@@ -59,9 +59,15 @@ class SPInterface:
   def PUT(self):
     requestInput = web.input()
     encoding = web.data()
-    returnConnectedSynapses = "false"
-    if "returnConnectedSynapses" in requestInput:
-      returnConnectedSynapses = requestInput["returnConnectedSynapses"]
+    
+    getConnectedSynapses = False
+    if "getConnectedSynapses" in requestInput:
+      getConnectedSynapses = requestInput["getConnectedSynapses"] == "true"
+
+    getPotentialPools = False
+    if "getPotentialPools" in requestInput:
+      getPotentialPools = requestInput["getPotentialPools"] == "true"
+    
     activeCols = np.zeros(sp._numColumns, dtype="uint32")
     inputArray = np.array([int(bit) for bit in encoding.split(",")])
     sp.compute(inputArray, False, activeCols)
@@ -73,14 +79,11 @@ class SPInterface:
     response = {
       "activeColumns": [int(bit) for bit in activeCols.tolist()],
       "overlaps": overlaps.tolist(),
-      # "connectedSynapses": colConnectedSynapses,
-      # "potentialPool": colPotentialPools,
     }
 
     # Connected synapses are not cheap, so only return when asked.
-    if returnConnectedSynapses == "true":
+    if getConnectedSynapses:
       colConnectedSynapses = []
-      colPotentialPools = []
       for colIndex in range(0, sp.getNumColumns()):
         connectedSynapses = []
         connectedSynapseIndices = []
@@ -89,8 +92,20 @@ class SPInterface:
           if np.asscalar(synapse) == 1.0:
             connectedSynapseIndices.append(i)
         colConnectedSynapses.append(connectedSynapseIndices)
-
       response["connectedSynapses"] = colConnectedSynapses
+
+    # Potential pools are not cheap either.
+    if getPotentialPools:
+      colPotentialPools = []
+      for colIndex in range(0, sp.getNumColumns()):
+        potentialPools = []
+        potentialPoolsIndices = []
+        sp.getPotential(colIndex, potentialPools)
+        for i, pool in enumerate(potentialPools):
+          if np.asscalar(pool) == 1.0:
+            potentialPoolsIndices.append(i)
+        colPotentialPools.append(potentialPoolsIndices)
+      response["potentialPools"] = colPotentialPools
 
     return json.dumps(response)
 
