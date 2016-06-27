@@ -40,20 +40,11 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">Encoding</div>
-    <div class="col-md-3">
-        SP Active Columns
-    </div>
 </div>
-
 
 <div class="row">
     <div class="col-md-6" id="input-chart"></div>
-    <div class="col-md-6">
-        <svg id="visualization" width="1200" height="690">
-            <g id="encoding"></g>
-            <g id="active-columns"></g>
-        </svg>
+    <div class="col-md-6" id="sp-viz">
     </div>
 </div>
 
@@ -68,39 +59,8 @@
             <div class="col-md-2" id="au-display"></div>
         </div>
     </div>
-    <div class="col-md-2">
-        heatmap <input type="checkbox" id="heatmap">
-    </div>
-    <div class="col-md-2">
-        connected <input type="checkbox" id="connected">
-    </div>
-    <div class="col-md-2">
-    </div>
 </div>
 
 <div id="loading" style="display:none">
     <img src="/static/img/ajax-loader.gif"/>
 </div>
-
-<script id="sp-scalar-params-tmpl" type="text/x-handlebars-template">
-    <div class="row">
-        <div class="col-md-6">
-            {{# each left}}
-                {{> spScalarSliderTmpl }}
-            {{/each}}
-        </div>
-        <div class="col-md-6">
-            {{# each right}}
-                {{> spScalarSliderTmpl }}
-            {{/each}}
-        </div>
-    </div>
-</script>
-
-<script id="sp-scalar-slider-tmpl" type="text/x-handlebars-template">
-    <div class="row">
-        <div class="col-md-4 data-label">{{name}}</div>
-        <div class="col-md-2 data" id="{{id}}-display"></div>
-        <div class="col-md-6 slider" id="{{id}}"></div>
-    </div>
-</script>
