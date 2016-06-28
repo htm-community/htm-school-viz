@@ -1,5 +1,6 @@
 numpy==1.9.2
 web.py==0.37
 wsgiref==0.1.2
+https://s3-us-west-2.amazonaws.com/artifacts.numenta.org/numenta/nupic.core/releases/nupic.bindings/nupic.bindings-0.4.4-cp27-none-linux_x86_64.whl
 nupic==0.5.4
 
