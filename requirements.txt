@@ -1,5 +1,5 @@
 numpy==1.9.2
 web.py==0.37
 wsgiref==0.1.2
-nupic==0.5.5
+nupic==0.5.4
 
