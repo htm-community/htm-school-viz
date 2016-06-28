@@ -3,7 +3,6 @@ $(function() {
     var DEFAULT_BUCKET_WIDTH = 21;
 
     function DateEncoder(width) {
-        this.width = 0;
         this.description = [];
         this.name = name;
         this.bucketWidth = width || DEFAULT_BUCKET_WIDTH;
