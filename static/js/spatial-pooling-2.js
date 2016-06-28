@@ -8,12 +8,15 @@ $(function() {
         inputN, inputW, minInput, maxInput
     );
 
+    // SDR Viz params
+    var vizWidth = 1400;
+    var vizHeight = 800;
+
     var data, dataCursor;
     var dataMarker;
     var inputEncoding;
     var activeColumns;
     var overlaps;
-    var connectedSynapses;
 
     var getConnectedSynapses = false;
     var getPotentialPools = false;
@@ -29,7 +32,7 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var spViz = new HTM.utils.sp.SPViz('sp-viz');
+    var spViz = new HTM.utils.sp.SPViz('sp-viz', spParams);
 
     var $sfDisplay = $('#sf-display');
     var $nyDisplay = $('#ny-display');
@@ -73,7 +76,7 @@ $(function() {
 
     function drawInputChart(elId, callback) {
         var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = 1000 - margin.left - margin.right,
+            width = 900 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom;
 
         var parseDate = d3.time.format("%Y%m%d").parse;
@@ -236,7 +239,7 @@ $(function() {
                 overlaps,
                 spBits.connectedSynapses,
                 spBits.potentialPools,
-                spParams.getParams().potentialRadius
+                vizWidth, vizHeight
             );
             if (preventAdvance == undefined || ! preventAdvance) {
                 dataCursor++;

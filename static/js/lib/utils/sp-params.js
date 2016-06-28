@@ -9,8 +9,7 @@ $(function() {
             val: 16,
             min: 0,
             max: 128,
-            name: 'potential radius',
-            disabled: true
+            name: 'potential radius'
         },
         potentialPct: {
             val: 0.85,
@@ -25,13 +24,13 @@ $(function() {
             name: 'local area density'
         },
         numActiveColumnsPerInhArea: {
-            val: 10.0,
+            val: 40.0,
             min: 0.0,
             max: 100.0,
             name: 'number of active columns per inhibition area'
         },
         stimulusThreshold: {
-            val: 0,
+            val: 1,
             min: 0,
             max: 10,
             name: 'stimulus threshold'
@@ -122,6 +121,15 @@ $(function() {
         this.params.wrapAround = {val: true};
         this.params.inputDimensions = {val: inputDimensions};
         this.params.columnDimensions = {val: columnDimensions};
+        // The potentialRadius max is determined by the input space.
+        this.params.potentialRadius.max = _.reduce(inputDimensions, function(a, b) {
+            return a * b;
+        }, 1);
+        this.params.potentialRadius.val = this.params.potentialRadius.max;
+        // This sets sparsity of SP to 2%.
+        this.params.numActiveColumnsPerInhArea.max = _.multiply(columnDimensions);
+        this.params.numActiveColumnsPerInhArea.val
+            = Math.floor(this.params.numActiveColumnsPerInhArea.max * 0.02);
     }
 
     SPParams.prototype._updateUi = function() {
@@ -130,12 +138,6 @@ $(function() {
                 val.displayEl.html(val.val);
             }
         });
-        // Now disable the potential radius if global inhibition is turned on.
-        var enabled = "enable";
-        if (this.params.globalInhibition.val) {
-            enabled = "disable";
-        }
-        this.params.potentialRadius.sliderEl.slider(enabled);
     };
 
     SPParams.prototype.getParams = function() {
@@ -176,7 +178,6 @@ $(function() {
                         min: val.min,
                         max: val.max,
                         step: step,
-                        disabled: val.disabled,
                         change: function(event, ui) {
                             if (val.val == ui.value) {
                                 event.preventDefault();

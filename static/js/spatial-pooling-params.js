@@ -28,7 +28,7 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var spViz = new HTM.utils.sp.SPViz('sp-viz');
+    var spViz = new HTM.utils.sp.SPViz('sp-viz', spParams);
 
     var $loading = $('#loading');
 
@@ -81,7 +81,7 @@ $(function() {
                     spBits.activeColumns,
                     spBits.overlaps,
                     spBits.connectedSynapses,
-                    spParams.getParams().potentialRadius
+                    spBits.potentialPools
                 );
             });
         });
@@ -102,7 +102,7 @@ $(function() {
                         spBits.activeColumns,
                         spBits.overlaps,
                         spBits.connectedSynapses,
-                        spParams.getParams().potentialRadius
+                        spBits.potentialPools
                     );
                 });
             } else {
@@ -126,8 +126,7 @@ $(function() {
                 spBits.activeColumns,
                 spBits.overlaps,
                 spBits.connectedSynapses,
-                spBits.potentialPools,
-                spParams.getParams().potentialRadius
+                spBits.potentialPools
             );
         });
     });
@@ -136,6 +135,7 @@ $(function() {
         initSp(function() {
             renderInputGrid();
             addInputClickHander();
+            $('[index=0]').click();
         });
     }, function() {
         initSp();

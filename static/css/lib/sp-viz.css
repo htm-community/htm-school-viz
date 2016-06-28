@@ -1,8 +1,18 @@
+#sp-viz svg {
+    background-color: white;
+    border: solid black 1px;
+}
+rect {
+    stroke: none;
+}
+#input-encoding rect {
+    stroke : #CACACA;
+}
 rect.connected {
-    stroke-width: 6px;
-    stroke: red;
+    stroke-width: 3px;
+    stroke: red !important;
 }
 rect.pool{
-    stroke-width: 6px;
-    stroke: orange;
+    stroke-width: 3px;
+    stroke: orange !important;
 }

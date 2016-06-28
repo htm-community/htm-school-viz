@@ -1,5 +1,9 @@
 $(function() {
 
+    // Defaults.
+    var DEFAULT_WIDTH = 1200;
+    var DEFAULT_HEIGHT = 690;
+
     // Handlebars template
     var spVizTmpl;
 
@@ -32,26 +36,27 @@ $(function() {
         $('head').append('<link rel="stylesheet" href="/static/css/lib/sp-viz.css">');
     }
 
-    function SPViz(el) {
+    function SPViz(el, spParams) {
         this.$el = $('#' + el);
         this.heatmap = false;
         this.getConnectedSynapses = false;
         this.getPotentialPools = false;
+        this.spParams = spParams;
     }
 
     SPViz.prototype.render = function(inputEncoding,
                                       activeColumns,
                                       overlaps,
                                       connectedSynapses,
-                                      potentialPools,
-                                      potentialRadius) {
+                                      potentialPools) {
         var me = this;
         me.inputEncoding = inputEncoding;
         me.activeColumns = activeColumns;
         me.overlaps = overlaps;
         me.connectedSynapses = connectedSynapses;
         me.potentialPools = potentialPools;
-        me.potentialRadius = potentialRadius;
+        me.potentialRadius = me.spParams.getParams().potentialRadius.val;
+
 
         loadCss();
         loadTemplates(function() {
@@ -75,14 +80,32 @@ $(function() {
         var inputEncoding = this.inputEncoding;
         var activeColumns = this.activeColumns;
         var overlaps = this.overlaps;
-        var potentialRadius = this.potentialRadius;
+        var maxOverlap = _.max(overlaps);
+
+        var gutterSize = 20;
 
         var rectSize = 14;
-        var rowLength = Math.floor(Math.sqrt(inputEncoding.length));
-        var startX = 20;
-        var startY = 20;
+        var rectWithStrokeSize = rectSize + 1;
+        var encodingRowLength = Math.floor(Math.sqrt(inputEncoding.length));
+        var columnsRowLength = Math.floor(Math.sqrt(activeColumns.length));
+        var startX = gutterSize;
+        var startY = gutterSize;
         var $inputEncoding = this.$inputEncoding;
         var $activeColumns = this.$activeColumns;
+
+        // First let's set the main SVG width and height.
+        var width = gutterSize
+            + rectWithStrokeSize * encodingRowLength
+            + gutterSize * 2
+            + rectWithStrokeSize * columnsRowLength
+            + gutterSize;
+        var height = gutterSize
+            + rectWithStrokeSize * (columnsRowLength + 1)
+            + gutterSize;
+        me.$el.find('#visualization')
+            .attr('width', width)
+            .attr('height', height);
+
 
         $inputEncoding.html('');
 
@@ -94,12 +117,12 @@ $(function() {
             .attr('width', rectSize)
             .attr('height', rectSize)
             .attr('x', function(d, i) {
-                var offset = i % rowLength;
-                return offset * rectSize + startX;
+                var offset = i % encodingRowLength;
+                return offset * rectWithStrokeSize + startX;
             })
             .attr('y', function(d, i) {
-                var offset = Math.floor(i / rowLength);
-                return offset * rectSize + startY;
+                var offset = Math.floor(i / encodingRowLength);
+                return offset * rectWithStrokeSize + startY;
             })
             .attr('index', function(d, i) { return i; })
             .attr('fill', function(d) {
@@ -107,8 +130,7 @@ $(function() {
             })
         ;
 
-        rowLength = Math.floor(Math.sqrt(activeColumns.length));
-        startX = 540;
+        startX = startX + rectWithStrokeSize * encodingRowLength + gutterSize*2;
 
         $activeColumns.html('');
         d3.select('#active-columns')
@@ -119,25 +141,34 @@ $(function() {
             .attr('width', rectSize)
             .attr('height', rectSize)
             .attr('x', function(d, i) {
-                var offset = i % rowLength;
-                return offset * rectSize + startX;
+                var offset = i % columnsRowLength;
+                return offset * rectWithStrokeSize + startX;
             })
             .attr('y', function(d, i) {
-                var offset = Math.floor(i / rowLength);
-                return offset * rectSize + startY;
+                var offset = Math.floor(i / columnsRowLength);
+                return offset * rectWithStrokeSize + startY;
             })
             .attr('index', function(d, i) { return i; })
-            .attr('fill', function(d, i) {
-                var overlap;
-                var percentOverlap;
-                var color = ( d == 1 ? 'steelblue' : 'white');
-                if (me.heatmap) {
-                    if (d == 1) { return 'red'; }
-                    overlap = overlaps[i];
-                    percentOverlap = overlap / potentialRadius * 100;
-                    color = '#' + getGreenToRed(percentOverlap);
+            .attr('style', function(d, i) {
+                var percent;
+                var stroke = '#CACACA';
+                var strokeWidth = 1;
+                var fill = 'white';
+                if (d == 1) {
+                    fill = 'steelblue';
                 }
-                return color;
+                if (me.heatmap) {
+                    percent = overlaps[i] / maxOverlap;
+                    percent = Math.min(1.0, percent);
+                    fill = '#' + getGreenToRed(percent * 100);
+                    if (d == 1) {
+                        stroke = 'black';
+                        strokeWidth = 2;
+                    }
+                }
+                return 'stroke:' + stroke + ';'
+                     + 'fill:' + fill + ';'
+                     + 'stroke-width:' + strokeWidth + ';';
             })
         ;
     };
@@ -164,9 +195,7 @@ $(function() {
                     $inputEncoding.find('[index="' + i + '"]').attr('class', 'connected');
                 });
             }
-            if (me.heatmap) {
-                me.$overlapDisplay.html(me.overlaps[bitIndex]);
-            }
+            me.$overlapDisplay.html(me.overlaps[bitIndex]);
         });
         $activeColumns.on('mouseout', function() {
             $inputEncoding.find('rect').attr('class', '');
