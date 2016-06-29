@@ -1,9 +1,5 @@
 $(function() {
 
-    // Defaults.
-    var DEFAULT_WIDTH = 1200;
-    var DEFAULT_HEIGHT = 690;
-
     // Handlebars template
     var spVizTmpl;
 

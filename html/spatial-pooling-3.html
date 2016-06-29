@@ -15,49 +15,30 @@
 </button>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="row">
-            <div class="col-md-4">
-                Input Data
-            </div>
-            <div class="col-md-8">
-                <div class="player text-center">
-                    <button type="button" id="prev" class="btn">
-                      <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" id="play" class="btn">
+    <div class="col-md-3">
+        <div class="player text-center">
+            <button type="button" id="prev" class="btn">
+                <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
+            </button>
+            <button type="button" id="play" class="btn">
                         <span class="glyphicon glyphicon-play"
                               aria-hidden="true"></span>
-                    </button>
-                    <button type="button" id="stop" class="btn">
+            </button>
+            <button type="button" id="stop" class="btn">
                         <span class="glyphicon glyphicon-stop"
                               aria-hidden="true"></span>
-                    </button>
-                    <button type="button" id="next" class="btn">
-                        <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
-                    </button>
-                </div>
-            </div>
+            </button>
+            <button type="button" id="next" class="btn">
+                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+            </button>
         </div>
+        <p/>power consumption: <span id="power-display" class="data"></span>
+        <p/>time of day: <span id="tod-display" class="data"></span>
     </div>
+    <div class="col-md-9" id="input-chart"></div>
 </div>
 
-<div class="row">
-    <div class="col-md-5">
-        <div class="row">
-            <div class="col-md-12" id="input-chart"></div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                power consumption: <span id="power-display" class="data"></span>
-            </div>
-            <div class="col-md-6">
-                time of day: <span id="tod-display" class="data"></span>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-7" id="sp-viz"></div>
-</div>
+<div id="sp-viz"></div>
 
 <div id="loading" style="display:none">
     <img src="/static/img/ajax-loader.gif"/>

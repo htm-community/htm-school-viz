@@ -76,8 +76,8 @@ $(function() {
 
     function drawInputChart(elId, callback) {
         var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = 900 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+            width = 1400 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom;
 
         var parseDate = d3.time.format("%m/%d/%y %H:%M").parse;
 
