@@ -36,7 +36,9 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var spViz = new HTM.utils.sp.SPViz('sp-viz', spParams);
+    var spViz = new HTM.utils.sp.SPViz(
+        'Hotgym', 'sp-viz', spParams
+    );
 
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.

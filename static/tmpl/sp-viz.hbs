@@ -5,19 +5,15 @@
 </div>
 
 <!-- Grids -->
-<div class="row">
-    <div class="col-md-8">
-        <svg id="visualization">
-            <g id="input-encoding"></g>
-            <g id="active-columns"></g>
-        </svg>
-    </div>
-    <div class="col-md-4">
-        <!-- Options -->
-        <p/>heatmap <input type="checkbox" id="heatmap">
-        <p/>potential <input type="checkbox" id="potential">
-        <p/>connected <input type="checkbox" id="connected">
-        <p/>overlap: <span id="overlap-display" class="data"></span>
-    </div>
+<div style="float:right;">
+    <!-- Options -->
+    <p/>heatmap <input type="checkbox" id="heatmap">
+    <p/>potential <input type="checkbox" id="potential">
+    <p/>connected <input type="checkbox" id="connected">
+    <p/>overlap: <span id="overlap-display" class="data"></span>
 </div>
-
+<svg id="visualization">
+    <g id="input-encoding"></g>
+    <g id="active-columns"></g>
+    <g id="cumulative-overlaps"></g>
+</svg>

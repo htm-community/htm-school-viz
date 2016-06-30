@@ -32,7 +32,9 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var spViz = new HTM.utils.sp.SPViz('sp-viz', spParams);
+    var spViz = new HTM.utils.sp.SPViz(
+        'City Temps', 'sp-viz', spParams
+    );
 
     var $sfDisplay = $('#sf-display');
     var $nyDisplay = $('#ny-display');
@@ -76,8 +78,8 @@ $(function() {
 
     function drawInputChart(elId, callback) {
         var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = 900 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+            width = 1400 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom;
 
         var parseDate = d3.time.format("%Y%m%d").parse;
 

@@ -32,12 +32,32 @@ $(function() {
         $('head').append('<link rel="stylesheet" href="/static/css/lib/sp-viz.css">');
     }
 
-    function SPViz(el, spParams) {
+    function addArrays(a, b) {
+        return _.map(a, function(aval, i) {
+            return aval + b[i];
+        });
+    }
+
+    function getPercentDistanceCrossed(min, value, max) {
+        var range = max - min;
+        var adjustedValue = value - min;
+        return adjustedValue / range;
+    }
+
+    function SPViz(name, el, spParams) {
+        var me = this;
+        this.name = name;
         this.$el = $('#' + el);
         this.heatmap = false;
         this.getConnectedSynapses = false;
         this.getPotentialPools = false;
         this.spParams = spParams;
+        this.cumulativeOverlaps = [];
+        _.times(this.spParams.getParams().columnDimensions[0], function() {
+            me.cumulativeOverlaps.push(0);
+        });
+        this._createdAt = moment();
+        //this._initStorage();
     }
 
     SPViz.prototype.render = function(inputEncoding,
@@ -49,18 +69,21 @@ $(function() {
         me.inputEncoding = inputEncoding;
         me.activeColumns = activeColumns;
         me.overlaps = overlaps;
-        me.connectedSynapses = connectedSynapses;
-        me.potentialPools = potentialPools;
+        me.connectedSynapses = connectedSynapses || [];
+        me.potentialPools = potentialPools || [];
         me.potentialRadius = me.spParams.getParams().potentialRadius.val;
 
+        me.cumulativeOverlaps = addArrays(me.cumulativeOverlaps, me.overlaps);
 
         loadCss();
         loadTemplates(function() {
             me.$el.html(spVizTmpl());
             me.$inputEncoding = me.$el.find('#input-encoding');
             me.$activeColumns = me.$el.find('#active-columns');
+            me.$comulativeOverlaps = me.$el.find('#cumulative-overlaps');
             me.$overlapDisplay = me.$el.find('#overlap-display');
             me._rawRender();
+            //me._save();
         });
     };
 
@@ -78,6 +101,9 @@ $(function() {
         var overlaps = this.overlaps;
         var maxOverlap = _.max(overlaps);
 
+        var maxCumulativeOverlap = _.max(me.cumulativeOverlaps);
+        var minCumulativeOverlap = _.min(me.cumulativeOverlaps);
+
         var gutterSize = 20;
 
         var rectSize = 14;
@@ -88,10 +114,13 @@ $(function() {
         var startY = gutterSize;
         var $inputEncoding = this.$inputEncoding;
         var $activeColumns = this.$activeColumns;
+        var $cumulativeOverlaps = this.$comulativeOverlaps;
 
         // First let's set the main SVG width and height.
         var width = gutterSize
             + rectWithStrokeSize * encodingRowLength
+            + gutterSize * 2
+            + rectWithStrokeSize * columnsRowLength
             + gutterSize * 2
             + rectWithStrokeSize * columnsRowLength
             + gutterSize;
@@ -167,6 +196,45 @@ $(function() {
                      + 'stroke-width:' + strokeWidth + ';';
             })
         ;
+
+        startX = startX + rectWithStrokeSize * columnsRowLength + gutterSize*2;
+        $cumulativeOverlaps.html('');
+        d3.select('#cumulative-overlaps')
+            .selectAll('rect')
+            .data(me.cumulativeOverlaps)
+            .enter()
+            .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
+            .attr('x', function(d, i) {
+                var offset = i % columnsRowLength;
+                return offset * rectWithStrokeSize + startX;
+            })
+            .attr('y', function(d, i) {
+                var offset = Math.floor(i / columnsRowLength);
+                return offset * rectWithStrokeSize + startY;
+            })
+            .attr('index', function(d, i) { return i; })
+            .attr('style', function(d, i) {
+                var stroke = '#CACACA';
+                var strokeWidth = 1;
+                //var percent = (d - minCumulativeOverlap) / maxCumulativeOverlap;
+                //var percent = d / maxCumulativeOverlap;
+                var percent = getPercentDistanceCrossed(
+                    minCumulativeOverlap, d, maxCumulativeOverlap
+                );
+                var fill = '#' + getGreenToRed(percent * 100);
+                if (activeColumns[i] == 1) {
+                    stroke = 'black';
+                    strokeWidth = 2;
+                }
+                return 'stroke:' + stroke + ';'
+                    + 'fill:' + fill + ';'
+                    + 'stroke-width:' + strokeWidth + ';';
+            })
+        ;
+
+
     };
 
     SPViz.prototype._addSdrInteractionHandlers = function() {
@@ -229,6 +297,41 @@ $(function() {
 
     SPViz.prototype.onViewOptionChange = function(func) {
         this.__onViewOptionChange = func;
+    };
+
+    SPViz.prototype._getStorageId = function() {
+        return this.name + ' | ' + this._createdAt.format();
+    };
+
+
+    SPViz.prototype._initStorage = function() {
+        var id = this._getStorageId();
+        var batches = localStorage.getItem('batches');
+        if (! batches) {
+            batches = [];
+        } else {
+            batches = JSON.parse(batches);
+        }
+        batches.push({
+            id: id,
+            name: this.name,
+            created: this._createdAt.format(),
+            iterations: 0
+        });
+        this._batches = batches;
+        localStorage.setItem('batches', JSON.stringify(batches));
+    };
+
+    SPViz.prototype._save = function() {
+        var id = this._getStorageId();
+        var payload = {
+            overlaps: this.overlaps
+        };
+        var batch = _.find(this._batches, function(b) {
+            return b.id == id;
+        });
+        localStorage[id + ':' + batch.iterations++] = JSON.stringify(payload);
+        localStorage.batches = JSON.stringify(this._batches);
     };
 
     window.HTM.utils.sp.SPViz = SPViz;
