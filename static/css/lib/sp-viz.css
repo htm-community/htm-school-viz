@@ -16,3 +16,25 @@ rect.pool{
     stroke-width: 3px;
     stroke: orange !important;
 }
+
+
+
+
+.bar rect {
+    fill: steelblue;
+    shape-rendering: crispEdges;
+}
+
+.bar text {
+    fill: #fff;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+svg {
+    font: 10px sans-serif;
+}

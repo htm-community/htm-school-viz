@@ -57,6 +57,7 @@ $(function() {
             me.cumulativeOverlaps.push(0);
         });
         this._createdAt = moment();
+        this._iterations = 0;
         //this._initStorage();
     }
 
@@ -82,6 +83,8 @@ $(function() {
             me.$activeColumns = me.$el.find('#active-columns');
             me.$comulativeOverlaps = me.$el.find('#cumulative-overlaps');
             me.$overlapDisplay = me.$el.find('#overlap-display');
+            me.$overlaDistribution = me.$el.find('#overlap-distribution');
+            me._iterations++;
             me._rawRender();
             //me._save();
         });
@@ -105,16 +108,18 @@ $(function() {
         var minCumulativeOverlap = _.min(me.cumulativeOverlaps);
 
         var gutterSize = 20;
-
         var rectSize = 14;
         var rectWithStrokeSize = rectSize + 1;
-        var encodingRowLength = Math.floor(Math.sqrt(inputEncoding.length));
-        var columnsRowLength = Math.floor(Math.sqrt(activeColumns.length));
         var startX = gutterSize;
         var startY = gutterSize;
+
+        var encodingRowLength = Math.floor(Math.sqrt(inputEncoding.length));
+        var columnsRowLength = Math.floor(Math.sqrt(activeColumns.length));
+
         var $inputEncoding = this.$inputEncoding;
         var $activeColumns = this.$activeColumns;
         var $cumulativeOverlaps = this.$comulativeOverlaps;
+        var $overlapDistribution = this.$overlaDistribution;
 
         // First let's set the main SVG width and height.
         var width = gutterSize
@@ -198,6 +203,13 @@ $(function() {
         ;
 
         startX = startX + rectWithStrokeSize * columnsRowLength + gutterSize*2;
+
+        $overlapDistribution.html('');
+        me._drawOverlapHistogram('#histogram', me.overlaps);
+        me._drawOverlapHistogram('#overall-histogram', _.map(me.cumulativeOverlaps, function(d) {
+            return d / me._iterations;
+        }));
+
         $cumulativeOverlaps.html('');
         d3.select('#cumulative-overlaps')
             .selectAll('rect')
@@ -218,11 +230,8 @@ $(function() {
             .attr('style', function(d, i) {
                 var stroke = '#CACACA';
                 var strokeWidth = 1;
-                //var percent = (d - minCumulativeOverlap) / maxCumulativeOverlap;
-                //var percent = d / maxCumulativeOverlap;
-                var percent = getPercentDistanceCrossed(
-                    minCumulativeOverlap, d, maxCumulativeOverlap
-                );
+                var avgOverlap = d / me._iterations;
+                var percent = avgOverlap / maxOverlap;
                 var fill = '#' + getGreenToRed(percent * 100);
                 if (activeColumns[i] == 1) {
                     stroke = 'black';
@@ -234,6 +243,73 @@ $(function() {
             })
         ;
 
+
+    };
+
+    SPViz.prototype._drawOverlapHistogram = function(selector, overlaps) {
+        // Generate a log-normal distribution with a median of 30 minutes.
+        var values = overlaps;
+        var minOverlap = _.min(overlaps);
+        var maxOverlap = _.max(overlaps);
+        var buckets = 40;
+
+        // Formatters for counts and times (converting numbers to Dates).
+        var formatCount = d3.format(",.0f");
+
+        var margin = {top: 10, right: 30, bottom: 30, left: 30},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        var x = d3.scale.linear()
+            .domain([minOverlap, maxOverlap])
+            .range([0, width]);
+
+        // Generate a histogram using twenty uniformly-spaced bins.
+        var data = d3.layout.histogram()
+            .bins(x.ticks(buckets))
+        (values);
+
+        var y = d3.scale.linear()
+            .domain([0, d3.max(data, function(d) { return d.y; })])
+            .range([height, 0]);
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+
+        var svg = d3.select(selector)
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var bar = svg.selectAll(".bar")
+            .data(data)
+            .enter().append("g")
+            .attr("class", "bar")
+            .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+
+        bar.append("rect")
+            .attr("x", 1)
+            .attr("style", function(d, i) {
+                var overlap = d.x;
+                var percent = getPercentDistanceCrossed(minOverlap, overlap, maxOverlap);
+                return 'fill:#' + getGreenToRed(percent * 100) + ';';
+            })
+            .attr("width", width / buckets)
+            .attr("height", function(d) { return height - y(d.y); });
+
+        bar.append("text")
+            .attr("dy", ".75em")
+            .attr("y", 6)
+            .attr("x", width / buckets / 2)
+            .attr("text-anchor", "middle")
+            .text(function(d) { return formatCount(d.y); });
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
 
     };
 

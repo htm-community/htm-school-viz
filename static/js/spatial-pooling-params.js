@@ -28,7 +28,7 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var spViz = new HTM.utils.sp.SPViz('sp-viz', spParams);
+    var spViz = new HTM.utils.sp.SPViz('SP Params', 'sp-viz', spParams);
 
     var $loading = $('#loading');
 
