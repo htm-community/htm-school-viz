@@ -79,11 +79,8 @@ $(function() {
         loadCss();
         loadTemplates(function() {
             me.$el.html(spVizTmpl());
-            me.$inputEncoding = me.$el.find('#input-encoding');
-            me.$activeColumns = me.$el.find('#active-columns');
-            me.$overlapDisplay = me.$el.find('#overlap-display');
-            me.$connections = me.$el.find('#connections');
             me._iterations++;
+            me.$overlapDisplay = me.$el.find('#overlap-display');
             me._rawRender();
             //me._save();
         });
@@ -91,9 +88,10 @@ $(function() {
 
     SPViz.prototype._rawRender = function(connectedSynapses) {
         if (connectedSynapses) me.connectedSynapses = connectedSynapses;
+        this._svg = d3.select('#visualization');
         this._drawSdrs();
-        this._addViewOptionHandlers();
         this._addSdrInteractionHandlers();
+        this._addViewOptionHandlers();
     };
 
     SPViz.prototype._renderHistogram = function(values,
@@ -127,7 +125,7 @@ $(function() {
             .scale(x)
             .orient("bottom");
 
-        var svg = d3.select('#visualization')
+        var svg = this._svg
             .append("g")
             .attr('transform', 'translate(' + startX + ' ' + startY + ')');
 
@@ -163,16 +161,16 @@ $(function() {
     SPViz.prototype._renderSDR = function(sdr, id, x, y, width, height, style) {
         var bits = sdr.length;
         var root = Math.sqrt(bits);
-        var rowLength = Math.floor(root);
+        var rowLength = Math.floor(root) * 2;
         var hasRemainder = root % 1 > 0;
         var numRows = rowLength;
         if (hasRemainder) numRows++;
-        var rectWithStrokeHeight = Math.floor(height / numRows);
         var rectWithStrokeWidth = Math.floor(width / rowLength);
+        var rectWithStrokeHeight = rectWithStrokeWidth;
         var rectHeight = rectWithStrokeHeight - 1;
         var rectWidth = rectWithStrokeWidth - 1;
 
-        d3.select('#visualization')
+        this._svg
             .append('g')
             .attr('id', id)
             .selectAll('rect')
@@ -246,7 +244,7 @@ $(function() {
         var width = gutterSize * 2;
         var height = gutterSize * 2;
 
-        var encodingWidth = 300;
+        var encodingWidth = 400;
         var encodingHeight = 300;
 
         me._renderEncoding(
@@ -257,8 +255,8 @@ $(function() {
         width += encodingWidth;
         startX += encodingWidth + gutterSize;
 
-        var spWidth = 600;
-        var spHeight = 600;
+        var spWidth = 700;
+        var spHeight = 200;
 
         me._renderHeatmap(
             activeColumns, overlaps, 'active-columns',
@@ -268,8 +266,8 @@ $(function() {
         width += spWidth + gutterSize;
         startY += spHeight + gutterSize;
 
-        var overlapHistWidth = 600;
-        var overlapHistHeight = 150;
+        var overlapHistWidth = 700;
+        var overlapHistHeight = 100;
 
         me._renderHistogram(
             overlaps, 'overlaps', columnsRowLength,
@@ -277,11 +275,13 @@ $(function() {
             overlapHistWidth, overlapHistHeight
         );
 
-        width += overlapHistWidth + gutterSize;
         startX += spWidth + gutterSize;
         startY = gutterSize;
 
-        if (me.connectedSynapses) {
+        height += Math.max(encodingHeight, spHeight + gutterSize + overlapHistHeight);
+
+        if (me.connectedSynapses.length) {
+
             connectionCounts = _.map(me.connectedSynapses, function(d) {
                 return d.length;
             });
@@ -289,7 +289,6 @@ $(function() {
                 activeColumns, connectionCounts, 'connected-synapses',
                 startX, startY, spWidth, spHeight
             );
-            width += spWidth + gutterSize;
             startY += spHeight + gutterSize;
 
             me._renderHistogram(
@@ -297,22 +296,88 @@ $(function() {
                 startX, startY,
                 overlapHistWidth, overlapHistHeight
             );
+
+            startX = gutterSize;
+            startY = gutterSize *3 + spHeight + overlapHistHeight;
+
+            var canvasWidth = me.spParams.getParams().columnDimensions[0];
+            var canvasHeight = me.spParams.getParams().inputDimensions[0];
+
+            var canvas=(function createCanvas(container_id) {
+                var xhtmlNS = "http://www.w3.org/1999/xhtml",
+                    svgNS = 'http://www.w3.org/2000/svg';
+                var f = document.createElementNS(svgNS,"foreignObject");
+                f.x.baseVal.value = startX;
+                f.y.baseVal.value = startY;
+                f.width.baseVal.value = canvasWidth;
+                f.height.baseVal.value = canvasHeight;
+                var c = document.createElementNS(xhtmlNS,"canvas");
+                c.width = canvasWidth;
+                c.height = canvasHeight;
+                var pNode=document.getElementById(container_id);
+                var foObj = pNode.appendChild(f);
+                return foObj.appendChild(c);
+            }("visualization"));
+            width = canvasWidth + gutterSize * 2;
+            height += canvasHeight + gutterSize * 2;
+            me._renderSynapseMap(canvas, me.connectedSynapses);
         }
 
-        height += Math.max(encodingHeight, spHeight + gutterSize + overlapHistHeight);
-
-        d3.select('#visualization')
+        me._svg
             .attr('width', width)
             .attr('height', height);
 
     };
 
+    SPViz.prototype._renderSynapseMap = function(canvas, synapses) {
+        var me = this;
+        var canvasWidth = canvas.width;
+        var canvasHeight = canvas.height;
+        var ctx = canvas.getContext('2d');
+        var canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+
+        // That's how you define the value of a pixel //
+        function drawPixel (x, y, r, g, b, a) {
+            var index = (x + y * canvasWidth) * 4;
+            canvasData.data[index + 0] = r;
+            canvasData.data[index + 1] = g;
+            canvasData.data[index + 2] = b;
+            canvasData.data[index + 3] = a;
+        }
+
+        // That's how you update the canvas, so that your //
+        // modification are taken in consideration //
+        function updateCanvas() {
+            ctx.putImageData(canvasData, 0, 0);
+        }
+
+        _.each(synapses, function(colConnections, myX) {
+            var r = 60, g = 60, b = 60;
+            //if (me.activeColumns[myX]) {
+            //    r = 255;
+            //}
+            _.each(colConnections, function(myY) {
+                if (me.inputEncoding[myY]) {
+                    r = 255;
+                } else {
+                    r = 0;
+                }
+                drawPixel(myX, myY, r, g, b, 255);
+            });
+        });
+
+        updateCanvas();
+
+    };
+
     SPViz.prototype._addSdrInteractionHandlers = function() {
         var me = this;
+        this._svg = this.$el.find('#visualization');
         var connectedSynapses = this.connectedSynapses;
         var potentialPools = this.potentialPools;
-        var $inputEncoding = this.$inputEncoding;
-        var $activeColumns = this.$activeColumns;
+        var $inputEncoding = this._svg.find('#input-encoding');
+        var $activeColumns = this._svg.find('#active-columns');
+        var $connections = this._svg.find('#connected-synapses');
 
         var highlightEncodingBits = function (evt) {
             var bitIndex = parseInt(evt.target.getAttribute('index'));
@@ -337,8 +402,8 @@ $(function() {
 
         $activeColumns.on('mousemove', highlightEncodingBits);
         $activeColumns.on('mouseout', unhighlightEncoding);
-        me.$connections.on('mousemove', highlightEncodingBits);
-        me.$connections.on('mouseout', unhighlightEncoding);
+        $connections.on('mousemove', highlightEncodingBits);
+        $connections.on('mouseout', unhighlightEncoding);
     };
 
     SPViz.prototype._addViewOptionHandlers = function() {
@@ -348,6 +413,7 @@ $(function() {
             state: me.heatmap
         }).on('switchChange.bootstrapSwitch', function(event, state) {
             me.heatmap = state;
+            me._svg = d3.select('#visualization');
             me._drawSdrs();
         });
         this.$el.find('#connected').bootstrapSwitch({
