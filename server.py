@@ -70,7 +70,7 @@ class SPInterface:
     
     activeCols = np.zeros(sp._numColumns, dtype="uint32")
     inputArray = np.array([int(bit) for bit in encoding.split(",")])
-    sp.compute(inputArray, False, activeCols)
+    sp.compute(inputArray, True, activeCols)
     web.header("Content-Type", "application/json")
 
     # Overlaps are cheap, so always return them. 

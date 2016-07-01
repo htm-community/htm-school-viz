@@ -81,9 +81,8 @@ $(function() {
             me.$el.html(spVizTmpl());
             me.$inputEncoding = me.$el.find('#input-encoding');
             me.$activeColumns = me.$el.find('#active-columns');
-            me.$comulativeOverlaps = me.$el.find('#cumulative-overlaps');
             me.$overlapDisplay = me.$el.find('#overlap-display');
-            me.$overlaDistribution = me.$el.find('#overlap-distribution');
+            me.$connections = me.$el.find('#connections');
             me._iterations++;
             me._rawRender();
             //me._save();
@@ -97,171 +96,22 @@ $(function() {
         this._addSdrInteractionHandlers();
     };
 
-    SPViz.prototype._drawSdrs = function() {
-        var me = this;
-        var inputEncoding = this.inputEncoding;
-        var activeColumns = this.activeColumns;
-        var overlaps = this.overlaps;
-        var maxOverlap = _.max(overlaps);
-
-        var maxCumulativeOverlap = _.max(me.cumulativeOverlaps);
-        var minCumulativeOverlap = _.min(me.cumulativeOverlaps);
-
-        var gutterSize = 20;
-        var rectSize = 14;
-        var rectWithStrokeSize = rectSize + 1;
-        var startX = gutterSize;
-        var startY = gutterSize;
-
-        var encodingRowLength = Math.floor(Math.sqrt(inputEncoding.length));
-        var columnsRowLength = Math.floor(Math.sqrt(activeColumns.length));
-
-        var $inputEncoding = this.$inputEncoding;
-        var $activeColumns = this.$activeColumns;
-        var $cumulativeOverlaps = this.$comulativeOverlaps;
-        var $overlapDistribution = this.$overlaDistribution;
-
-        // First let's set the main SVG width and height.
-        var width = gutterSize
-            + rectWithStrokeSize * encodingRowLength
-            + gutterSize * 2
-            + rectWithStrokeSize * columnsRowLength
-            + gutterSize * 2
-            + rectWithStrokeSize * columnsRowLength
-            + gutterSize;
-        var height = gutterSize
-            + rectWithStrokeSize * (columnsRowLength + 1)
-            + gutterSize;
-        me.$el.find('#visualization')
-            .attr('width', width)
-            .attr('height', height);
-
-
-        $inputEncoding.html('');
-
-        d3.select('#input-encoding')
-            .selectAll('rect')
-            .data(inputEncoding)
-            .enter()
-            .append('rect')
-            .attr('width', rectSize)
-            .attr('height', rectSize)
-            .attr('x', function(d, i) {
-                var offset = i % encodingRowLength;
-                return offset * rectWithStrokeSize + startX;
-            })
-            .attr('y', function(d, i) {
-                var offset = Math.floor(i / encodingRowLength);
-                return offset * rectWithStrokeSize + startY;
-            })
-            .attr('index', function(d, i) { return i; })
-            .attr('fill', function(d) {
-                return ( d == 1 ? 'steelblue' : 'white')
-            })
-        ;
-
-        startX = startX + rectWithStrokeSize * encodingRowLength + gutterSize*2;
-
-        $activeColumns.html('');
-        d3.select('#active-columns')
-            .selectAll('rect')
-            .data(activeColumns)
-            .enter()
-            .append('rect')
-            .attr('width', rectSize)
-            .attr('height', rectSize)
-            .attr('x', function(d, i) {
-                var offset = i % columnsRowLength;
-                return offset * rectWithStrokeSize + startX;
-            })
-            .attr('y', function(d, i) {
-                var offset = Math.floor(i / columnsRowLength);
-                return offset * rectWithStrokeSize + startY;
-            })
-            .attr('index', function(d, i) { return i; })
-            .attr('style', function(d, i) {
-                var percent;
-                var stroke = '#CACACA';
-                var strokeWidth = 1;
-                var fill = 'white';
-                if (d == 1) {
-                    fill = 'steelblue';
-                }
-                if (me.heatmap) {
-                    percent = overlaps[i] / maxOverlap;
-                    percent = Math.min(1.0, percent);
-                    fill = '#' + getGreenToRed(percent * 100);
-                    if (d == 1) {
-                        stroke = 'black';
-                        strokeWidth = 2;
-                    }
-                }
-                return 'stroke:' + stroke + ';'
-                     + 'fill:' + fill + ';'
-                     + 'stroke-width:' + strokeWidth + ';';
-            })
-        ;
-
-        startX = startX + rectWithStrokeSize * columnsRowLength + gutterSize*2;
-
-        $overlapDistribution.html('');
-        me._drawOverlapHistogram('#histogram', me.overlaps);
-        me._drawOverlapHistogram('#overall-histogram', _.map(me.cumulativeOverlaps, function(d) {
-            return d / me._iterations;
-        }));
-
-        $cumulativeOverlaps.html('');
-        d3.select('#cumulative-overlaps')
-            .selectAll('rect')
-            .data(me.cumulativeOverlaps)
-            .enter()
-            .append('rect')
-            .attr('width', rectSize)
-            .attr('height', rectSize)
-            .attr('x', function(d, i) {
-                var offset = i % columnsRowLength;
-                return offset * rectWithStrokeSize + startX;
-            })
-            .attr('y', function(d, i) {
-                var offset = Math.floor(i / columnsRowLength);
-                return offset * rectWithStrokeSize + startY;
-            })
-            .attr('index', function(d, i) { return i; })
-            .attr('style', function(d, i) {
-                var stroke = '#CACACA';
-                var strokeWidth = 1;
-                var avgOverlap = d / me._iterations;
-                var percent = avgOverlap / maxOverlap;
-                var fill = '#' + getGreenToRed(percent * 100);
-                if (activeColumns[i] == 1) {
-                    stroke = 'black';
-                    strokeWidth = 2;
-                }
-                return 'stroke:' + stroke + ';'
-                    + 'fill:' + fill + ';'
-                    + 'stroke-width:' + strokeWidth + ';';
-            })
-        ;
-
-
-    };
-
-    SPViz.prototype._drawOverlapHistogram = function(selector, overlaps) {
+    SPViz.prototype._renderHistogram = function(values,
+                                                id,
+                                                buckets,
+                                                startX,
+                                                startY,
+                                                width,
+                                                height) {
         // Generate a log-normal distribution with a median of 30 minutes.
-        var values = overlaps;
-        var minOverlap = _.min(overlaps);
-        var maxOverlap = _.max(overlaps);
-        var buckets = 40;
+        var minVal = _.min(values);
+        var maxVal = _.max(values);
 
         // Formatters for counts and times (converting numbers to Dates).
         var formatCount = d3.format(",.0f");
 
-        var margin = {top: 10, right: 30, bottom: 30, left: 30},
-            width = 960 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
-
         var x = d3.scale.linear()
-            .domain([minOverlap, maxOverlap])
+            .domain([minVal, maxVal])
             .range([0, width]);
 
         // Generate a histogram using twenty uniformly-spaced bins.
@@ -277,11 +127,9 @@ $(function() {
             .scale(x)
             .orient("bottom");
 
-        var svg = d3.select(selector)
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+        var svg = d3.select('#visualization')
             .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr('transform', 'translate(' + startX + ' ' + startY + ')');
 
         var bar = svg.selectAll(".bar")
             .data(data)
@@ -293,7 +141,7 @@ $(function() {
             .attr("x", 1)
             .attr("style", function(d, i) {
                 var overlap = d.x;
-                var percent = getPercentDistanceCrossed(minOverlap, overlap, maxOverlap);
+                var percent = getPercentDistanceCrossed(minVal, overlap, maxVal);
                 return 'fill:#' + getGreenToRed(percent * 100) + ';';
             })
             .attr("width", width / buckets)
@@ -310,6 +158,152 @@ $(function() {
             .attr("class", "x axis")
             .attr("transform", "translate(0," + height + ")")
             .call(xAxis);
+    };
+
+    SPViz.prototype._renderSDR = function(sdr, id, x, y, width, height, style) {
+        var bits = sdr.length;
+        var root = Math.sqrt(bits);
+        var rowLength = Math.floor(root);
+        var hasRemainder = root % 1 > 0;
+        var numRows = rowLength;
+        if (hasRemainder) numRows++;
+        var rectWithStrokeHeight = Math.floor(height / numRows);
+        var rectWithStrokeWidth = Math.floor(width / rowLength);
+        var rectHeight = rectWithStrokeHeight - 1;
+        var rectWidth = rectWithStrokeWidth - 1;
+
+        d3.select('#visualization')
+            .append('g')
+            .attr('id', id)
+            .selectAll('rect')
+            .data(sdr)
+            .enter()
+            .append('rect')
+            .attr('width', rectWidth)
+            .attr('height', rectHeight)
+            .attr('x', function(d, i) {
+                var offset = i % rowLength;
+                return offset * rectWithStrokeWidth + x;
+            })
+            .attr('y', function(d, i) {
+                var offset = Math.floor(i / rowLength);
+                return offset * rectWithStrokeHeight + y;
+            })
+            .attr('index', function(d, i) { return i; })
+            .attr('style', style)
+        ;
+    };
+
+    SPViz.prototype._renderEncoding = function(sdr, id, x, y, width, height) {
+        this._renderSDR(sdr, id, x, y, width, height,
+            function(d) {
+                var fill = ( d == 1 ? 'steelblue' : 'white');
+                return 'fill:' + fill;
+            });
+    };
+
+    SPViz.prototype._renderHeatmap = function(sdr, data, id, x, y, width, height) {
+        var me = this;
+        var dataMin = _.min(data);
+        var dataMax = _.max(data);
+        this._renderSDR(sdr, id, x, y, width, height,
+            function(d, i) {
+                var percent;
+                var stroke = '#CACACA';
+                var strokeWidth = 1;
+                var fill = 'white';
+                if (d == 1) {
+                    fill = 'steelblue';
+                }
+                if (me.heatmap) {
+                    percent = getPercentDistanceCrossed(dataMin, data[i], dataMax);
+                    fill = '#' + getGreenToRed(percent * 100);
+                    if (d == 1) {
+                        stroke = 'black';
+                        strokeWidth = 2;
+                    }
+                }
+                return 'stroke:' + stroke + ';'
+                    + 'fill:' + fill + ';'
+                    + 'stroke-width:' + strokeWidth + ';';
+            });
+    };
+
+    SPViz.prototype._drawSdrs = function() {
+        var me = this;
+        var inputEncoding = this.inputEncoding;
+        var activeColumns = this.activeColumns;
+        var overlaps = this.overlaps;
+
+        var connectionCounts = [];
+
+        var gutterSize = 20;
+        var startX = gutterSize;
+        var startY = gutterSize;
+
+        var columnsRowLength = Math.floor(Math.sqrt(activeColumns.length));
+
+        var width = gutterSize * 2;
+        var height = gutterSize * 2;
+
+        var encodingWidth = 300;
+        var encodingHeight = 300;
+
+        me._renderEncoding(
+            inputEncoding, 'input-encoding',
+            startX, startY, encodingWidth, encodingHeight
+        );
+
+        width += encodingWidth;
+        startX += encodingWidth + gutterSize;
+
+        var spWidth = 600;
+        var spHeight = 600;
+
+        me._renderHeatmap(
+            activeColumns, overlaps, 'active-columns',
+            startX, startY, spWidth, spHeight
+        );
+
+        width += spWidth + gutterSize;
+        startY += spHeight + gutterSize;
+
+        var overlapHistWidth = 600;
+        var overlapHistHeight = 150;
+
+        me._renderHistogram(
+            overlaps, 'overlaps', columnsRowLength,
+            startX, startY,
+            overlapHistWidth, overlapHistHeight
+        );
+
+        width += overlapHistWidth + gutterSize;
+        startX += spWidth + gutterSize;
+        startY = gutterSize;
+
+        if (me.connectedSynapses) {
+            connectionCounts = _.map(me.connectedSynapses, function(d) {
+                return d.length;
+            });
+            me._renderHeatmap(
+                activeColumns, connectionCounts, 'connected-synapses',
+                startX, startY, spWidth, spHeight
+            );
+            width += spWidth + gutterSize;
+            startY += spHeight + gutterSize;
+
+            me._renderHistogram(
+                connectionCounts, 'connected-histogram', columnsRowLength,
+                startX, startY,
+                overlapHistWidth, overlapHistHeight
+            );
+        }
+
+        height += Math.max(encodingHeight, spHeight + gutterSize + overlapHistHeight);
+
+        d3.select('#visualization')
+            .attr('width', width)
+            .attr('height', height);
 
     };
 
@@ -320,26 +314,31 @@ $(function() {
         var $inputEncoding = this.$inputEncoding;
         var $activeColumns = this.$activeColumns;
 
-        $activeColumns.on('mousemove', function(evt) {
+        var highlightEncodingBits = function (evt) {
             var bitIndex = parseInt(evt.target.getAttribute('index'));
             $inputEncoding.find('rect').attr('class', '');
             if (me.getPotentialPools) {
                 var pools = potentialPools[bitIndex];
-                _.each(pools, function(i) {
+                _.each(pools, function (i) {
                     $inputEncoding.find('[index="' + i + '"]').attr('class', 'pool');
                 });
             }
             if (me.getConnectedSynapses) {
                 var connections = connectedSynapses[bitIndex];
-                _.each(connections, function(i) {
+                _.each(connections, function (i) {
                     $inputEncoding.find('[index="' + i + '"]').attr('class', 'connected');
                 });
             }
             me.$overlapDisplay.html(me.overlaps[bitIndex]);
-        });
-        $activeColumns.on('mouseout', function() {
+        };
+        var unhighlightEncoding = function () {
             $inputEncoding.find('rect').attr('class', '');
-        });
+        };
+
+        $activeColumns.on('mousemove', highlightEncodingBits);
+        $activeColumns.on('mouseout', unhighlightEncoding);
+        me.$connections.on('mousemove', highlightEncodingBits);
+        me.$connections.on('mouseout', unhighlightEncoding);
     };
 
     SPViz.prototype._addViewOptionHandlers = function() {
