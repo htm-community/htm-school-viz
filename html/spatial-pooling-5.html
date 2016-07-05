@@ -1,0 +1,76 @@
+<div class="modal fade" id="sp-params-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Spatial Pooling Parameters</h4>
+            </div>
+            <div id="sp-params" class="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+<button type="button" id="show-sp-params" class="btn btn-primary btn-md" data-toggle="modal" data-target="#sp-params-modal">
+    Show SP Params
+</button>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="player text-center">
+            <button type="button" id="prev" class="btn">
+                <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
+            </button>
+            <button type="button" id="play" class="btn">
+                        <span class="glyphicon glyphicon-play"
+                              aria-hidden="true"></span>
+            </button>
+            <button type="button" id="stop" class="btn">
+                        <span class="glyphicon glyphicon-stop"
+                              aria-hidden="true"></span>
+            </button>
+            <button type="button" id="next" class="btn">
+                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+            </button>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 data-label">learn</div>
+            <div class="col-sm-6"><input type="checkbox" id="learn"></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 data-label">power consumption</div>
+            <div class="col-sm-6 data" id="power-display"></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 data-label">time of day</div>
+            <div class="col-sm-6 data" id="tod-display"></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2 data-label">noise</div>
+            <div class="col-sm-2 slider" id="noise-display"></div>
+            <div class="col-sm-8 slider" id="noise"></div>
+        </div>
+
+    </div>
+    <div class="col-md-9" id="input-chart"></div>
+</div>
+
+<hr />
+
+<div class="sdrs">
+    <div class="row">
+        <div class="col-md-4" id="noisy-input-encoding"></div>
+        <div class="col-md-4" id="input-encoding"></div>
+        <div class="col-md-4" id="input-compare"></div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4" id="noisy-active-columns"></div>
+        <div class="col-md-4" id="active-columns"></div>
+        <div class="col-md-4" id="ac-compare"></div>
+    </div>
+
+</div>
+
+<div id="loading" style="display:none">
+    <img src="/static/img/ajax-loader.gif"/>
+</div>

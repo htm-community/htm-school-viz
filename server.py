@@ -60,6 +60,10 @@ class SPInterface:
     requestInput = web.input()
     encoding = web.data()
     
+    learn = True
+    if "learn" in requestInput:
+      learn = requestInput["learn"] == "true"
+
     getConnectedSynapses = False
     if "getConnectedSynapses" in requestInput:
       getConnectedSynapses = requestInput["getConnectedSynapses"] == "true"
@@ -70,7 +74,10 @@ class SPInterface:
     
     activeCols = np.zeros(sp._numColumns, dtype="uint32")
     inputArray = np.array([int(bit) for bit in encoding.split(",")])
-    sp.compute(inputArray, True, activeCols)
+
+    print "SP compute: learning on? {}".format(learn)
+
+    sp.compute(inputArray, learn, activeCols)
     web.header("Content-Type", "application/json")
 
     # Overlaps are cheap, so always return them. 

@@ -1,7 +1,4 @@
 rect {
-    stroke: none;
-}
-#input-encoding rect {
     stroke : #CACACA;
 }
 rect.connected {
