@@ -1,0 +1,43 @@
+<div class="modal fade" id="sp-params-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Spatial Pooling Parameters</h4>
+            </div>
+            <div id="sp-params" class="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+<button type="button" id="show-sp-params" class="btn btn-primary btn-md" data-toggle="modal" data-target="#sp-params-modal">
+    Show SP Params
+</button>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="player text-center">
+            <button type="button" id="prev" class="btn">
+                <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
+            </button>
+            <button type="button" id="play" class="btn">
+                        <span class="glyphicon glyphicon-play"
+                              aria-hidden="true"></span>
+            </button>
+            <button type="button" id="stop" class="btn">
+                        <span class="glyphicon glyphicon-stop"
+                              aria-hidden="true"></span>
+            </button>
+            <button type="button" id="next" class="btn">
+                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+            </button>
+        </div>
+    </div>
+    <div class="col-md-9" id="input-chart"></div>
+</div>
+
+<div id="sp-viz"></div>
+
+<div id="loading" style="display:none">
+    <img src="/static/img/ajax-loader.gif"/>
+</div>
