@@ -25,6 +25,7 @@ $(function() {
 
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
+    var $weekendDisplay = $('#weekend-display');
 
     var spClient;
 
@@ -41,8 +42,8 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var chartWidth = 1800;
-    var chartHeight = 200;
+    var chartWidth = 2000;
+    var chartHeight = 300;
 
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
@@ -191,6 +192,7 @@ $(function() {
                 .attr("d", function (d) {
                     return line(d.values);
                 })
+                .style("stroke-width", 2)
                 .style("stroke", function (d) {
                     return color(d.name);
                 });
@@ -202,7 +204,7 @@ $(function() {
                 .attr("class", "marker")
                 .append("path")
                 .style("stroke", "red")
-                .style("stroke-width", 4);
+                .style("stroke-width", 2);
 
             ecMarkers = svg.append('g');
             acMarkers = svg.append('g');
@@ -293,7 +295,8 @@ $(function() {
             height = h - margin.top - margin.bottom,
             rowLength = Math.floor(Math.sqrt(sdr.length)),
             fullRectSize = Math.floor(width / rowLength),
-            rectSize = fullRectSize - 1
+            rectSize = fullRectSize - 1,
+            onColor = 'steelblue'
             ;
 
         $('#' + id).html('');
@@ -306,12 +309,20 @@ $(function() {
         var styleFunction = function(d, i) {
             var fill = 'white';
             if (d == 1) {
-                fill = 'steelblue';
+                fill = onColor;
             }
             return 'fill:' + fill;
         };
 
-        if (style) styleFunction = style;
+        if (style) {
+            if (typeof(style) == 'string') {
+                onColor = style;
+            } else if (typeof(style) == 'function') {
+                styleFunction = style;
+            } else {
+                throw new Error('style must be function or string');
+            }
+        }
 
         svg.selectAll('rect')
             .data(sdr)
@@ -341,42 +352,18 @@ $(function() {
     }
 
     function renderSdrs(inputEncoding,
-                        activeColumns,
-                        overlaps,
-                        lastInputEncoding,
-                        lastActiveColumns
-                        //closestPreviousEcUnion,
-                        //closestPreviousAcUnion,
-                        //lastOverlaps
+                        activeColumns
     ) {
 
-        var dim = 600;
-
-        var showComparison = !learn && lastInputEncoding && lastActiveColumns;
+        var dim = 800;
 
         drawSdr(
-            'input-encoding', inputEncoding, dim/2, dim/2
+            'input-encoding', inputEncoding, dim, dim, 'green'
         );
 
-        if (showComparison) {
-            overlaps = null;
-        }
-
-        drawActiveColumns(
-            'active-columns', activeColumns, overlaps, dim, dim
+        drawSdr(
+            'active-columns', activeColumns, dim, dim, 'orange'
         );
-
-        //drawSdrComparison('input-compare', inputEncoding, closestPreviousEcUnion, dim/2, dim/2);
-        //drawSdrComparison('ac-compare', activeColumns, closestPreviousAcUnion, dim, dim);
-
-        if (showComparison) {
-            drawSdr(
-                'noisy-input-encoding', lastInputEncoding, dim, dim
-            );
-            drawSdrComparison(
-                'ac-compare', activeColumns, lastActiveColumns, dim, dim
-            );
-        }
 
     }
 
@@ -387,9 +374,11 @@ $(function() {
         var power = parseFloat(point['consumption']);
         var encoding = [];
         var xVal = transformDateIntoXValue(date);
-        var lastInputEncoding = history.inputEncoding[cursor];
-        var lastActiveColumns = history.activeColumns[cursor];
-        var lastOverlaps = history.overlaps[cursor];
+        //var lastInputEncoding = history.inputEncoding[cursor];
+        //var lastActiveColumns = history.activeColumns[cursor];
+        //var lastOverlaps = history.overlaps[cursor];
+        var day = date.day();
+        var isWeekend = (day == 6) || (day == 0);    // 6 = Saturday, 0 = Sunday
 
         console.log('Running point %s', cursor);
 
@@ -398,6 +387,8 @@ $(function() {
         // Update UI display of current data point.
         $powerDisplay.html(power);
         $todDisplay.html(date.format('h A'));
+        $weekendDisplay.html(isWeekend ? 'yes' : 'no');
+
 
         // Encode data point into SDR.
         encoding = encoding.concat(scalarEncoder.encode(power));
@@ -428,17 +419,17 @@ $(function() {
                 .data(_.map(closeAc, function(d) { return d.data; }))
                 .enter()
                 .append('circle')
-                .attr('r', 4)
+                .attr('r', 6)
                 .attr('cx', function(d) {
                     return transformDateIntoXValue(d.date);
                 })
                 .attr('cy', function(d) {
                     return yTransform(d.consumption);
                 })
-                .style('fill', 'red');
+                .style('fill', 'orange');
 
             var closeEc = _.map(getClosestSdrIndices(
-                encoding, history.inputEncoding, Math.floor(dataCursor * 0.1)
+                encoding, history.inputEncoding, Math.floor(dataCursor * 0.05)
             ), function(inputIndex) {
                 return {
                     index: inputIndex,
@@ -450,30 +441,18 @@ $(function() {
                 .data(_.map(closeEc, function(d) { return d.data; }))
                 .enter()
                 .append('circle')
-                .attr('r', 6)
+                .attr('r', 8)
                 .attr('cx', function(d) {
                     return transformDateIntoXValue(d.date);
                 })
                 .attr('cy', function(d) {
                     return yTransform(d.consumption);
                 })
-                .style('fill', 'blue');
+                .style('fill', 'green');
 
             renderSdrs(
                 encoding,
-                activeColumns,
-                overlaps,
-                lastInputEncoding,
-                lastActiveColumns
-                //getUnionFromPreviousIndices(
-                //    _.map(closeEc, function(d) { return d.index; }),
-                //    history.inputEncoding
-                //),
-                //getUnionFromPreviousIndices(
-                //    _.map(closeAc, function(d) { return d.index; }),
-                //    history.activeColumns
-                //),
-                //lastOverlaps
+                activeColumns
             );
 
             history.inputEncoding[cursor] = encoding;
@@ -511,32 +490,32 @@ $(function() {
                 runOnePointThroughSp(dataCursor--);
             }
         });
-        $('#learn').bootstrapSwitch({
-            size: 'small',
-            state: learn
-        }).on('switchChange.bootstrapSwitch', function(event, state) {
-            learn = state;
-        });
+        //$('#learn').bootstrapSwitch({
+        //    size: 'small',
+        //    state: learn
+        //}).on('switchChange.bootstrapSwitch', function(event, state) {
+        //    learn = state;
+        //});
 
     }
 
-    function addSlider() {
-        var $noiseDisplay = $('#noise-display');
-        $('#noise').slider({
-            min: 0.0,
-            max: 1.0,
-            value: noise,
-            step: 0.05,
-            change: function(evt, ui) {
-                noise = ui.value;
-                $noiseDisplay.html(noise);
-            },
-            slide: function(evt, ui) {
-                $noiseDisplay.html(ui.value);
-            }
-        });
-        $noiseDisplay.html(noise);
-    }
+    //function addSlider() {
+    //    var $noiseDisplay = $('#noise-display');
+    //    $('#noise').slider({
+    //        min: 0.0,
+    //        max: 1.0,
+    //        value: noise,
+    //        step: 0.05,
+    //        change: function(evt, ui) {
+    //            noise = ui.value;
+    //            $noiseDisplay.html(noise);
+    //        },
+    //        slide: function(evt, ui) {
+    //            $noiseDisplay.html(ui.value);
+    //        }
+    //    });
+    //    $noiseDisplay.html(noise);
+    //}
 
     function play() {
         playing = true;
@@ -563,7 +542,7 @@ $(function() {
     spParams.render(function() {
         initSp(function() {
             drawInputChart('#input-chart', chartWidth, chartHeight, function() {
-                addSlider();
+                //addSlider();
                 addDataControlHandlers();
                 runOnePointThroughSp();
             });
