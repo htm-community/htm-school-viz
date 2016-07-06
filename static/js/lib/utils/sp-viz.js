@@ -49,6 +49,8 @@ $(function() {
         this.name = name;
         this.$el = $('#' + el);
         this.heatmap = false;
+        this.histogram = false;
+        this.synapses = false;
         this.getConnectedSynapses = false;
         this.getPotentialPools = false;
         this.spParams = spParams;
@@ -58,7 +60,6 @@ $(function() {
         });
         this._createdAt = moment();
         this._iterations = 0;
-        //this._initStorage();
     }
 
     SPViz.prototype.render = function(inputEncoding,
@@ -160,15 +161,20 @@ $(function() {
 
     SPViz.prototype._renderSDR = function(sdr, id, x, y, width, height, style) {
         var bits = sdr.length;
-        var root = Math.sqrt(bits);
-        var rowLength = Math.floor(root) * 2;
-        var hasRemainder = root % 1 > 0;
-        var numRows = rowLength;
-        if (hasRemainder) numRows++;
-        var rectWithStrokeWidth = Math.floor(width / rowLength);
-        var rectWithStrokeHeight = rectWithStrokeWidth;
-        var rectHeight = rectWithStrokeHeight - 1;
-        var rectWidth = rectWithStrokeWidth - 1;
+        var area = width * height;
+        var squareArea = area / bits;
+        var fullRectSize = Math.floor(Math.sqrt(squareArea));
+        var rectSize = fullRectSize - 1;
+        var rowLength = Math.floor(width / fullRectSize);
+        //var root = Math.sqrt(bits);
+        //var rowLength = Math.floor(root) * 2;
+        //var hasRemainder = root % 1 > 0;
+        //var numRows = rowLength;
+        //if (hasRemainder) numRows++;
+        //var rectWithStrokeWidth = Math.floor(width / rowLength);
+        //var rectWithStrokeHeight = rectWithStrokeWidth;
+        //var rectHeight = rectWithStrokeHeight - 1;
+        //var rectWidth = rectWithStrokeWidth - 1;
 
         this._svg
             .append('g')
@@ -177,15 +183,15 @@ $(function() {
             .data(sdr)
             .enter()
             .append('rect')
-            .attr('width', rectWidth)
-            .attr('height', rectHeight)
+            .attr('width', rectSize)
+            .attr('height', rectSize)
             .attr('x', function(d, i) {
                 var offset = i % rowLength;
-                return offset * rectWithStrokeWidth + x;
+                return offset * fullRectSize + x;
             })
             .attr('y', function(d, i) {
                 var offset = Math.floor(i / rowLength);
-                return offset * rectWithStrokeHeight + y;
+                return offset * fullRectSize + y;
             })
             .attr('index', function(d, i) { return i; })
             .attr('style', style)
@@ -247,6 +253,8 @@ $(function() {
         var encodingWidth = 400;
         var encodingHeight = 300;
 
+        this._svg.html('');
+
         me._renderEncoding(
             inputEncoding, 'input-encoding',
             startX, startY, encodingWidth, encodingHeight
@@ -257,6 +265,10 @@ $(function() {
 
         var spWidth = 700;
         var spHeight = 200;
+
+        if (! me.histogram) {
+            spHeight = 700;
+        }
 
         me._renderHeatmap(
             activeColumns, overlaps, 'active-columns',
@@ -269,18 +281,20 @@ $(function() {
         var overlapHistWidth = 700;
         var overlapHistHeight = 100;
 
-        me._renderHistogram(
-            overlaps, 'overlaps', columnsRowLength,
-            startX, startY,
-            overlapHistWidth, overlapHistHeight
-        );
+        if (me.histogram) {
+            me._renderHistogram(
+                overlaps, 'overlaps', columnsRowLength,
+                startX, startY,
+                overlapHistWidth, overlapHistHeight
+            );
+        }
 
         startX += spWidth + gutterSize;
         startY = gutterSize;
 
         height += Math.max(encodingHeight, spHeight + gutterSize + overlapHistHeight);
 
-        if (me.connectedSynapses.length) {
+        if (me.getConnectedSynapses) {
 
             connectionCounts = _.map(me.connectedSynapses, function(d) {
                 return d.length;
@@ -291,36 +305,42 @@ $(function() {
             );
             startY += spHeight + gutterSize;
 
-            me._renderHistogram(
-                connectionCounts, 'connected-histogram', columnsRowLength,
-                startX, startY,
-                overlapHistWidth, overlapHistHeight
-            );
+            width += gutterSize + spWidth;
+
+            if (me.histogram) {
+                me._renderHistogram(
+                    connectionCounts, 'connected-histogram', columnsRowLength,
+                    startX, startY,
+                    overlapHistWidth, overlapHistHeight
+                );
+            }
 
             startX = gutterSize;
             startY = gutterSize *3 + spHeight + overlapHistHeight;
 
-            var canvasWidth = me.spParams.getParams().columnDimensions[0];
-            var canvasHeight = me.spParams.getParams().inputDimensions[0];
+            if (me.synapses) {
+                var canvasWidth = me.spParams.getParams().columnDimensions[0];
+                var canvasHeight = me.spParams.getParams().inputDimensions[0];
 
-            var canvas=(function createCanvas(container_id) {
-                var xhtmlNS = "http://www.w3.org/1999/xhtml",
-                    svgNS = 'http://www.w3.org/2000/svg';
-                var f = document.createElementNS(svgNS,"foreignObject");
-                f.x.baseVal.value = startX;
-                f.y.baseVal.value = startY;
-                f.width.baseVal.value = canvasWidth;
-                f.height.baseVal.value = canvasHeight;
-                var c = document.createElementNS(xhtmlNS,"canvas");
-                c.width = canvasWidth;
-                c.height = canvasHeight;
-                var pNode=document.getElementById(container_id);
-                var foObj = pNode.appendChild(f);
-                return foObj.appendChild(c);
-            }("visualization"));
-            width = canvasWidth + gutterSize * 2;
-            height += canvasHeight + gutterSize * 2;
-            me._renderSynapseMap(canvas, me.connectedSynapses);
+                var canvas=(function createCanvas(container_id) {
+                    var xhtmlNS = "http://www.w3.org/1999/xhtml",
+                        svgNS = 'http://www.w3.org/2000/svg';
+                    var f = document.createElementNS(svgNS,"foreignObject");
+                    f.x.baseVal.value = startX;
+                    f.y.baseVal.value = startY;
+                    f.width.baseVal.value = canvasWidth;
+                    f.height.baseVal.value = canvasHeight;
+                    var c = document.createElementNS(xhtmlNS,"canvas");
+                    c.width = canvasWidth;
+                    c.height = canvasHeight;
+                    var pNode=document.getElementById(container_id);
+                    var foObj = pNode.appendChild(f);
+                    return foObj.appendChild(c);
+                }("visualization"));
+                width = canvasWidth + gutterSize * 2;
+                height += canvasHeight + gutterSize * 2;
+                me._renderSynapseMap(canvas, me.connectedSynapses);
+            }
         }
 
         me._svg
@@ -413,6 +433,22 @@ $(function() {
             state: me.heatmap
         }).on('switchChange.bootstrapSwitch', function(event, state) {
             me.heatmap = state;
+            me._svg = d3.select('#visualization');
+            me._drawSdrs();
+        });
+        this.$el.find('#histogram').bootstrapSwitch({
+            size: 'small',
+            state: me.histogram
+        }).on('switchChange.bootstrapSwitch', function(event, state) {
+            me.histogram = state;
+            me._svg = d3.select('#visualization');
+            me._drawSdrs();
+        });
+        this.$el.find('#synapses').bootstrapSwitch({
+            size: 'small',
+            state: me.synapses
+        }).on('switchChange.bootstrapSwitch', function(event, state) {
+            me.synapses = state;
             me._svg = d3.select('#visualization');
             me._drawSdrs();
         });
