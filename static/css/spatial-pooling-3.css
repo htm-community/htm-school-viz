@@ -1,12 +1,3 @@
-#input-grid {
-    height: 404px;
-}
-
-#input-grid text:hover, #input-grid text.run {
-    fill: red;
-    font-weight: bold;
-    cursor: pointer;
-}
 #loading {
     position: absolute;
     top: 0;
@@ -47,10 +38,7 @@
   stroke: steelblue;
   stroke-width: 1.5px;
 }
-svg#visualization {
-    border: solid 1px slategrey;
-    background-color: white;
-}
+
 .modal-dialog {
     width: 80%;
 }
@@ -61,4 +49,9 @@ button#show-sp-params {
     position: absolute;
     left: 807px;
     top: 30px;
+}
+
+svg#visualization {
+    border: solid 1px slategrey;
+    background-color: white;
 }

@@ -15,7 +15,7 @@
 </button>
 
 <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="player text-center">
             <button type="button" id="prev" class="btn">
                 <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
@@ -32,10 +32,20 @@
                 <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
             </button>
         </div>
-        <p/>power consumption: <span id="power-display" class="data"></span>
-        <p/>time of day: <span id="tod-display" class="data"></span>
+        <div class="row">
+            <div class="col-sm-6 data-label">power consumption</div>
+            <div class="col-sm-6 data" id="power-display"></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 data-label">time of day</div>
+            <div class="col-sm-6 data" id="tod-display"></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 data-label">weekend</div>
+            <div class="col-sm-6 data" id="weekend-display"></div>
+        </div>
     </div>
-    <div class="col-md-9" id="input-chart"></div>
+    <div class="col-md-10" id="input-chart"></div>
 </div>
 
 <div id="sp-viz"></div>

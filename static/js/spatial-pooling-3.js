@@ -9,28 +9,28 @@ $(function() {
     );
     var dateEncoder = new HTM.encoders.DateEncoder(51);
 
-    // SDR Viz params
-    var vizWidth = 1400;
-    var vizHeight = 800;
-
     var data, dataCursor;
     var dataMarker;
-    var inputEncoding;
-    var activeColumns;
-    var overlaps;
-
-    var getConnectedSynapses = false;
-    var getPotentialPools = false;
+    var acMarkers;
+    var ecMarkers;
 
     var playing = false;
 
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
+    var $weekendDisplay = $('#weekend-display');
+
+    var getConnectedSynapses;
+    var getPotentialPools;
 
     var spClient;
 
     // SP params we are not allowing user to change
-    var inputDimensions = [scalarN + dateEncoder.timeOfDayEncoder.getWidth()];
+    var inputDimensions = [
+        scalarN
+        + dateEncoder.timeOfDayEncoder.getWidth()
+        + dateEncoder.weekendEncoder.getWidth()
+    ];
     var columnDimensions = [2048];
     var spParams = new HTM.utils.sp.Params(
         'sp-params', inputDimensions, columnDimensions
@@ -40,11 +40,15 @@ $(function() {
         'Hotgym', 'sp-viz', spParams
     );
 
+    var chartWidth = 2000;
+    var chartHeight = 300;
+
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
 
     var transformDateIntoXValue;
+    var yTransform;
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -67,19 +71,15 @@ $(function() {
         spClient = new HTM.SpatialPoolerClient();
         loading(true);
         spClient.initialize(spParams.getParams(), function() {
-            if (inputEncoding) {
-                runOnePointThroughSp(null, true);
-            } else {
-                loading(false);
-            }
+            loading(false);
             if (callback) callback();
         });
     }
 
-    function drawInputChart(elId, callback) {
+    function drawInputChart(elId, w, h, callback) {
         var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = 1400 - margin.left - margin.right,
-            height = 300 - margin.top - margin.bottom;
+            width = w - margin.left - margin.right,
+            height = h - margin.top - margin.bottom;
 
         var parseDate = d3.time.format("%m/%d/%y %H:%M").parse;
 
@@ -105,7 +105,7 @@ $(function() {
                 return transformDateIntoXValue(d.date);
             })
             .y(function (d) {
-                return y(d.temperature);
+                return y(d.consumption);
             });
 
         var svg = d3.select(elId).append("svg")
@@ -129,7 +129,7 @@ $(function() {
                 return {
                     name: name,
                     values: tempData.map(function (d) {
-                        return {date: d.date, temperature: +d[name]};
+                        return {date: d.date, consumption: +d[name]};
                     })
                 };
             });
@@ -141,12 +141,12 @@ $(function() {
             y.domain([
                 d3.min(gyms, function (c) {
                     return d3.min(c.values, function (v) {
-                        return v.temperature;
+                        return v.consumption;
                     });
                 }),
                 d3.max(gyms, function (c) {
                     return d3.max(c.values, function (v) {
-                        return v.temperature;
+                        return v.consumption;
                     });
                 })
             ]);
@@ -176,6 +176,7 @@ $(function() {
                 .attr("d", function (d) {
                     return line(d.values);
                 })
+                .style("stroke-width", 2)
                 .style("stroke", function (d) {
                     return color(d.name);
                 });
@@ -187,7 +188,12 @@ $(function() {
                 .attr("class", "marker")
                 .append("path")
                 .style("stroke", "red")
-                .style("stroke-width", 4);
+                .style("stroke-width", 2);
+
+            ecMarkers = svg.append('g');
+            acMarkers = svg.append('g');
+
+            yTransform = y;
 
             if (callback) callback();
 
@@ -195,43 +201,40 @@ $(function() {
 
     }
 
-    function runOnePointThroughSp(callback, preventAdvance) {
-        var point = data[dataCursor];
+    function runOnePointThroughSp(cursor, callback) {
+        if (! cursor) cursor = dataCursor;
+        var point = data[cursor];
         var date = moment(point.date);
-        var power = parseFloat(point['energy consumption']);
+        var power = parseFloat(point['consumption']);
         var encoding = [];
         var xVal = transformDateIntoXValue(date);
+        var day = date.day();
+        var isWeekend = (day == 6) || (day == 0);    // 6 = Saturday, 0 = Sunday
 
         dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
 
         // Update UI display of current data point.
         $powerDisplay.html(power);
         $todDisplay.html(date.format('h A'));
+        $weekendDisplay.html(isWeekend ? 'yes' : 'no');
 
         // Encode data point into SDR.
         encoding = encoding.concat(scalarEncoder.encode(power));
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
-        inputEncoding = encoding;
+        encoding = encoding.concat(dateEncoder.encodeWeekend(date));
 
         // Run encoding through SP.
-        loading(true, false);
         spClient.compute(encoding, {
             getConnectedSynapses: getConnectedSynapses,
             getPotentialPools: getPotentialPools
         }, function(spBits) {
-            activeColumns = spBits.activeColumns;
-            overlaps = spBits.overlaps;
             spViz.render(
-                inputEncoding,
-                activeColumns,
-                overlaps,
+                encoding,
+                spBits.activeColumns,
+                spBits.overlaps,
                 spBits.connectedSynapses,
-                spBits.potentialPools,
-                vizWidth, vizHeight
+                spBits.potentialPools
             );
-            if (preventAdvance == undefined || ! preventAdvance) {
-                dataCursor++;
-            }
             loading(false);
             if (callback) callback();
         });
@@ -242,7 +245,7 @@ $(function() {
             if (callback) callback();
             return;
         }
-        runOnePointThroughSp(stepThroughData);
+        runOnePointThroughSp(dataCursor++, stepThroughData);
     }
 
     function addDataControlHandlers() {
@@ -260,10 +263,9 @@ $(function() {
             } else if (this.id == 'stop') {
                 stop();
             } else if (this.id == 'next') {
-                runOnePointThroughSp();
+                runOnePointThroughSp(dataCursor++);
             } else if (this.id == 'prev') {
-                dataCursor--;
-                runOnePointThroughSp(null, true);
+                runOnePointThroughSp(dataCursor--);
             }
         });
     }
@@ -291,12 +293,12 @@ $(function() {
     spViz.onViewOptionChange(function(returnConnectedSynapses, returnPotentialPools) {
         getConnectedSynapses = returnConnectedSynapses;
         getPotentialPools = returnPotentialPools;
-        runOnePointThroughSp(null, true);
+        runOnePointThroughSp();
     });
 
     spParams.render(function() {
         initSp(function() {
-            drawInputChart('#input-chart', function() {
+            drawInputChart('#input-chart', chartWidth, chartHeight, function() {
                 addDataControlHandlers();
                 runOnePointThroughSp();
             });

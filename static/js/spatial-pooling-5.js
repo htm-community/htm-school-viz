@@ -29,8 +29,6 @@ $(function() {
 
     var spClient;
 
-    var noise = 0.0;
-
     // SP params we are not allowing user to change
     var inputDimensions = [
         scalarN
@@ -250,45 +248,6 @@ $(function() {
         return adjustedValue / range;
     }
 
-    function drawSdrOverlapHeatmap(id, sdr, overlaps, w, h) {
-        var dataMin = _.min(overlaps);
-        var dataMax = _.max(overlaps);
-
-        drawSdr(id, sdr, w, h, function(d, i) {
-            var percent;
-            var stroke = '#CACACA';
-            var strokeWidth = 1;
-            percent = getPercentDistanceCrossed(dataMin, overlaps[i], dataMax);
-            var fill = '#' + getGreenToRed(percent * 100);
-            if (d == 1) {
-                stroke = 'black';
-            }
-            return 'stroke:' + stroke + ';'
-                + 'fill:' + fill + ';'
-                + 'stroke-width:' + strokeWidth + ';';
-        });
-    }
-
-    function drawSdrComparison(id, left, right, w, h) {
-        var leftColor = 'orange';
-        var rightColor = 'green';
-        drawSdr(id, left, w, h, function(d, i) {
-            var strokeWidth = 1;
-            var fill = 'white';
-            var leftBit = d;
-            var rightBit = right[i];
-            if (leftBit == 1 && rightBit == 1) {
-                fill = 'red';
-            } else if (leftBit == 1 && rightBit == 0) {
-                fill = leftColor;
-            } else if (leftBit == 0 && rightBit == 1) {
-                fill = rightColor;
-            }
-            return 'fill:' + fill + ';'
-                + 'stroke-width:' + strokeWidth + ';';
-        });
-    }
-
     function drawSdr(id, sdr, w, h, style) {
         var margin = {top: 20, right: 20, bottom: 20, left: 20},
             width = w - margin.left - margin.right,
@@ -343,28 +302,16 @@ $(function() {
         ;
     }
 
-    function drawActiveColumns(id, activeColumns, overlaps, w, h) {
-        if (overlaps) {
-            drawSdrOverlapHeatmap(id, activeColumns, overlaps, w, h);
-        } else {
-            drawSdr(id, activeColumns, w, h);
-        }
-    }
-
     function renderSdrs(inputEncoding,
-                        activeColumns
-    ) {
+                        activeColumns) {
 
         var dim = 800;
-
         drawSdr(
             'input-encoding', inputEncoding, dim, dim, 'green'
         );
-
         drawSdr(
             'active-columns', activeColumns, dim, dim, 'orange'
         );
-
     }
 
     function runOnePointThroughSp(cursor, callback) {
@@ -374,13 +321,8 @@ $(function() {
         var power = parseFloat(point['consumption']);
         var encoding = [];
         var xVal = transformDateIntoXValue(date);
-        //var lastInputEncoding = history.inputEncoding[cursor];
-        //var lastActiveColumns = history.activeColumns[cursor];
-        //var lastOverlaps = history.overlaps[cursor];
         var day = date.day();
         var isWeekend = (day == 6) || (day == 0);    // 6 = Saturday, 0 = Sunday
-
-        console.log('Running point %s', cursor);
 
         dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
 
@@ -389,15 +331,10 @@ $(function() {
         $todDisplay.html(date.format('h A'));
         $weekendDisplay.html(isWeekend ? 'yes' : 'no');
 
-
         // Encode data point into SDR.
         encoding = encoding.concat(scalarEncoder.encode(power));
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
         encoding = encoding.concat(dateEncoder.encodeWeekend(date));
-
-        //if (! learn) {
-        //    encoding = SDR.tools.addNoise(encoding, noise);
-        //}
 
         // Run encoding through SP.
         spClient.compute(encoding, {
