@@ -137,6 +137,43 @@ $(function() {
         });
     };
 
+    InputChart.prototype.updateChartMarkers = function(date, encoding, activeColumns, closeAc, closeEc) {
+        var me = this;
+        var acMarkers = this.acMarkers;
+        var ecMarkers = this.ecMarkers;
+        var xVal = me.transformDateIntoXValue(date);
+
+        me.dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
+
+        acMarkers.html('');
+        acMarkers.selectAll('circle')
+            .data(_.map(closeAc, function(d) { return d.data; }))
+            .enter()
+            .append('circle')
+            .attr('r', 6)
+            .attr('cx', function(d) {
+                return me.transformDateIntoXValue(d.date);
+            })
+            .attr('cy', function(d) {
+                return me.yTransform(d.consumption);
+            })
+            .style('fill', 'orange');
+
+        ecMarkers.html('');
+        ecMarkers.selectAll('circle')
+            .data(_.map(closeEc, function(d) { return d.data; }))
+            .enter()
+            .append('circle')
+            .attr('r', 8)
+            .attr('cx', function(d) {
+                return me.transformDateIntoXValue(d.date);
+            })
+            .attr('cy', function(d) {
+                return me.yTransform(d.consumption);
+            })
+            .style('fill', 'green');
+    };
+
     window.HTM.utils.chart = {
         InputChart: InputChart
     };

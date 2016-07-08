@@ -43,9 +43,6 @@ $(function() {
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
 
-    var transformDateIntoXValue;
-    var yTransform;
-
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
             isModal = true;
@@ -155,20 +152,12 @@ $(function() {
     function runOnePointThroughSp(cursor, callback) {
         if (cursor == undefined) cursor = inputChart.dataCursor;
         var data = inputChart.data;
-        var dataMarker = inputChart.dataMarker;
-        var acMarkers = inputChart.acMarkers;
-        var ecMarkers = inputChart.ecMarkers;
-        var transformDateIntoXValue = inputChart.transformDateIntoXValue;
-        var yTransform = inputChart.yTransform;
         var point = data[cursor];
         var date = moment(point.date);
         var power = parseFloat(point['consumption']);
         var encoding = [];
-        var xVal = transformDateIntoXValue(date);
         var day = date.day();
         var isWeekend = (day == 6) || (day == 0);    // 6 = Saturday, 0 = Sunday
-
-        dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
 
         // Update UI display of current data point.
         $powerDisplay.html(power);
@@ -187,6 +176,7 @@ $(function() {
             var activeColumns = spBits.activeColumns;
             var overlaps = spBits.overlaps;
 
+
             var closeAc = _.map(getClosestSdrIndices(
                 activeColumns, history.activeColumns, Math.floor(cursor * 0.1)
             ), function(inputIndex) {
@@ -195,20 +185,6 @@ $(function() {
                     data: data[inputIndex]
                 };
             });
-            acMarkers.html('');
-            acMarkers.selectAll('circle')
-                .data(_.map(closeAc, function(d) { return d.data; }))
-                .enter()
-                .append('circle')
-                .attr('r', 6)
-                .attr('cx', function(d) {
-                    return transformDateIntoXValue(d.date);
-                })
-                .attr('cy', function(d) {
-                    return yTransform(d.consumption);
-                })
-                .style('fill', 'orange');
-
             var closeEc = _.map(getClosestSdrIndices(
                 encoding, history.inputEncoding, Math.floor(cursor * 0.05)
             ), function(inputIndex) {
@@ -217,20 +193,39 @@ $(function() {
                     data: data[inputIndex]
                 };
             });
-            ecMarkers.html('');
-            ecMarkers.selectAll('circle')
-                .data(_.map(closeEc, function(d) { return d.data; }))
-                .enter()
-                .append('circle')
-                .attr('r', 8)
-                .attr('cx', function(d) {
-                    return transformDateIntoXValue(d.date);
-                })
-                .attr('cy', function(d) {
-                    return yTransform(d.consumption);
-                })
-                .style('fill', 'green');
 
+            inputChart.updateChartMarkers(
+                date, encoding, activeColumns, closeAc, closeEc
+            );
+
+            //acMarkers.html('');
+            //acMarkers.selectAll('circle')
+            //    .data(_.map(closeAc, function(d) { return d.data; }))
+            //    .enter()
+            //    .append('circle')
+            //    .attr('r', 6)
+            //    .attr('cx', function(d) {
+            //        return transformDateIntoXValue(d.date);
+            //    })
+            //    .attr('cy', function(d) {
+            //        return yTransform(d.consumption);
+            //    })
+            //    .style('fill', 'orange');
+            //
+            //ecMarkers.html('');
+            //ecMarkers.selectAll('circle')
+            //    .data(_.map(closeEc, function(d) { return d.data; }))
+            //    .enter()
+            //    .append('circle')
+            //    .attr('r', 8)
+            //    .attr('cx', function(d) {
+            //        return transformDateIntoXValue(d.date);
+            //    })
+            //    .attr('cy', function(d) {
+            //        return yTransform(d.consumption);
+            //    })
+            //    .style('fill', 'green');
+            //
             renderSdrs(
                 encoding,
                 activeColumns
