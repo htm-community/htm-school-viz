@@ -1,5 +1,6 @@
 #input-grid {
     height: 404px;
+    font-size: 11pt;
 }
 
 #input-grid text:hover, #input-grid text.run {

@@ -44,8 +44,12 @@ $(function() {
         return adjustedValue / range;
     }
 
-    function SPViz(name, el, spParams) {
+    function SPViz(name, el, spParams, save) {
         var me = this;
+        if (! save) {
+            save = false;
+            localStorage.clear();
+        }
         this.name = name;
         this.$el = $('#' + el);
         this.heatmap = false;
@@ -60,6 +64,8 @@ $(function() {
         });
         this._createdAt = moment();
         this._iterations = 0;
+        this.save = save;
+        if (save) this._initStorage();
     }
 
     SPViz.prototype.render = function(inputEncoding,
@@ -83,7 +89,7 @@ $(function() {
             me._iterations++;
             me.$overlapDisplay = me.$el.find('#overlap-display');
             me._rawRender();
-            //me._save();
+            if (me.save) me._save();
         });
     };
 
@@ -166,15 +172,6 @@ $(function() {
         var fullRectSize = Math.floor(Math.sqrt(squareArea));
         var rectSize = fullRectSize - 1;
         var rowLength = Math.floor(width / fullRectSize);
-        //var root = Math.sqrt(bits);
-        //var rowLength = Math.floor(root) * 2;
-        //var hasRemainder = root % 1 > 0;
-        //var numRows = rowLength;
-        //if (hasRemainder) numRows++;
-        //var rectWithStrokeWidth = Math.floor(width / rowLength);
-        //var rectWithStrokeHeight = rectWithStrokeWidth;
-        //var rectHeight = rectWithStrokeHeight - 1;
-        //var rectWidth = rectWithStrokeWidth - 1;
 
         this._svg
             .append('g')
@@ -482,33 +479,14 @@ $(function() {
 
 
     SPViz.prototype._initStorage = function() {
-        var id = this._getStorageId();
-        var batches = localStorage.getItem('batches');
-        if (! batches) {
-            batches = [];
-        } else {
-            batches = JSON.parse(batches);
-        }
-        batches.push({
-            id: id,
-            name: this.name,
-            created: this._createdAt.format(),
-            iterations: 0
-        });
-        this._batches = batches;
-        localStorage.setItem('batches', JSON.stringify(batches));
+        localStorage.setItem('sp', JSON.stringify({}));
     };
 
     SPViz.prototype._save = function() {
-        var id = this._getStorageId();
-        var payload = {
-            overlaps: this.overlaps
-        };
-        var batch = _.find(this._batches, function(b) {
-            return b.id == id;
-        });
-        localStorage[id + ':' + batch.iterations++] = JSON.stringify(payload);
-        localStorage.batches = JSON.stringify(this._batches);
+        var store = JSON.parse(localStorage.getItem('sp'));
+        if (! store.connectedSynapses) store.connectedSynapses = [];
+        store.connectedSynapses.push(this.connectedSynapses);
+        localStorage.setItem('sp', JSON.stringify(store));
     };
 
     window.HTM.utils.sp.SPViz = SPViz;

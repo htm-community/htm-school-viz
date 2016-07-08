@@ -13,7 +13,7 @@ $(function() {
     var inputValue;
     var inputEncoding;
 
-    var inputRectSize = 40;
+    var inputRectSize = 20;
     var inputGridWidth = Math.floor(Math.sqrt(inputRange));
 
     var spClient;

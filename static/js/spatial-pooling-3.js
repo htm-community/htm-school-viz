@@ -20,7 +20,7 @@ $(function() {
     var $todDisplay = $('#tod-display');
     var $weekendDisplay = $('#weekend-display');
 
-    var getConnectedSynapses;
+    var getConnectedSynapses = true;
     var getPotentialPools;
 
     var spClient;
@@ -37,7 +37,7 @@ $(function() {
     );
 
     var spViz = new HTM.utils.sp.SPViz(
-        'Hotgym', 'sp-viz', spParams
+        'Hotgym', 'sp-viz', spParams, false
     );
 
     var chartWidth = 2000;
