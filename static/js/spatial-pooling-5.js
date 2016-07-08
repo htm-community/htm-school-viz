@@ -9,11 +9,6 @@ $(function() {
     );
     var dateEncoder = new HTM.encoders.DateEncoder(51);
 
-    var data, dataCursor;
-    var dataMarker;
-    var acMarkers;
-    var ecMarkers;
-
     var learn = true;
     var playing = false;
 
@@ -40,6 +35,7 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
+    var inputChart = new HTM.utils.chart.InputChart('#input-chart');
     var chartWidth = 2000;
     var chartHeight = 300;
 
@@ -88,164 +84,6 @@ $(function() {
             loading(false);
             if (callback) callback();
         });
-    }
-
-    function drawInputChart(elId, w, h, callback) {
-        var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = w - margin.left - margin.right,
-            height = h - margin.top - margin.bottom;
-
-        var parseDate = d3.time.format("%m/%d/%y %H:%M").parse;
-
-        transformDateIntoXValue = d3.time.scale()
-            .range([0, width]);
-
-        var y = d3.scale.linear()
-            .range([height, 0]);
-
-        var color = d3.scale.category10();
-
-        var xAxis = d3.svg.axis()
-            .scale(transformDateIntoXValue)
-            .orient("bottom");
-
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
-
-        var line = d3.svg.line()
-            .interpolate("basis")
-            .x(function (d) {
-                return transformDateIntoXValue(d.date);
-            })
-            .y(function (d) {
-                return y(d.consumption);
-            });
-
-        var svg = d3.select(elId).append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        d3.csv("/static/data/hotgym-short.csv", function (error, tempData) {
-            if (error) throw error;
-
-            color.domain(d3.keys(tempData[0]).filter(function (key) {
-                return key !== "date";
-            }));
-
-            tempData.forEach(function (d) {
-                d.date = parseDate(d.date);
-            });
-
-            var gyms = color.domain().map(function (name) {
-                return {
-                    name: name,
-                    values: tempData.map(function (d) {
-                        return {date: d.date, consumption: +d[name]};
-                    })
-                };
-            });
-
-            transformDateIntoXValue.domain(d3.extent(tempData, function (d) {
-                return d.date;
-            }));
-
-            y.domain([
-                d3.min(gyms, function (c) {
-                    return d3.min(c.values, function (v) {
-                        return v.consumption;
-                    });
-                }),
-                d3.max(gyms, function (c) {
-                    return d3.max(c.values, function (v) {
-                        return v.consumption;
-                    });
-                })
-            ]);
-
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis);
-
-            svg.append("g")
-                .attr("class", "y axis")
-                .call(yAxis)
-                .append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 6)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-                .text("Energy Consumption (kW)");
-
-            var gym = svg.selectAll(".gym")
-                .data(gyms)
-                .enter().append("g")
-                .attr("class", "gym");
-
-            gym.append("path")
-                .attr("class", "line")
-                .attr("d", function (d) {
-                    return line(d.values);
-                })
-                .style("stroke-width", 2)
-                .style("stroke", function (d) {
-                    return color(d.name);
-                });
-
-            data = tempData.slice();
-            dataCursor = 0;
-
-            dataMarker = svg.append("g")
-                .attr("class", "marker")
-                .append("path")
-                .style("stroke", "red")
-                .style("stroke-width", 2);
-
-            ecMarkers = svg.append('g');
-            acMarkers = svg.append('g');
-
-            yTransform = y;
-
-            if (callback) callback();
-
-        });
-
-    }
-
-    function getUnionFromPreviousIndices(indices, sdrs) {
-        var zeros = [];
-        if (! sdrs.length) {
-            return zeros;
-        }
-        _.times(sdrs[0].length, function() { zeros.push(0); });
-        return _.reduce(_.map(indices, function(i) {
-            return sdrs[i];
-        }), function(a, b) {
-            return SDR.tools.union(a, b);
-        }, zeros);
-    }
-
-    /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
-    function getGreenToRed(percent){
-        var r, g;
-        percent = 100 - percent;
-        r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
-        g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
-        return rgbToHex(r, g, 0);
-    }
-
-    /* From http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
-    function rgbToHex(r, g, b) {
-        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-    }
-
-    function getPercentDistanceCrossed(min, value, max) {
-        var range = max - min;
-        var adjustedValue = value - min;
-        return adjustedValue / range;
     }
 
     function drawSdr(id, sdr, w, h, style) {
@@ -315,7 +153,13 @@ $(function() {
     }
 
     function runOnePointThroughSp(cursor, callback) {
-        if (! cursor) cursor = dataCursor;
+        if (cursor == undefined) cursor = inputChart.dataCursor;
+        var data = inputChart.data;
+        var dataMarker = inputChart.dataMarker;
+        var acMarkers = inputChart.acMarkers;
+        var ecMarkers = inputChart.ecMarkers;
+        var transformDateIntoXValue = inputChart.transformDateIntoXValue;
+        var yTransform = inputChart.yTransform;
         var point = data[cursor];
         var date = moment(point.date);
         var power = parseFloat(point['consumption']);
@@ -344,7 +188,7 @@ $(function() {
             var overlaps = spBits.overlaps;
 
             var closeAc = _.map(getClosestSdrIndices(
-                activeColumns, history.activeColumns, Math.floor(dataCursor * 0.1)
+                activeColumns, history.activeColumns, Math.floor(cursor * 0.1)
             ), function(inputIndex) {
                 return {
                     index: inputIndex,
@@ -366,7 +210,7 @@ $(function() {
                 .style('fill', 'orange');
 
             var closeEc = _.map(getClosestSdrIndices(
-                encoding, history.inputEncoding, Math.floor(dataCursor * 0.05)
+                encoding, history.inputEncoding, Math.floor(cursor * 0.05)
             ), function(inputIndex) {
                 return {
                     index: inputIndex,
@@ -400,11 +244,11 @@ $(function() {
     }
 
     function stepThroughData(callback) {
-        if (!playing || dataCursor == data.length - 1) {
+        if (!playing || inputChart.dataCursor == inputChart.data.length - 1) {
             if (callback) callback();
             return;
         }
-        runOnePointThroughSp(dataCursor++, stepThroughData);
+        runOnePointThroughSp(inputChart.dataCursor++, stepThroughData);
     }
 
     function addDataControlHandlers() {
@@ -422,9 +266,9 @@ $(function() {
             } else if (this.id == 'stop') {
                 stop();
             } else if (this.id == 'next') {
-                runOnePointThroughSp(dataCursor++);
+                runOnePointThroughSp(inputChart.dataCursor++);
             } else if (this.id == 'prev') {
-                runOnePointThroughSp(dataCursor--);
+                runOnePointThroughSp(inputChart.dataCursor--);
             }
         });
         //$('#learn').bootstrapSwitch({
@@ -471,17 +315,17 @@ $(function() {
         $play.find('span').attr('class', 'glyphicon glyphicon-play');
         $play.removeClass('btn-success');
         $('#input-chart').html('');
-        drawInputChart('#input-chart', chartWidth, chartHeight);
-        dataCursor = 0;
+        inputChart.render(chartWidth, chartHeight);
+        inputChart.dataCursor = 0;
         runOnePointThroughSp();
     }
 
     spParams.render(function() {
         initSp(function() {
-            drawInputChart('#input-chart', chartWidth, chartHeight, function() {
+            inputChart.render(chartWidth, chartHeight, function() {
                 //addSlider();
                 addDataControlHandlers();
-                runOnePointThroughSp();
+                runOnePointThroughSp(inputChart.dataCursor++);
             });
         });
     }, function() {
