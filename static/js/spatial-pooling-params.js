@@ -28,7 +28,10 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var spViz = new HTM.utils.sp.SPViz('SP Params', 'sp-viz', spParams);
+    var spViz = new HTM.utils.sp.SPViz(
+        '#sp-viz', spParams
+    );
+
 
     var $loading = $('#loading');
 
@@ -91,7 +94,36 @@ $(function() {
         spClient = new HTM.SpatialPoolerClient();
         loading(true);
         spClient.initialize(spParams.getParams(), function() {
+
             if (inputEncoding) {
+                spClient.compute(inputEncoding, {
+                    getConnectedSynapses: getConnectedSynapses,
+                    getPotentialPools: getPotentialPools
+                }, function(spBits) {
+                    spViz.render(
+                        inputEncoding,
+                        spBits.activeColumns,
+                        spBits.overlaps,
+                        spBits.connectedSynapses,
+                        spBits.potentialPools
+                    );
+                    loading(false);
+                });
+            } else {
+                loading(false);
+            }
+            if (callback) callback();
+
+        });
+    }
+
+    spParams.render(function() {
+        initSp(function() {
+
+            spViz.onViewOptionChange(function(showConnectedSynapses, showPotentialPools) {
+                getConnectedSynapses = showConnectedSynapses;
+                getPotentialPools = showPotentialPools;
+                loading(true);
                 spClient.compute(inputEncoding, {
                     getConnectedSynapses: getConnectedSynapses,
                     getPotentialPools: getPotentialPools
@@ -105,34 +137,8 @@ $(function() {
                         spBits.potentialPools
                     );
                 });
-            } else {
-                loading(false);
-            }
-            if (callback) callback();
-        });
-    }
+            });
 
-    spViz.onViewOptionChange(function(showConnectedSynapses, showPotentialPools) {
-        getConnectedSynapses = showConnectedSynapses;
-        getPotentialPools = showPotentialPools;
-        loading(true);
-        spClient.compute(inputEncoding, {
-            getConnectedSynapses: getConnectedSynapses,
-            getPotentialPools: getPotentialPools
-        }, function(spBits) {
-            loading(false);
-            spViz.render(
-                inputEncoding,
-                spBits.activeColumns,
-                spBits.overlaps,
-                spBits.connectedSynapses,
-                spBits.potentialPools
-            );
-        });
-    });
-
-    spParams.render(function() {
-        initSp(function() {
             renderInputGrid();
             addInputClickHander();
             $('[index=0]').click();

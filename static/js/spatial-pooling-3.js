@@ -74,7 +74,6 @@ $(function() {
                 loading(false);
                 if (callback) callback(error);
             });
-
         });
     }
 

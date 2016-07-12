@@ -54,9 +54,11 @@ class SPInterface:
 
   def POST(self):
     global sp
+    global colPotentialPools
     
     params = json.loads(web.data())
     sp = SP(**params)
+    colPotentialPools = None
     web.header("Content-Type", "application/json")
     return json.dumps({"result": "success"})
 

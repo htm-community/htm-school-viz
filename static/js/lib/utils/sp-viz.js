@@ -31,10 +31,11 @@ $(function() {
         return _.map(sortedOverlaps, function(o) { return o.index; }).slice(0, count);
     }
 
-    function loadTemplates(callback) {
+    function loadTemplates($el, callback) {
         if (! spVizTmpl) {
             $.get('/static/tmpl/sp-viz.hbs', function(tmpl) {
                 spVizTmpl = Handlebars.compile(tmpl);
+                $el.html(spVizTmpl());
                 if (callback) callback();
             });
         } else {
@@ -68,6 +69,7 @@ $(function() {
         this.$el = $(spVizSelector);
         this.heatmap = false;
         this.histogram = false;
+        this.trace = false;
         this.synapses = false;
         this.getConnectedSynapses = false;
         this.getPotentialPools = false;
@@ -96,7 +98,8 @@ $(function() {
                                       potentialPools) {
         var me = this;
         var history = this.history;
-        var cursor = me.chart.dataCursor;
+        var chart = me.chart;
+        var cursor;
         me.inputEncoding = inputEncoding;
         me.activeColumns = activeColumns;
         me.overlaps = overlaps;
@@ -106,40 +109,53 @@ $(function() {
 
         me.cumulativeOverlaps = addArrays(me.cumulativeOverlaps, me.overlaps);
 
+        function renderEverythingBesidesTheChart() {
+            me.$overlapDisplay = me.$el.find('#overlap-display');
+            me._rawRender();
+            history.inputEncoding[cursor] = inputEncoding;
+            history.activeColumns[cursor] = activeColumns;
+            history.overlaps[cursor] = overlaps;
+            if (me.save) me._save();
+        }
+
         loadCss();
-        loadTemplates(function() {
-            var data = me.chart.data;
-            var date = data[cursor].date;
+        loadTemplates(me.$el, function() {
 
-            var closeAc = _.map(getClosestSdrIndices(
-                activeColumns, history.activeColumns, Math.floor(cursor * 0.1)
-            ), function(inputIndex) {
-                return {
-                    index: inputIndex,
-                    data: data[inputIndex]
-                };
-            });
-            var closeEc = _.map(getClosestSdrIndices(
-                inputEncoding, history.inputEncoding, Math.floor(cursor * 0.05)
-            ), function(inputIndex) {
-                return {
-                    index: inputIndex,
-                    data: data[inputIndex]
-                };
-            });
+            if (chart) {
+                cursor = chart.dataCursor;
+                var data = chart.data;
+                var date = data[cursor].date;
+                var closeAc, closeEc;
 
-            me.chart.render(function() {
-                me.chart.updateChartMarkers(
-                    date, inputEncoding, activeColumns, closeAc, closeEc
-                );
-                me.$el.html(spVizTmpl());
-                me.$overlapDisplay = me.$el.find('#overlap-display');
-                me._rawRender();
-                history.inputEncoding[cursor] = inputEncoding;
-                history.activeColumns[cursor] = activeColumns;
-                history.overlaps[cursor] = overlaps;
-                if (me.save) me._save();
-            });
+                if (me.trace) {
+                    closeAc = _.map(getClosestSdrIndices(
+                        activeColumns, history.activeColumns, Math.floor(cursor * 0.1)
+                    ), function(inputIndex) {
+                        return {
+                            index: inputIndex,
+                            data: data[inputIndex]
+                        };
+                    });
+                    closeEc = _.map(getClosestSdrIndices(
+                        inputEncoding, history.inputEncoding, Math.floor(cursor * 0.05)
+                    ), function(inputIndex) {
+                        return {
+                            index: inputIndex,
+                            data: data[inputIndex]
+                        };
+                    });
+                }
+                chart.render(function() {
+                    chart.updateChartMarkers(
+                        date, inputEncoding, activeColumns, closeAc, closeEc
+                    );
+                    renderEverythingBesidesTheChart();
+                });
+            } else {
+                renderEverythingBesidesTheChart();
+            }
+
+
         });
     };
 
@@ -172,7 +188,6 @@ $(function() {
         if (connectedSynapses) me.connectedSynapses = connectedSynapses;
         this._svg = d3.select('#visualization');
         this._drawSdrs();
-        this._addSdrInteractionHandlers();
         this._addViewOptionHandlers();
     };
 
@@ -325,6 +340,14 @@ $(function() {
         var encodingWidth = 400;
         var encodingHeight = 300;
 
+        // Remove any dangling event handlers from previous drawings.
+        _.each(['input-encoding', 'active-columns', 'connected-synapses'], function (elid) {
+            var $el = $(me._svg).find('#' + elid);
+            if ($el) {
+                $el.off();
+            }
+        });
+
         this._svg.html('');
 
         me._renderEncoding(
@@ -419,6 +442,8 @@ $(function() {
             .attr('width', width)
             .attr('height', height);
 
+        me._addSdrInteractionHandlers();
+
     };
 
     SPViz.prototype._renderSynapseMap = function(canvas, synapses) {
@@ -445,9 +470,6 @@ $(function() {
 
         _.each(synapses, function(colConnections, myX) {
             var r = 60, g = 60, b = 60;
-            //if (me.activeColumns[myX]) {
-            //    r = 255;
-            //}
             _.each(colConnections, function(myY) {
                 if (me.inputEncoding[myY]) {
                     r = 255;
@@ -500,7 +522,11 @@ $(function() {
 
     SPViz.prototype._addViewOptionHandlers = function() {
         var me = this;
-        this.$el.find('#heatmap').bootstrapSwitch({
+        var $el = this.$el;
+        if (me._viewHandled) {
+            return;
+        }
+        $el.find('#heatmap').bootstrapSwitch({
             size: 'small',
             state: me.heatmap
         }).on('switchChange.bootstrapSwitch', function(event, state) {
@@ -508,7 +534,7 @@ $(function() {
             me._svg = d3.select('#visualization');
             me._drawSdrs();
         });
-        this.$el.find('#histogram').bootstrapSwitch({
+        $el.find('#histogram').bootstrapSwitch({
             size: 'small',
             state: me.histogram
         }).on('switchChange.bootstrapSwitch', function(event, state) {
@@ -516,7 +542,15 @@ $(function() {
             me._svg = d3.select('#visualization');
             me._drawSdrs();
         });
-        this.$el.find('#synapses').bootstrapSwitch({
+        $el.find('#trace').bootstrapSwitch({
+            size: 'small',
+            state: me.trace
+        }).on('switchChange.bootstrapSwitch', function(event, state) {
+            me.trace = state;
+            me._svg = d3.select('#visualization');
+            me._drawSdrs();
+        });
+        $el.find('#synapses').bootstrapSwitch({
             size: 'small',
             state: me.synapses
         }).on('switchChange.bootstrapSwitch', function(event, state) {
@@ -524,7 +558,7 @@ $(function() {
             me._svg = d3.select('#visualization');
             me._drawSdrs();
         });
-        this.$el.find('#connected').bootstrapSwitch({
+        $el.find('#connected').bootstrapSwitch({
             size: 'small',
             state: me.getConnectedSynapses
         }).on('switchChange.bootstrapSwitch', function(event, state) {
@@ -533,7 +567,7 @@ $(function() {
                 me.__onViewOptionChange(me.getConnectedSynapses, me.getPotentialPools);
             }
         });
-        this.$el.find('#potential').bootstrapSwitch({
+        $el.find('#potential').bootstrapSwitch({
             size: 'small',
             state: me.getPotentialPools
         }).on('switchChange.bootstrapSwitch', function(event, state) {
@@ -542,6 +576,7 @@ $(function() {
                 me.__onViewOptionChange(me.getConnectedSynapses, me.getPotentialPools);
             }
         });
+        me._viewHandled = true;
     };
 
     SPViz.prototype.onViewOptionChange = function(func) {
