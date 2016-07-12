@@ -39,7 +39,7 @@
   stroke-width: 1.5px;
 }
 
-.modal-dialog {
+#sp-params-modal .modal-dialog {
     width: 80%;
 }
 .modal-content .row {

@@ -82,7 +82,8 @@ $(function() {
         this.history = {
             inputEncoding: [],
             activeColumns: [],
-            overlaps: []
+            overlaps: [],
+            connections: []
         };
         if (save) this._initStorage();
     }
@@ -115,12 +116,12 @@ $(function() {
             history.inputEncoding[cursor] = inputEncoding;
             history.activeColumns[cursor] = activeColumns;
             history.overlaps[cursor] = overlaps;
+            history.connections[cursor] = connectedSynapses;
             if (me.save) me._save();
         }
 
         loadCss();
         loadTemplates(me.$el, function() {
-
             if (chart) {
                 cursor = chart.dataCursor;
                 var data = chart.data;
@@ -154,8 +155,6 @@ $(function() {
             } else {
                 renderEverythingBesidesTheChart();
             }
-
-
         });
     };
 
@@ -189,6 +188,7 @@ $(function() {
         this._svg = d3.select('#visualization');
         this._drawSdrs();
         this._addViewOptionHandlers();
+        this._renderSlider();
     };
 
     SPViz.prototype._renderHistogram = function(values,
@@ -510,14 +510,34 @@ $(function() {
             }
             me.$overlapDisplay.html(me.overlaps[bitIndex]);
         };
+
         var unhighlightEncoding = function () {
             $inputEncoding.find('rect').attr('class', '');
         };
 
+        var showColumnHistory = function(evt) {
+            var bitIndex = parseInt(evt.target.getAttribute('index'));
+            me._popupColumnHistory(bitIndex);
+        };
+
         $activeColumns.on('mousemove', highlightEncodingBits);
         $activeColumns.on('mouseout', unhighlightEncoding);
+        $activeColumns.on('click', showColumnHistory);
         $connections.on('mousemove', highlightEncodingBits);
         $connections.on('mouseout', unhighlightEncoding);
+    };
+
+    SPViz.prototype._renderSlider = function() {
+        var me = this;
+        this.$el.find('#column-history-slider').slider({
+            min: 0,
+            max: this.chart.dataCursor,
+            value: this.chart.dataCursor,
+            step: 1,
+            slide: function(event, ui) {
+                me._renderColumnConnectionSdr(me._clickedColumnIndex, ui.value);
+            }
+        });
     };
 
     SPViz.prototype._addViewOptionHandlers = function() {
@@ -577,6 +597,62 @@ $(function() {
             }
         });
         me._viewHandled = true;
+    };
+
+    SPViz.prototype._renderColumnConnectionSdr = function(index, cursor) {
+        var me = this;
+        var width = 400,
+            height = 400;
+        var sdr = this.history.inputEncoding[cursor];
+        var bits = sdr.length;
+        var area = width * height;
+        var squareArea = area / bits;
+        var fullRectSize = Math.floor(Math.sqrt(squareArea));
+        var rectSize = fullRectSize - 1;
+        var rowLength = Math.floor(width / fullRectSize);
+
+        this._clickedColumnIndex = index;
+
+        d3.select('#col-connections-svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .selectAll('rect')
+            .data(sdr)
+            .enter()
+            .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
+            .attr('x', function (d, i) {
+                var offset = i % rowLength;
+                return offset * fullRectSize;
+            })
+            .attr('y', function (d, i) {
+                var offset = Math.floor(i / rowLength);
+                return offset * fullRectSize;
+            })
+            .attr('index', function (d, i) {
+                return i;
+            })
+            .attr('style', function (d, i) {
+                var fill = ( d == 1 ? 'steelblue' : 'white');
+                var stroke = '#CACACA';
+                var strokeWidth = 1;
+                if (me.history.connections[cursor][index].includes(i)) {
+                    stroke = 'red';
+                    strokeWidth = 2;
+                }
+                return 'stroke:' + stroke + ';'
+                    + 'fill:' + fill + ';'
+                    + 'stroke-width:' + strokeWidth + ';';
+            })
+        ;
+    };
+
+    SPViz.prototype._popupColumnHistory = function(index) {
+        var cursor = this.getCursor();
+        this._renderColumnConnectionSdr(index, cursor);
+        this.$el.find('#column-history').modal({show: true});
     };
 
     SPViz.prototype.onViewOptionChange = function(func) {

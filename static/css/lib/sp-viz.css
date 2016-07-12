@@ -1,7 +1,7 @@
 rect {
     stroke: none;
 }
-#input-encoding rect {
+#input-encoding rect, #col-connections-svg rect {
     stroke : #CACACA;
 }
 rect.connected {
