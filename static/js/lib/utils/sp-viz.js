@@ -137,7 +137,7 @@ $(function() {
                         };
                     });
                     closeEc = _.map(getClosestSdrIndices(
-                        inputEncoding, history.inputEncoding, Math.floor(cursor * 0.05)
+                        inputEncoding, history.inputEncoding, Math.floor(cursor * 0.1)
                     ), function(inputIndex) {
                         return {
                             index: inputIndex,
