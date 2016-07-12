@@ -176,7 +176,6 @@ $(function() {
             var activeColumns = spBits.activeColumns;
             var overlaps = spBits.overlaps;
 
-
             var closeAc = _.map(getClosestSdrIndices(
                 activeColumns, history.activeColumns, Math.floor(cursor * 0.1)
             ), function(inputIndex) {
@@ -198,34 +197,6 @@ $(function() {
                 date, encoding, activeColumns, closeAc, closeEc
             );
 
-            //acMarkers.html('');
-            //acMarkers.selectAll('circle')
-            //    .data(_.map(closeAc, function(d) { return d.data; }))
-            //    .enter()
-            //    .append('circle')
-            //    .attr('r', 6)
-            //    .attr('cx', function(d) {
-            //        return transformDateIntoXValue(d.date);
-            //    })
-            //    .attr('cy', function(d) {
-            //        return yTransform(d.consumption);
-            //    })
-            //    .style('fill', 'orange');
-            //
-            //ecMarkers.html('');
-            //ecMarkers.selectAll('circle')
-            //    .data(_.map(closeEc, function(d) { return d.data; }))
-            //    .enter()
-            //    .append('circle')
-            //    .attr('r', 8)
-            //    .attr('cx', function(d) {
-            //        return transformDateIntoXValue(d.date);
-            //    })
-            //    .attr('cy', function(d) {
-            //        return yTransform(d.consumption);
-            //    })
-            //    .style('fill', 'green');
-            //
             renderSdrs(
                 encoding,
                 activeColumns

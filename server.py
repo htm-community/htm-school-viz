@@ -1,3 +1,4 @@
+import time
 import random
 import json
 
@@ -7,6 +8,8 @@ import numpy as np
 from nupic.research.spatial_pooler import SpatialPooler as SP
 
 global sp
+global colPotentialPools
+colPotentialPools = None
 
 urls = (
   "/", "Index",
@@ -51,12 +54,16 @@ class SPInterface:
 
   def POST(self):
     global sp
+    
     params = json.loads(web.data())
     sp = SP(**params)
     web.header("Content-Type", "application/json")
     return json.dumps({"result": "success"})
 
   def PUT(self):
+    global colPotentialPools
+    
+    requestStart = time.time()
     requestInput = web.input()
     encoding = web.data()
     
@@ -75,7 +82,7 @@ class SPInterface:
     activeCols = np.zeros(sp._numColumns, dtype="uint32")
     inputArray = np.array([int(bit) for bit in encoding.split(",")])
 
-    print "SP compute: learning on? {}".format(learn)
+    print "Entering SP compute cycle...\n\tlearning on? {}".format(learn)
 
     sp.compute(inputArray, learn, activeCols)
     web.header("Content-Type", "application/json")
@@ -90,6 +97,7 @@ class SPInterface:
 
     # Connected synapses are not cheap, so only return when asked.
     if getConnectedSynapses:
+      print "\tgetting connected synapses"
       colConnectedSynapses = []
       for colIndex in range(0, sp.getNumColumns()):
         connectedSynapses = []
@@ -103,18 +111,25 @@ class SPInterface:
 
     # Potential pools are not cheap either.
     if getPotentialPools:
-      colPotentialPools = []
-      for colIndex in range(0, sp.getNumColumns()):
-        potentialPools = []
-        potentialPoolsIndices = []
-        sp.getPotential(colIndex, potentialPools)
-        for i, pool in enumerate(potentialPools):
-          if np.asscalar(pool) == 1.0:
-            potentialPoolsIndices.append(i)
-        colPotentialPools.append(potentialPoolsIndices)
+      if colPotentialPools is None:
+        print "\tgetting potential pools"
+        colPotentialPools = []
+        for colIndex in range(0, sp.getNumColumns()):
+          potentialPools = []
+          potentialPoolsIndices = []
+          sp.getPotential(colIndex, potentialPools)
+          for i, pool in enumerate(potentialPools):
+            if np.asscalar(pool) == 1.0:
+              potentialPoolsIndices.append(i)
+          colPotentialPools.append(potentialPoolsIndices)
       response["potentialPools"] = colPotentialPools
 
-    return json.dumps(response)
+    jsonOut = json.dumps(response)
+
+    requestEnd = time.time()
+    print("\tSP compute cycle took %g seconds" % (requestEnd - requestStart))
+
+    return jsonOut
 
 
 if __name__ == "__main__":

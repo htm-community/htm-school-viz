@@ -17,6 +17,20 @@ $(function() {
         return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     }
 
+    function getClosestSdrIndices(target, sdrs, count) {
+        if (! count) count = 10;
+        var overlaps = _.map(sdrs, function(sdr, i) {
+            return {
+                overlap: SDR.tools.getOverlapScore(target, sdr),
+                index: i
+            };
+        });
+        var sortedOverlaps = _.sortBy(overlaps, function(o) {
+            return o.overlap;
+        }).reverse();
+        return _.map(sortedOverlaps, function(o) { return o.index; }).slice(0, count);
+    }
+
     function loadTemplates(callback) {
         if (! spVizTmpl) {
             $.get('/static/tmpl/sp-viz.hbs', function(tmpl) {
@@ -44,14 +58,14 @@ $(function() {
         return adjustedValue / range;
     }
 
-    function SPViz(name, el, spParams, save) {
+    function SPViz(spVizSelector, spParams, inputChart, save) {
         var me = this;
         if (! save) {
             save = false;
             localStorage.clear();
         }
-        this.name = name;
-        this.$el = $('#' + el);
+        this.chart = inputChart;
+        this.$el = $(spVizSelector);
         this.heatmap = false;
         this.histogram = false;
         this.synapses = false;
@@ -62,11 +76,18 @@ $(function() {
         _.times(this.spParams.getParams().columnDimensions[0], function() {
             me.cumulativeOverlaps.push(0);
         });
-        this._createdAt = moment();
-        this._iterations = 0;
         this.save = save;
+        this.history = {
+            inputEncoding: [],
+            activeColumns: [],
+            overlaps: []
+        };
         if (save) this._initStorage();
     }
+
+    SPViz.prototype.loadData = function(callback) {
+        this.chart.loadData(callback);
+    };
 
     SPViz.prototype.render = function(inputEncoding,
                                       activeColumns,
@@ -74,6 +95,8 @@ $(function() {
                                       connectedSynapses,
                                       potentialPools) {
         var me = this;
+        var history = this.history;
+        var cursor = me.chart.dataCursor;
         me.inputEncoding = inputEncoding;
         me.activeColumns = activeColumns;
         me.overlaps = overlaps;
@@ -85,13 +108,65 @@ $(function() {
 
         loadCss();
         loadTemplates(function() {
-            me.$el.html(spVizTmpl());
-            me._iterations++;
-            me.$overlapDisplay = me.$el.find('#overlap-display');
-            me._rawRender();
-            if (me.save) me._save();
+            var data = me.chart.data;
+            var date = data[cursor].date;
+
+            var closeAc = _.map(getClosestSdrIndices(
+                activeColumns, history.activeColumns, Math.floor(cursor * 0.1)
+            ), function(inputIndex) {
+                return {
+                    index: inputIndex,
+                    data: data[inputIndex]
+                };
+            });
+            var closeEc = _.map(getClosestSdrIndices(
+                inputEncoding, history.inputEncoding, Math.floor(cursor * 0.05)
+            ), function(inputIndex) {
+                return {
+                    index: inputIndex,
+                    data: data[inputIndex]
+                };
+            });
+
+            me.chart.render(function() {
+                me.chart.updateChartMarkers(
+                    date, inputEncoding, activeColumns, closeAc, closeEc
+                );
+                me.$el.html(spVizTmpl());
+                me.$overlapDisplay = me.$el.find('#overlap-display');
+                me._rawRender();
+                history.inputEncoding[cursor] = inputEncoding;
+                history.activeColumns[cursor] = activeColumns;
+                history.overlaps[cursor] = overlaps;
+                if (me.save) me._save();
+            });
         });
     };
+
+    SPViz.prototype.getData = function() {
+        return this.chart.data;
+    };
+
+    SPViz.prototype.getCursor = function() {
+        return this.chart.dataCursor;
+    };
+
+    SPViz.prototype.isFinished = function() {
+        return this.chart.dataCursor == this.chart.data.length - 1;
+    };
+
+    SPViz.prototype.next = function() {
+        this.chart.dataCursor++;
+    };
+
+    SPViz.prototype.prev = function() {
+        this.chart.dataCursor--;
+    };
+
+    SPViz.prototype.reset = function() {
+        this.chart.dataCursor = 0;
+    };
+
 
     SPViz.prototype._rawRender = function(connectedSynapses) {
         if (connectedSynapses) me.connectedSynapses = connectedSynapses;
@@ -472,11 +547,6 @@ $(function() {
     SPViz.prototype.onViewOptionChange = function(func) {
         this.__onViewOptionChange = func;
     };
-
-    SPViz.prototype._getStorageId = function() {
-        return this.name + ' | ' + this._createdAt.format();
-    };
-
 
     SPViz.prototype._initStorage = function() {
         localStorage.setItem('sp', JSON.stringify({}));

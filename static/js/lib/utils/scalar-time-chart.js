@@ -1,7 +1,8 @@
 $(function() {
 
-    function InputChart(elId) {
+    function InputChart(elId, csv, w, h) {
         this.elId = elId;
+        this.csv = csv;
         this.data = undefined;
         this.dataCursor = undefined;
         this.dataMarker = undefined;
@@ -9,16 +10,36 @@ $(function() {
         this.acMarkers = undefined;
         this.transformDateIntoXValue = undefined;
         this.yTransform = undefined;
+        this.margin = {top: 20, right: 20, bottom: 20, left: 20};
+        this.width = w - this.margin.left - this.margin.right;
+        this.height = h - this.margin.top - this.margin.bottom;
+
     }
 
-    InputChart.prototype.render = function(w, h, callback) {
+    InputChart.prototype.loadData = function(callback) {
+        var me = this;
+        var parseDate = d3.time.format("%m/%d/%y %H:%M").parse;
+        if (! me.data) {
+            d3.csv(me.csv, function (error, data) {
+                if (error) return callback(error);
+                data.forEach(function (d) {
+                    d.date = parseDate(d.date);
+                });
+                me.data = data;
+                me.dataCursor = 0;
+                callback();
+            });
+        } else {
+            callback();
+        }
+    };
+
+    InputChart.prototype.render = function(callback) {
         var me = this;
         var elId = this.elId;
-        var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = w - margin.left - margin.right,
-            height = h - margin.top - margin.bottom;
-
-        var parseDate = d3.time.format("%m/%d/%y %H:%M").parse;
+        var width = this.width;
+        var height = this.height;
+        var margin = this.margin;
 
         this.transformDateIntoXValue = d3.time.scale()
             .range([0, width]);
@@ -45,33 +66,31 @@ $(function() {
                 return y(d.consumption);
             });
 
-        var svg = d3.select(elId).append("svg")
+        var svg = this._lazyCreateSVG()
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        d3.csv("/static/data/hotgym-short.csv", function (error, tempData) {
+        var data = this.data;
+
+        me.loadData(function(error) {
             if (error) throw error;
 
-            color.domain(d3.keys(tempData[0]).filter(function (key) {
+            color.domain(d3.keys(data[0]).filter(function (key) {
                 return key !== "date";
             }));
-
-            tempData.forEach(function (d) {
-                d.date = parseDate(d.date);
-            });
 
             var gyms = color.domain().map(function (name) {
                 return {
                     name: name,
-                    values: tempData.map(function (d) {
+                    values: data.map(function (d) {
                         return {date: d.date, consumption: +d[name]};
                     })
                 };
             });
 
-            me.transformDateIntoXValue.domain(d3.extent(tempData, function (d) {
+            me.transformDateIntoXValue.domain(d3.extent(data, function (d) {
                 return d.date;
             }));
 
@@ -118,9 +137,6 @@ $(function() {
                     return color(d.name);
                 });
 
-            me.data = tempData.slice();
-            me.dataCursor = 0;
-
             me.dataMarker = svg.append("g")
                 .attr("class", "marker")
                 .append("path")
@@ -133,8 +149,10 @@ $(function() {
             me.yTransform = y;
 
             if (callback) callback();
-
         });
+
+
+
     };
 
     InputChart.prototype.updateChartMarkers = function(date, encoding, activeColumns, closeAc, closeEc) {
@@ -172,6 +190,15 @@ $(function() {
                 return me.yTransform(d.consumption);
             })
             .style('fill', 'green');
+    };
+
+    InputChart.prototype._lazyCreateSVG = function() {
+        if (! this.svg) {
+            this.svg = d3.select(this.elId).append("svg")
+        } else {
+            this.svg.html('');
+        }
+        return this.svg;
     };
 
     window.HTM.utils.chart = {
