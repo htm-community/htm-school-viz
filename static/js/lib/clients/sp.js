@@ -1,5 +1,16 @@
 $(function() {
 
+    function uncompressSdr(sdr) {
+        var out = [];
+        _.times(sdr.length, function() {
+            out.push(0);
+        });
+        _.each(sdr.indices, function(index) {
+            out[index] = 1;
+        });
+        return out;
+    }
+
     function SpatialPoolerClient() {}
 
     SpatialPoolerClient.prototype.initialize = function(params, callback) {
@@ -33,6 +44,7 @@ $(function() {
             url: url,
             data: encoding.join(','),
             success: function(response) {
+                response.activeColumns = uncompressSdr(response.activeColumns);
                 callback(response);
             },
             dataType: 'JSON'
