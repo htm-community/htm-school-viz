@@ -1,15 +1,16 @@
 import time
-import random
 import json
+import uuid
 
 import web
 import numpy as np
 
 from nupic.research.spatial_pooler import SpatialPooler as SP
 
-global sp
-global colPotentialPools
-colPotentialPools = None
+from htmschoolviz import SpWrapper
+
+global spWrappers
+spWrappers = {}
 
 urls = (
   "/", "Index",
@@ -27,7 +28,10 @@ def templateNameToTitle(name):
     title = title.replace("-", " ")
   return title.title()
 
+
+
 class Index:
+
 
   def GET(self):
     with open("html/index.html", "r") as indexFile:
@@ -37,10 +41,12 @@ class Index:
         indexFile.read()
       )
 
+
+
 class Client:
 
+
   def GET(self, file):
-    print file
     name = file.split(".")[0]
     path = "html/{}".format(file)
     with open(path, "r") as htmlFile:
@@ -50,25 +56,35 @@ class Client:
         htmlFile.read()
       )
 
+
+
 class SPInterface:
 
+
   def POST(self):
-    global sp
-    global colPotentialPools
-    
+    global spWrappers
+
     params = json.loads(web.data())
     sp = SP(**params)
-    colPotentialPools = None
+    spId = str(uuid.uuid4()).split('-')[0]
+    wrapper = SpWrapper(sp)
+    spWrappers[spId] = wrapper
     web.header("Content-Type", "application/json")
-    return json.dumps({"result": "success"})
+    return json.dumps({"id": spId})
+
 
   def PUT(self):
-    global colPotentialPools
-    
     requestStart = time.time()
     requestInput = web.input()
     encoding = web.data()
-    
+
+    if "id" not in requestInput:
+      print "Request must include a spatial pooler id."
+      return web.badrequest()
+
+    spId = requestInput["id"]
+    sp = spWrappers[spId].getSp()
+
     learn = True
     if "learn" in requestInput:
       learn = requestInput["learn"] == "true"
@@ -80,7 +96,7 @@ class SPInterface:
     getPotentialPools = False
     if "getPotentialPools" in requestInput:
       getPotentialPools = requestInput["getPotentialPools"] == "true"
-    
+
     activeCols = np.zeros(sp._numColumns, dtype="uint32")
     inputArray = np.array([int(bit) for bit in encoding.split(",")])
 
@@ -89,7 +105,7 @@ class SPInterface:
     sp.compute(inputArray, learn, activeCols)
     web.header("Content-Type", "application/json")
 
-    # Overlaps are cheap, so always return them. 
+    # Overlaps are cheap, so always return them.
     overlaps = sp.getOverlaps()
 
     response = {
@@ -113,17 +129,16 @@ class SPInterface:
 
     # Potential pools are not cheap either.
     if getPotentialPools:
-      if colPotentialPools is None:
-        print "\tgetting potential pools"
-        colPotentialPools = []
-        for colIndex in range(0, sp.getNumColumns()):
-          potentialPools = []
-          potentialPoolsIndices = []
-          sp.getPotential(colIndex, potentialPools)
-          for i, pool in enumerate(potentialPools):
-            if np.asscalar(pool) == 1.0:
-              potentialPoolsIndices.append(i)
-          colPotentialPools.append(potentialPoolsIndices)
+      print "\tgetting potential pools"
+      colPotentialPools = []
+      for colIndex in range(0, sp.getNumColumns()):
+        potentialPools = []
+        potentialPoolsIndices = []
+        sp.getPotential(colIndex, potentialPools)
+        for i, pool in enumerate(potentialPools):
+          if np.asscalar(pool) == 1.0:
+            potentialPoolsIndices.append(i)
+        colPotentialPools.append(potentialPoolsIndices)
       response["potentialPools"] = colPotentialPools
 
     jsonOut = json.dumps(response)
@@ -132,6 +147,7 @@ class SPInterface:
     print("\tSP compute cycle took %g seconds" % (requestEnd - requestStart))
 
     return jsonOut
+
 
 
 if __name__ == "__main__":

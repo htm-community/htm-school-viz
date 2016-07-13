@@ -3,6 +3,7 @@ $(function() {
     function SpatialPoolerClient() {}
 
     SpatialPoolerClient.prototype.initialize = function(params, callback) {
+        var me = this;
         var url = '/_sp/';
         this.params = params;
         $.ajax({
@@ -10,7 +11,7 @@ $(function() {
             url: url,
             data: JSON.stringify(params),
             success: function(response) {
-                console.log(response);
+                me._id = response.id;
                 callback(response);
             },
             dataType: 'JSON'
@@ -22,9 +23,10 @@ $(function() {
 
         if (typeof(opts) == 'function') {
             callback = opts;
-        } else {
-            url += '?' + $.param(opts);
+            opts = {};
         }
+        opts = _.merge(opts, {id: this._id});
+        url += '?' + $.param(opts);
 
         $.ajax({
             type: 'PUT',
