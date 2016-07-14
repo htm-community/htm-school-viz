@@ -67,7 +67,7 @@ class SPInterface:
     params = json.loads(web.data())
     sp = SP(**params)
     spId = str(uuid.uuid4()).split('-')[0]
-    wrapper = SpWrapper(sp)
+    wrapper = SpWrapper(spId, sp)
     spWrappers[spId] = wrapper
     web.header("Content-Type", "application/json")
     return json.dumps({"id": spId})
@@ -78,11 +78,22 @@ class SPInterface:
     requestInput = web.input()
     encoding = web.data()
 
+    getSynapses = "getConnectedSynapses" in requestInput \
+                  and requestInput["getConnectedSynapses"] == "true"
+    getPools = "potentialPools" in requestInput \
+               and requestInput["potentialPools"] == "true"
+
     if "id" not in requestInput:
       print "Request must include a spatial pooler id."
       return web.badrequest()
 
     spId = requestInput["id"]
+
+    if spId not in spWrappers:
+      print "Unknown SP id {}!".format(spId)
+      return web.badrequest()
+
+
     sp = spWrappers[spId]
 
     learn = True
@@ -93,19 +104,28 @@ class SPInterface:
 
     print "Entering SP compute cycle...\n\tlearning on? {}".format(learn)
 
-    sp.compute(inputArray, learn)
+    response = sp.compute(inputArray, learn)
 
     web.header("Content-Type", "application/json")
 
-    response = sp.getCurrentState(
-      getConnectedSynapses=requestInput["getConnectedSynapses"] == "true",
-      getPotentialPools=requestInput["getPotentialPools"] == "true"
-    )
+    if getSynapses or getPools:
+      response = sp.getCurrentState(
+        getConnectedSynapses=getSynapses,
+        getPotentialPools=getPools
+      )
+
+    print "Saving in background..."
+    self.saveSpStateInBackground(sp)
+    print "exited save"
 
     jsonOut = json.dumps(response)
     requestEnd = time.time()
     print("\tSP compute cycle took %g seconds" % (requestEnd - requestStart))
     return jsonOut
+
+
+  def saveSpStateInBackground(self, spWrapper):
+    spWrapper.saveStateToHistory()
 
 
 

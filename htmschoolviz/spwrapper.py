@@ -1,4 +1,12 @@
+import os
 import numpy as np
+import json
+
+# storage keys
+CON_SYN = "connectedSynapses"
+POT_POOLS = "potentialPools"
+ACT_COL = "activeColumns"
+OVERLAPS = "overlaps"
 
 
 def compressBinarySdr(sdr):
@@ -15,12 +23,14 @@ def compressBinarySdr(sdr):
 class SpWrapper:
 
 
-  def __init__(self, sp):
+  def __init__(self, id, sp):
+    self._id = id
     self._sp = sp
     self._potentialPools = None
-    self._history = []
     self._lastInput = None
     self._lastActiveColumns = None
+    self._index = -1
+    self._currentState = None
 
 
   def compute(self, inputArray, learn):
@@ -29,6 +39,24 @@ class SpWrapper:
     sp.compute(inputArray, learn, columns)
     self._lastInput = compressBinarySdr(inputArray)
     self._lastActiveColumns = compressBinarySdr(columns)
+    self._index += 1
+    return self.getCurrentState()
+
+
+  def getCurrentState(self, getPotentialPools=False, getConnectedSynapses=False):
+    overlaps = self.getOverlaps()
+    activeColumns = self.getActiveColumns()
+    currentState = dict()
+    currentState[OVERLAPS] = overlaps
+    currentState[ACT_COL] = activeColumns
+    if getPotentialPools:
+      pools = self._calculatePotentialPools()
+      currentState[POT_POOLS] = pools
+    if getConnectedSynapses:
+      synapses = self._calculateConnectedSynapses()
+      currentState[CON_SYN] = synapses
+    self._currentState = currentState
+    return currentState
 
 
   def getLastInput(self):
@@ -45,7 +73,25 @@ class SpWrapper:
     return self._sp.getOverlaps().tolist()
 
 
-  def calculatePotentialPools(self):
+  def saveStateToHistory(self):
+    if self._lastInput is None:
+      raise ValueError("Cannot save SP state because it has never seen input.")
+    state = self.getCurrentState(
+      getConnectedSynapses=True,
+      getPotentialPools=True
+    )
+    dirName = 'sp_' + self._id
+    dirPath = os.path.join(
+      os.path.dirname(os.path.realpath(__file__)), 'cache', dirName
+    )
+    if not os.path.exists(dirPath):
+      os.makedirs(dirPath)
+    filePath = os.path.join(dirPath, "{}.json".format(self._index))
+    with open(filePath, "wb") as fileOut:
+      fileOut.write(json.dumps(state))
+
+
+  def _calculatePotentialPools(self):
     if self._potentialPools is None:
       sp = self._sp
       self._potentialPools = []
@@ -60,7 +106,9 @@ class SpWrapper:
     return self._potentialPools
 
 
-  def calculateConnectedSynapses(self):
+  def _calculateConnectedSynapses(self):
+    if CON_SYN in self._currentState:
+      return self._currentState[CON_SYN]
     sp = self._sp
     colConnectedSynapses = []
     for colIndex in range(0, sp.getNumColumns()):
@@ -72,27 +120,6 @@ class SpWrapper:
           connectedSynapseIndices.append(i)
       colConnectedSynapses.append(connectedSynapseIndices)
     return colConnectedSynapses
-
-
-  def getCurrentState(self, getPotentialPools=False, getConnectedSynapses=False):
-    out = {
-      "overlaps": self.getOverlaps(),
-      "activeColumns": self.getActiveColumns(),
-    }
-    if getPotentialPools:
-      out["potentialPools"] = self.calculatePotentialPools()
-    if getConnectedSynapses:
-      out["connectedSynapses"] = self.calculateConnectedSynapses()
-    return out
-
-
-  def saveStateToHistory(self):
-    if self._lastInput is None:
-      raise ValueError("Cannot save SP state because it has never seen input.")
-
-    payload = self.getCurrentState()
-
-    self._history.append(payload)
 
 
   def getHistory(self, cursor):
