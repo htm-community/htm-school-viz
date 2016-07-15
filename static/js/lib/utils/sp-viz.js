@@ -59,7 +59,7 @@ $(function() {
         return adjustedValue / range;
     }
 
-    function SPViz(spVizSelector, spParams, inputChart, save) {
+    function SPViz(id, spVizSelector, spParams, inputChart, save) {
         var me = this;
         if (! save) {
             save = false;
@@ -85,6 +85,7 @@ $(function() {
             overlaps: [],
             connections: []
         };
+        this.spHistory = new HTM.SpHistoryClient(id);
         if (save) this._initStorage();
     }
 
@@ -116,7 +117,6 @@ $(function() {
             history.inputEncoding[cursor] = inputEncoding;
             history.activeColumns[cursor] = activeColumns;
             history.overlaps[cursor] = overlaps;
-            history.connections[cursor] = connectedSynapses;
             if (me.save) me._save();
         }
 
@@ -535,7 +535,7 @@ $(function() {
             value: this.chart.dataCursor,
             step: 1,
             slide: function(event, ui) {
-                me._renderColumnConnectionSdr(me._clickedColumnIndex, ui.value);
+                me._renderColumnConnectionSdr(ui.value);
             }
         });
     };
@@ -599,8 +599,7 @@ $(function() {
         me._viewHandled = true;
     };
 
-    SPViz.prototype._renderColumnConnectionSdr = function(index, cursor) {
-        var me = this;
+    SPViz.prototype._renderColumnConnectionSdr = function(cursor) {
         var width = 400,
             height = 400;
         var sdr = this.history.inputEncoding[cursor];
@@ -610,8 +609,7 @@ $(function() {
         var fullRectSize = Math.floor(Math.sqrt(squareArea));
         var rectSize = fullRectSize - 1;
         var rowLength = Math.floor(width / fullRectSize);
-
-        this._clickedColumnIndex = index;
+        var connections = this._connections;
 
         d3.select('#col-connections-svg')
             .attr('width', width)
@@ -638,7 +636,7 @@ $(function() {
                 var fill = ( d == 1 ? 'steelblue' : 'white');
                 var stroke = '#CACACA';
                 var strokeWidth = 1;
-                if (me.history.connections[cursor][index].includes(i)) {
+                if (connections[cursor].includes(i)) {
                     stroke = 'red';
                     strokeWidth = 2;
                 }
@@ -650,9 +648,13 @@ $(function() {
     };
 
     SPViz.prototype._popupColumnHistory = function(index) {
+        var me = this;
         var cursor = this.getCursor();
-        this._renderColumnConnectionSdr(index, cursor);
-        this.$el.find('#column-history').modal({show: true});
+        this.spHistory.getConnectionHistory(index, function(connections) {
+            me._connections = connections;
+            me._renderColumnConnectionSdr(cursor);
+            me.$el.find('#column-history').modal({show: true});
+        });
     };
 
     SPViz.prototype.onViewOptionChange = function(func) {
