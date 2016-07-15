@@ -128,7 +128,7 @@ class SPInterface:
 
   @staticmethod
   def saveSpStateInBackground(spWrapper):
-    p = multiprocessing.Process(target=spWrapper.saveStateToHistory)
+    p = multiprocessing.Process(target=spWrapper.saveStateToRedis)
     p.start()
 
 
@@ -136,22 +136,8 @@ class SPInterface:
 class SPHistory:
 
   def GET(self, spId, columnIndex):
-    spDir = "sp_{}".format(spId)
-    dirPath = os.path.join(
-      os.path.dirname(os.path.realpath(__file__)), 'htmschoolviz', 'cache', spDir
-    )
-    connectionFiles = [
-      f for f in os.listdir(dirPath) 
-      if re.match(r'.*connectedSynapses.*', f)
-    ]
-    columnConnections = []
-    print range(0, len(connectionFiles) - 1)
-    for cursor in range(0, len(connectionFiles) - 1):
-      fileName = "{}_col-{}_connectedSynapses.json".format(cursor, columnIndex)
-      print "reading {}".format(fileName)
-      with open(os.path.join(dirPath, fileName), "r") as historyFile:
-        columnConnections.append(historyFile.read())
-    return json.dumps({"connections": columnConnections})
+    sp = spWrappers[spId]
+    return sp.getConnectionHistoryForColumn(columnIndex)
 
 
 

@@ -535,7 +535,7 @@ $(function() {
             value: this.chart.dataCursor,
             step: 1,
             slide: function(event, ui) {
-                me._renderColumnConnectionSdr(me._clickedColumnIndex, ui.value);
+                me._renderColumnConnectionSdr(ui.value);
             }
         });
     };
@@ -599,8 +599,7 @@ $(function() {
         me._viewHandled = true;
     };
 
-    SPViz.prototype._renderColumnConnectionSdr = function(columnIndex, cursor) {
-        var me = this;
+    SPViz.prototype._renderColumnConnectionSdr = function(cursor) {
         var width = 400,
             height = 400;
         var sdr = this.history.inputEncoding[cursor];
@@ -610,51 +609,52 @@ $(function() {
         var fullRectSize = Math.floor(Math.sqrt(squareArea));
         var rectSize = fullRectSize - 1;
         var rowLength = Math.floor(width / fullRectSize);
+        var connections = this._connections;
 
-        this._clickedColumnIndex = columnIndex;
-
-        this.spHistory.getConnectionHistory(columnIndex, function(connections) {
-            d3.select('#col-connections-svg')
-                .attr('width', width)
-                .attr('height', height)
-                .append('g')
-                .selectAll('rect')
-                .data(sdr)
-                .enter()
-                .append('rect')
-                .attr('width', rectSize)
-                .attr('height', rectSize)
-                .attr('x', function (d, i) {
-                    var offset = i % rowLength;
-                    return offset * fullRectSize;
-                })
-                .attr('y', function (d, i) {
-                    var offset = Math.floor(i / rowLength);
-                    return offset * fullRectSize;
-                })
-                .attr('index', function (d, i) {
-                    return i;
-                })
-                .attr('style', function (d, i) {
-                    var fill = ( d == 1 ? 'steelblue' : 'white');
-                    var stroke = '#CACACA';
-                    var strokeWidth = 1;
-                    if (connections[cursor].includes(i)) {
-                        stroke = 'red';
-                        strokeWidth = 2;
-                    }
-                    return 'stroke:' + stroke + ';'
-                        + 'fill:' + fill + ';'
-                        + 'stroke-width:' + strokeWidth + ';';
-                })
-            ;
-        });
+        d3.select('#col-connections-svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .selectAll('rect')
+            .data(sdr)
+            .enter()
+            .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
+            .attr('x', function (d, i) {
+                var offset = i % rowLength;
+                return offset * fullRectSize;
+            })
+            .attr('y', function (d, i) {
+                var offset = Math.floor(i / rowLength);
+                return offset * fullRectSize;
+            })
+            .attr('index', function (d, i) {
+                return i;
+            })
+            .attr('style', function (d, i) {
+                var fill = ( d == 1 ? 'steelblue' : 'white');
+                var stroke = '#CACACA';
+                var strokeWidth = 1;
+                if (connections[cursor].includes(i)) {
+                    stroke = 'red';
+                    strokeWidth = 2;
+                }
+                return 'stroke:' + stroke + ';'
+                    + 'fill:' + fill + ';'
+                    + 'stroke-width:' + strokeWidth + ';';
+            })
+        ;
     };
 
     SPViz.prototype._popupColumnHistory = function(index) {
+        var me = this;
         var cursor = this.getCursor();
-        this._renderColumnConnectionSdr(index, cursor);
-        this.$el.find('#column-history').modal({show: true});
+        this.spHistory.getConnectionHistory(index, function(connections) {
+            me._connections = connections;
+            me._renderColumnConnectionSdr(cursor);
+            me.$el.find('#column-history').modal({show: true});
+        });
     };
 
     SPViz.prototype.onViewOptionChange = function(func) {

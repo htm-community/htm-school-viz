@@ -3,6 +3,8 @@ import numpy as np
 import json
 import time
 
+import redis
+
 # storage keys
 CON_SYN = "connectedSynapses"
 POT_POOLS = "potentialPools"
@@ -32,6 +34,7 @@ class SpWrapper:
     self._lastActiveColumns = None
     self._index = -1
     self._currentState = None
+    self.redis = redis.Redis("localhost")
 
 
   def compute(self, inputArray, learn):
@@ -74,45 +77,51 @@ class SpWrapper:
     return self._sp.getOverlaps().tolist()
 
 
-  def saveStateToHistory(self):
+  def saveStateToRedis(self):
+    start = time.time()
     if self._lastInput is None:
       raise ValueError("Cannot save SP state because it has never seen input.")
-    start = time.time()
     state = self.getCurrentState(
       getConnectedSynapses=True,
     )
-    dirName = 'sp_' + self._id
-    dirPath = os.path.join(
-      os.path.dirname(os.path.realpath(__file__)), 'cache', dirName
-    )
-    if not os.path.exists(dirPath):
-      os.makedirs(dirPath)
 
-    # Active columns and overlaps are small, and can be saved in one file for
+    # Active columns and overlaps are small, and can be saved in one key for
     # each time step.
     for outType in [ACT_COL, OVERLAPS]:
-      fileName = "{}_{}".format(self._index, outType)
-      filePath = os.path.join(dirPath, "{}.json".format(fileName))
-      with open(filePath, "wb") as fileOut:
-        payload = dict()
-        payload[outType] = state[outType]
-        fileOut.write(json.dumps(payload))
+      key = "{}_{}_{}".format(self._id, self._index, outType)
+      payload = dict()
+      payload[outType] = state[outType]
+      self.redis.set(key, json.dumps(payload))
 
     # Connected synapses are big, and will be broken out and saved in one file
     # per column, so they can be retrieved more efficiently by column by the
     # client later.
     columnSynapses = state[CON_SYN]
     for columnIndex, connections in enumerate(columnSynapses):
-      fileName = "{}_col-{}_{}".format(self._index, columnIndex, CON_SYN)
-      filePath = os.path.join(dirPath, "{}.json".format(fileName))
-      with open(filePath, "wb") as fileOut:
-        payload = dict()
-        payload[CON_SYN] = columnSynapses[columnIndex]
-        fileOut.write(json.dumps(payload))
+      key = "{}_{}_col-{}_{}".format(self._id, self._index, columnIndex, CON_SYN)
+      self.redis.set(key, json.dumps(columnSynapses[columnIndex]))
 
     end = time.time()
     print("\tSP state serialization took %g seconds" % (end - start))
 
+
+
+  def getConnectionHistoryForColumn(self, columnIndex):
+    searchString = "{}_*_col-{}_connectedSynapses".format(self._id, columnIndex)
+    keys = self.redis.keys(searchString)
+    columnConnections = []
+    # Doing a range because the files need to be processed in the order the data
+    # was processed, using the data cursor counting up from 0.
+    for cursor in range(0, len(keys)):
+      key = "{}_{}_col-{}_connectedSynapses".format(
+        self._id, cursor, columnIndex
+      )
+      data = self.redis.get(key)
+      if data is None:
+        print "WARNING: Missing connection data for key: {}".format(key)
+        data = "[]"
+      columnConnections.append(json.loads(data))
+    return columnConnections
 
 
 
@@ -137,13 +146,11 @@ class SpWrapper:
     sp = self._sp
     colConnectedSynapses = []
     for colIndex in range(0, sp.getNumColumns()):
-      connectedSynapses = []
+      connectedSynapses = np.zeros(shape=(sp.getInputDimensions(),))
       connectedSynapseIndices = []
       sp.getConnectedSynapses(colIndex, connectedSynapses)
-      for i, synapse in enumerate(connectedSynapses):
-        if np.asscalar(synapse) == 1.0:
-          connectedSynapseIndices.append(i)
-      colConnectedSynapses.append(connectedSynapseIndices)
+      connectedSynapseIndices = np.nonzero(connectedSynapses)
+      colConnectedSynapses.append(connectedSynapseIndices[0].tolist())
     return colConnectedSynapses
 
 
