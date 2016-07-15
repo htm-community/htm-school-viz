@@ -10,6 +10,7 @@ This is a web application with a Python server (so we can run [NuPIC](https://gi
 
 - [web.py]()
 - NuPIC (for episodes 7+)
+- Redis (for saving SP state)
 
 ### Client
 
@@ -20,6 +21,8 @@ This is a web application with a Python server (so we can run [NuPIC](https://gi
 - Moment
 
 ## Install
+
+Make sure Redis is running. Everything assumes localhost and no credentials.
 
 It's up to you to get [NuPIC](https://github.com/numenta/nupic) installed properly. It is not defined in `requirements.txt` because it doesn't install properly via pip on Linux.
 
