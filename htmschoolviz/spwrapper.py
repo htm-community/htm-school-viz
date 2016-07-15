@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import json
+import time
 
 # storage keys
 CON_SYN = "connectedSynapses"
@@ -76,9 +77,9 @@ class SpWrapper:
   def saveStateToHistory(self):
     if self._lastInput is None:
       raise ValueError("Cannot save SP state because it has never seen input.")
+    start = time.time()
     state = self.getCurrentState(
       getConnectedSynapses=True,
-      getPotentialPools=True
     )
     dirName = 'sp_' + self._id
     dirPath = os.path.join(
@@ -86,9 +87,33 @@ class SpWrapper:
     )
     if not os.path.exists(dirPath):
       os.makedirs(dirPath)
-    filePath = os.path.join(dirPath, "{}.json".format(self._index))
-    with open(filePath, "wb") as fileOut:
-      fileOut.write(json.dumps(state))
+
+    # Active columns and overlaps are small, and can be saved in one file for
+    # each time step.
+    for outType in [ACT_COL, OVERLAPS]:
+      fileName = "{}_{}".format(self._index, outType)
+      filePath = os.path.join(dirPath, "{}.json".format(fileName))
+      with open(filePath, "wb") as fileOut:
+        payload = dict()
+        payload[outType] = state[outType]
+        fileOut.write(json.dumps(payload))
+
+    # Connected synapses are big, and will be broken out and saved in one file
+    # per column, so they can be retrieved more efficiently by column by the
+    # client later.
+    columnSynapses = state[CON_SYN]
+    for columnIndex, connections in enumerate(columnSynapses):
+      fileName = "{}_col{}_{}".format(self._index, columnIndex, CON_SYN)
+      filePath = os.path.join(dirPath, "{}.json".format(fileName))
+      with open(filePath, "wb") as fileOut:
+        payload = dict()
+        payload[CON_SYN] = columnSynapses[columnIndex]
+        fileOut.write(json.dumps(payload))
+
+    end = time.time()
+    print("\tSP state serialization took %g seconds" % (end - start))
+
+
 
 
   def _calculatePotentialPools(self):

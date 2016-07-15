@@ -1,6 +1,7 @@
 import time
 import json
 import uuid
+import multiprocessing
 
 import web
 import numpy as np
@@ -114,9 +115,7 @@ class SPInterface:
         getPotentialPools=getPools
       )
 
-    print "Saving in background..."
     self.saveSpStateInBackground(sp)
-    print "exited save"
 
     jsonOut = json.dumps(response)
     requestEnd = time.time()
@@ -124,8 +123,10 @@ class SPInterface:
     return jsonOut
 
 
-  def saveSpStateInBackground(self, spWrapper):
-    spWrapper.saveStateToHistory()
+  @staticmethod
+  def saveSpStateInBackground(spWrapper):
+    p = multiprocessing.Process(target=spWrapper.saveStateToHistory)
+    p.start()
 
 
 
