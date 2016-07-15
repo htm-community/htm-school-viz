@@ -67,7 +67,7 @@ $(function() {
             );
 
             spViz = new HTM.utils.sp.SPViz(
-                '#sp-viz', spParams, inputChart, false
+                spClient._id, '#sp-viz', spParams, inputChart, false
             );
 
             spViz.loadData(function(error) {

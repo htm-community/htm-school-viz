@@ -103,7 +103,7 @@ class SpWrapper:
     # client later.
     columnSynapses = state[CON_SYN]
     for columnIndex, connections in enumerate(columnSynapses):
-      fileName = "{}_col{}_{}".format(self._index, columnIndex, CON_SYN)
+      fileName = "{}_col-{}_{}".format(self._index, columnIndex, CON_SYN)
       filePath = os.path.join(dirPath, "{}.json".format(fileName))
       with open(filePath, "wb") as fileOut:
         payload = dict()
