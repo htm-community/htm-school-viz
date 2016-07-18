@@ -69,12 +69,30 @@ class SPInterface:
     global spWrappers
 
     params = json.loads(web.data())
+
+    requestInput = web.input()
+    detailedResponse = "detailed" in requestInput \
+                  and requestInput["detailed"] == "true"
+
     sp = SP(**params)
     spId = str(uuid.uuid4()).split('-')[0]
     wrapper = SpWrapper(spId, sp)
     spWrappers[spId] = wrapper
     web.header("Content-Type", "application/json")
-    return json.dumps({"id": spId})
+    payload = {
+      "id": spId,
+    }
+
+    if detailedResponse:
+      spState = wrapper.getCurrentState(
+        getPotentialPools=True,
+        getConnectedSynapses=True,
+        getPermanences=True,
+      )
+      for key in spState:
+        payload[key] = spState[key]
+
+    return json.dumps(payload)
 
 
   def PUT(self):

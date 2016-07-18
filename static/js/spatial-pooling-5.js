@@ -193,9 +193,7 @@ $(function() {
                 };
             });
 
-            inputChart.updateChartMarkers(
-                date, encoding, activeColumns, closeAc, closeEc
-            );
+            inputChart.updateChartMarkers(date, closeAc, closeEc);
 
             renderSdrs(
                 encoding,

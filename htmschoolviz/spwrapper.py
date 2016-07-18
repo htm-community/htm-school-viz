@@ -19,7 +19,7 @@ def compressBinarySdr(sdr):
   }
   indicesOut = []
   for i, bit in enumerate(sdr):
-    if bit == 1: indicesOut.append(i)
+    if bit == 1 or bit == 1.0: indicesOut.append(i)
   out["indices"] = indicesOut
   return out
 
@@ -52,20 +52,30 @@ class SpWrapper:
                       getPotentialPools=False, 
                       getConnectedSynapses=False,
                       getPermanences=False):
-    overlaps = self.getOverlaps()
-    activeColumns = self.getActiveColumns()
+
     currentState = dict()
+
+    try:
+      activeColumns = self.getActiveColumns()
+      currentState[ACT_COL] = activeColumns
+    except RuntimeError:
+      activeColumns = None
+
+    overlaps = self.getOverlaps()
     currentState[OVERLAPS] = overlaps
-    currentState[ACT_COL] = activeColumns
+
     if getPotentialPools:
       pools = self._calculatePotentialPools()
       currentState[POT_POOLS] = pools
+
     if getConnectedSynapses:
       synapses = self._calculateConnectedSynapses()
       currentState[CON_SYN] = synapses
+
     if getPermanences:
       perms = self._calculatePermanences()
       currentState[PERMS] = perms
+
     self._currentState = currentState
     return currentState
 
@@ -81,7 +91,7 @@ class SpWrapper:
 
 
   def getOverlaps(self):
-    return self._sp.getOverlaps().tolist()
+    return compressBinarySdr(self._sp.getOverlaps().tolist())
 
 
   def saveStateToRedis(self):
@@ -162,7 +172,7 @@ class SpWrapper:
 
 
   def _calculateConnectedSynapses(self):
-    if CON_SYN in self._currentState:
+    if self._currentState is not None and CON_SYN in self._currentState:
       return self._currentState[CON_SYN]
     sp = self._sp
     colConnectedSynapses = []
@@ -176,7 +186,7 @@ class SpWrapper:
 
 
   def _calculatePermanences(self):
-    if PERMS in self._currentState:
+    if self._currentState is not None and PERMS in self._currentState:
       return self._currentState[PERMS]
     sp = self._sp
     colPerms = []

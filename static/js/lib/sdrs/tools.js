@@ -51,6 +51,14 @@ $(function() {
             return out;
         },
 
+        getEmpty: function(n) {
+            var out = [];
+            _.times(n, function() {
+                out.push(0);
+            });
+            return out;
+        },
+
         getActiveBits: function(sdr) {
             var active = [];
             _.each(sdr, function(bit, i) {

@@ -147,9 +147,7 @@ $(function() {
                     });
                 }
                 chart.render(function() {
-                    chart.updateChartMarkers(
-                        date, inputEncoding, activeColumns, closeAc, closeEc
-                    );
+                    chart.updateChartMarkers(date, closeAc, closeEc);
                     renderEverythingBesidesTheChart();
                 });
             } else {

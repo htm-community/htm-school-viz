@@ -10,9 +10,8 @@ $(function() {
         this.acMarkers = undefined;
         this.transformDateIntoXValue = undefined;
         this.yTransform = undefined;
-        this.margin = {top: 20, right: 20, bottom: 20, left: 20};
-        this.width = w - this.margin.left - this.margin.right;
-        this.height = h - this.margin.top - this.margin.bottom;
+        this.width = w;
+        this.height = h;
 
     }
 
@@ -36,10 +35,8 @@ $(function() {
 
     InputChart.prototype.render = function(callback) {
         var me = this;
-        var elId = this.elId;
         var width = this.width;
         var height = this.height;
-        var margin = this.margin;
 
         this.transformDateIntoXValue = d3.time.scale()
             .range([0, width]);
@@ -67,14 +64,14 @@ $(function() {
             });
 
         var svg = this._lazyCreateSVG()
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("width", width)
+            .attr("height", height)
             .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            ;
 
-        var data = this.data;
 
         me.loadData(function(error) {
+            var data = me.data;
             if (error) throw error;
 
             color.domain(d3.keys(data[0]).filter(function (key) {
@@ -151,11 +148,9 @@ $(function() {
             if (callback) callback();
         });
 
-
-
     };
 
-    InputChart.prototype.updateChartMarkers = function(date, encoding, activeColumns, closeAc, closeEc) {
+    InputChart.prototype.updateChartMarkers = function(date, closeAc, closeEc) {
         var me = this;
         var acMarkers = this.acMarkers;
         var ecMarkers = this.ecMarkers;
@@ -163,33 +158,54 @@ $(function() {
 
         me.dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
 
-        acMarkers.html('');
-        acMarkers.selectAll('circle')
-            .data(_.map(closeAc, function(d) { return d.data; }))
-            .enter()
-            .append('circle')
-            .attr('r', 6)
-            .attr('cx', function(d) {
-                return me.transformDateIntoXValue(d.date);
-            })
-            .attr('cy', function(d) {
-                return me.yTransform(d.consumption);
-            })
-            .style('fill', 'orange');
+        if (closeAc) {
+            acMarkers.html('');
+            acMarkers.selectAll('circle')
+                .data(_.map(closeAc, function(d) { return d.data; }))
+                .enter()
+                .append('circle')
+                .attr('r', 6)
+                .attr('cx', function(d) {
+                    return me.transformDateIntoXValue(d.date);
+                })
+                .attr('cy', function(d) {
+                    return me.yTransform(d.consumption);
+                })
+                .style('fill', 'orange');
+        }
 
-        ecMarkers.html('');
-        ecMarkers.selectAll('circle')
-            .data(_.map(closeEc, function(d) { return d.data; }))
-            .enter()
-            .append('circle')
-            .attr('r', 8)
-            .attr('cx', function(d) {
-                return me.transformDateIntoXValue(d.date);
-            })
-            .attr('cy', function(d) {
-                return me.yTransform(d.consumption);
-            })
-            .style('fill', 'green');
+        if (closeEc) {
+            ecMarkers.html('');
+            ecMarkers.selectAll('circle')
+                .data(_.map(closeEc, function(d) { return d.data; }))
+                .enter()
+                .append('circle')
+                .attr('r', 8)
+                .attr('cx', function(d) {
+                    return me.transformDateIntoXValue(d.date);
+                })
+                .attr('cy', function(d) {
+                    return me.yTransform(d.consumption);
+                })
+                .style('fill', 'green');
+        }
+    };
+
+    InputChart.prototype.onMouseMove = function(fn) {
+        var me = this;
+        var data = this.data;
+        var bisectDate = d3.bisector(function(d) { return d.date; }).left;
+        var x = this.transformDateIntoXValue;
+        this.svg.on('mousemove', function() {
+            var x0 = x.invert(d3.mouse(this)[0]),
+                i = bisectDate(data, x0, 1),
+                d0 = data[i - 1],
+                d1 = data[i],
+                d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+            var xVal = me.transformDateIntoXValue(d.date);
+            me.dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
+            fn(d);
+        });
     };
 
     InputChart.prototype._lazyCreateSVG = function() {

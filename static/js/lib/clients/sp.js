@@ -13,9 +13,16 @@ $(function() {
 
     function SpatialPoolerClient() {}
 
-    SpatialPoolerClient.prototype.initialize = function(params, callback) {
+    SpatialPoolerClient.prototype.initialize = function(params, opts, callback) {
         var me = this;
         var url = '/_sp/';
+
+        if (typeof(opts) == 'function') {
+            callback = opts;
+            opts = {};
+        }
+        url += '?' + $.param(opts);
+
         this.params = params;
         $.ajax({
             type: 'POST',
