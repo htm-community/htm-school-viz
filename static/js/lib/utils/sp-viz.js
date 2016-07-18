@@ -610,6 +610,7 @@ $(function() {
         var rectSize = fullRectSize - 1;
         var rowLength = Math.floor(width / fullRectSize);
         var connections = this._connections;
+        var permanences = this._permanences;
 
         d3.select('#col-connections-svg')
             .attr('width', width)
@@ -634,10 +635,12 @@ $(function() {
             })
             .attr('style', function (d, i) {
                 var fill = ( d == 1 ? 'steelblue' : 'white');
-                var stroke = '#CACACA';
+                var permanence = permanences[cursor][i] * 100;
+                var stroke = '#' + getGreenToRed(permanence);
+                console.log('%s : connection to input index %s is %s', stroke, i, permanence);
                 var strokeWidth = 1;
                 if (connections[cursor].includes(i)) {
-                    stroke = 'red';
+                    //stroke = 'red';
                     strokeWidth = 2;
                 }
                 return 'stroke:' + stroke + ';'
@@ -650,8 +653,9 @@ $(function() {
     SPViz.prototype._popupColumnHistory = function(index) {
         var me = this;
         var cursor = this.getCursor();
-        this.spHistory.getConnectionHistory(index, function(connections) {
-            me._connections = connections;
+        this.spHistory.getColumnHistory(index, function(history) {
+            me._connections = history.connections;
+            me._permanences = history.permanences;
             me._renderColumnConnectionSdr(cursor);
             me.$el.find('#column-history').modal({show: true});
         });

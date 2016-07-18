@@ -15,7 +15,7 @@ $(function() {
         this._id = id;
     }
 
-    SpHistoryClient.prototype.getConnectionHistory = function(columnIndex, callback) {
+    SpHistoryClient.prototype.getColumnHistory = function(columnIndex, callback) {
         var url = '/_sp/' + this._id + '/history/' + columnIndex;
 
         $.ajax({

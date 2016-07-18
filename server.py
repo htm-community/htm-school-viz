@@ -137,7 +137,12 @@ class SPHistory:
 
   def GET(self, spId, columnIndex):
     sp = spWrappers[spId]
-    return sp.getConnectionHistoryForColumn(columnIndex)
+    connections = sp.getConnectionHistoryForColumn(columnIndex)
+    permanences = sp.getPermanenceHistoryForColumn(columnIndex)
+    return json.dumps({
+      "connections": connections,
+      "permanences": permanences
+    })
 
 
 
