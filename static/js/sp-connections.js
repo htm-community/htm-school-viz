@@ -30,6 +30,7 @@ $(function() {
     var $showPerms = $('#show-perms').bootstrapSwitch({state: showPerms});
 
     var spData;
+    var locked = false;
 
     /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
     function getGreenToRed(percent){
@@ -119,6 +120,8 @@ $(function() {
         var $ppDisplay = $('#potential-pool-display');
         var $connectedDisplay = $('#connected-display');
         var $connectionThresholdDisplay = $('#connection-threshold-display');
+        var $permanenceDisplay = $('#permanence-display');
+        var clickedColumnIndex;
 
         drawSdr(columnSdr, $columns, 1040, 0, 1000, 1000);
         drawSdr(inputSdr, $input, 0, 0, 1000, 1000);
@@ -128,6 +131,7 @@ $(function() {
         var columnRects = $columns.selectAll('rect');
 
         columnRects.on('mousemove', function(noop, columnIndex) {
+            if (locked) return;
             var inputRects = $input.selectAll('rect');
             inputRects.attr('class', '');
             var pool = potentialPools[columnIndex];
@@ -155,6 +159,7 @@ $(function() {
         });
 
         $columns.on('mouseout', function() {
+            if (locked) return;
             $input.selectAll('rect')
                 .attr('class', '')
                 .attr('style', '')
@@ -163,6 +168,7 @@ $(function() {
         });
 
         columnRects.on('click', function(noop, columnIndex) {
+            locked = ! locked;
             var synapses = connectedSynapses[columnIndex];
             var colRectSize = parseInt(this.getAttribute('width'));
             var x1 = parseInt(this.getAttribute('x')) + colRectSize / 2;
@@ -185,6 +191,13 @@ $(function() {
                     .attr('r', inputRectSize / 3)
                 ;
             });
+            clickedColumnIndex = columnIndex;
+        });
+
+        $input.selectAll('rect').on('mousemove', function() {
+            var inputIndex = parseInt(this.getAttribute('index'));
+            var perm = permanences[clickedColumnIndex][inputIndex];
+            $permanenceDisplay.html(perm);
         });
     }
 
