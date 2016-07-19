@@ -11,7 +11,11 @@ $(function() {
         return out;
     }
 
-    function SpatialPoolerClient() {}
+    function SpatialPoolerClient(save) {
+        if (save != undefined) {
+            this.save = save;
+        }
+    }
 
     SpatialPoolerClient.prototype.initialize = function(params, opts, callback) {
         var me = this;
@@ -20,6 +24,9 @@ $(function() {
         if (typeof(opts) == 'function') {
             callback = opts;
             opts = {};
+        }
+        if (this.save != undefined) {
+            opts.save = this.save;
         }
         url += '?' + $.param(opts);
 

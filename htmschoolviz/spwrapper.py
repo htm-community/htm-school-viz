@@ -27,7 +27,7 @@ def compressBinarySdr(sdr):
 class SpWrapper:
 
 
-  def __init__(self, id, sp):
+  def __init__(self, id, sp, save=True):
     self._id = id
     self._sp = sp
     self._potentialPools = None
@@ -35,6 +35,7 @@ class SpWrapper:
     self._lastActiveColumns = None
     self._index = -1
     self._currentState = None
+    self.save = save
     self.redis = redis.Redis("localhost")
 
 

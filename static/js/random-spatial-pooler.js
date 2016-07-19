@@ -9,7 +9,7 @@ $(function() {
     );
     var dateEncoder = new HTM.encoders.DateEncoder(51);
 
-    var learn = true;
+    var learn = false;
     var playing = false;
 
     var history = {
@@ -35,9 +35,12 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var inputChart = new HTM.utils.chart.InputChart('#input-chart');
     var chartWidth = 2000;
     var chartHeight = 300;
+    var inputChart = new HTM.utils.chart.InputChart(
+        '#input-chart', '/static/data/hotgym-short.csv',
+        chartWidth, chartHeight
+    );
 
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
@@ -75,7 +78,7 @@ $(function() {
     }
 
     function initSp(callback) {
-        spClient = new HTM.SpatialPoolerClient();
+        spClient = new HTM.SpatialPoolerClient(false);
         loading(true);
         spClient.initialize(spParams.getParams(), function() {
             loading(false);
@@ -241,7 +244,6 @@ $(function() {
         //}).on('switchChange.bootstrapSwitch', function(event, state) {
         //    learn = state;
         //});
-
     }
 
     //function addSlider() {
@@ -286,7 +288,7 @@ $(function() {
 
     spParams.render(function() {
         initSp(function() {
-            inputChart.render(chartWidth, chartHeight, function() {
+            inputChart.render(function() {
                 //addSlider();
                 addDataControlHandlers();
                 runOnePointThroughSp(inputChart.dataCursor++);

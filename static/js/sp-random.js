@@ -34,9 +34,7 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var spViz = new HTM.utils.sp.SPViz(
-        'Random', 'sp-viz', spParams
-    );
+    var spViz;
 
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
@@ -62,7 +60,6 @@ $(function() {
     }
 
     function initSp(callback) {
-        spClient = new HTM.SpatialPoolerClient();
         loading(true);
         spClient.initialize(spParams.getParams(), function() {
             if (inputEncoding) {
@@ -151,6 +148,11 @@ $(function() {
         $('#input-chart').html('');
         drawInputChart('#input-chart');
     }
+
+    spClient = new HTM.SpatialPoolerClient();
+    spViz = new HTM.utils.sp.SPViz(
+        spClient._id, '#sp-viz', spParams
+    );
 
     spViz.onViewOptionChange(function(returnConnectedSynapses, returnPotentialPools) {
         getConnectedSynapses = returnConnectedSynapses;

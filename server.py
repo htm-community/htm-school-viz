@@ -73,10 +73,14 @@ class SPInterface:
     requestInput = web.input()
     detailedResponse = "detailed" in requestInput \
                   and requestInput["detailed"] == "true"
+    savedSp = "save" in requestInput \
+                  and requestInput["save"] == "true"
+
+    print "\n{}\n".format(savedSp)
 
     sp = SP(**params)
     spId = str(uuid.uuid4()).split('-')[0]
-    wrapper = SpWrapper(spId, sp)
+    wrapper = SpWrapper(spId, sp, save=savedSp)
     spWrappers[spId] = wrapper
     web.header("Content-Type", "application/json")
     payload = {
@@ -135,7 +139,8 @@ class SPInterface:
         getPotentialPools=getPools
       )
 
-    self.saveSpStateInBackground(sp)
+    if sp.save:
+      self.saveSpStateInBackground(sp)
 
     jsonOut = json.dumps(response)
     requestEnd = time.time()

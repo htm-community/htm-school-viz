@@ -527,6 +527,7 @@ $(function() {
 
     SPViz.prototype._renderSlider = function() {
         var me = this;
+        if (! this.chart) return;
         this.$el.find('#column-history-slider').slider({
             min: 0,
             max: this.chart.dataCursor,
@@ -668,9 +669,8 @@ $(function() {
             .attr('index', function (d, i) {
                 return d;
             })
-            .attr('style', 'fill:' + circleColor + ';stroke:' + circleColor);
+            .attr('style', 'fill:' + circleColor + ';stroke:' + circleColor)
         ;
-
     };
 
     SPViz.prototype._popupColumnHistory = function(index) {
