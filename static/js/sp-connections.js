@@ -28,9 +28,11 @@ $(function() {
     var clickedColumnIndex;
 
     // Colors
-    var inputToColumnConnectionColor = '#7CDDFF';
+    var inputToColumnConnectionColor = '#A14B5F';
     var colToInputLineColor = '#6762ff';
 
+    var permChartWidth = 300;
+    var permChartHeight = 300;
 
     /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
     function getGreenToRed(percent){
@@ -268,8 +270,8 @@ $(function() {
 
     function renderPermenanceGraphic(permanence, threshold) {
         var margin = {top: 20, right: 20, bottom: 0, left: 50},
-            width = 300 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+            width = permChartWidth - margin.left - margin.right,
+            height = permChartHeight - margin.top - margin.bottom;
         var y = d3.scale.linear()
             .domain([0.0, 1.0])
             .range([height, 0]);
