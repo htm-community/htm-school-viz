@@ -1,12 +1,6 @@
 $(function() {
 
     var scalarN = 400;
-    var inputW = 21;
-    var minInput = 0;
-    var maxInput = 55;
-    var scalarEncoder = new HTM.encoders.ScalarEncoder(
-        scalarN, inputW, minInput, maxInput
-    );
     var dateEncoder = new HTM.encoders.DateEncoder(51);
 
     var spClient;
@@ -139,7 +133,7 @@ $(function() {
             if (showPerms) {
                 _.each(perms, function(permanence, i) {
                     var rect = $input.select('#input-' + i);
-                    rect.style('fill', '#' + getGreenToRed(permanence * 100));
+                    rect.style('fill', '#' + getGreenToRed((1.0 - permanence) * 100));
                 });
                 inputRects.each(function() {
                     var rect = this;
@@ -179,7 +173,13 @@ $(function() {
                 var inputRectSize = parseInt(rect.attr('width'));
                 var x2 = parseInt(rect.attr('x')) + inputRectSize / 2;
                 var y2 = parseInt(rect.attr('y')) + inputRectSize / 2;
+                var permanence = permanences[columnIndex][i];
+                var lineColor = '#6762ff';
+                if (showPerms) {
+                    lineColor = '#' + getGreenToRed((1.0 - permanence) * 100);
+                }
                 $connections.append('line')
+                    .style('stroke', lineColor)
                     .attr('x1', x1)
                     .attr('y1', y1)
                     .attr('x2', x2)

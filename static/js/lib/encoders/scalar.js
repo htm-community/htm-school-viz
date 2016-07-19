@@ -79,7 +79,6 @@ $(function() {
             } else {
                 this.n = this.w + 1;
             }
-            //this.n = parseInt(Math.ceil(this.w * (this.range / this.radius)));
         }
 
     }

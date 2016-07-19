@@ -65,7 +65,7 @@ $(function() {
 
         var svg = this._lazyCreateSVG()
             .attr("width", width)
-            .attr("height", height)
+            .attr("height", height + 20)
             .append("g")
             ;
 

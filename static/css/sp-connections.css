@@ -37,6 +37,10 @@ button#show-sp-params {
 #input rect {
     fill: white;
 }
+#input rect:hover {
+    stroke: black;
+    stroke-width: 5px;
+}
 #input rect.pool {
     fill: #ffcc6e !important;
 }
@@ -48,7 +52,7 @@ button#show-sp-params {
 }
 
 #connections line {
-    stroke: #6762ff;
+    /*stroke: #6762ff;*/
     stroke-width: 1px;
 }
 

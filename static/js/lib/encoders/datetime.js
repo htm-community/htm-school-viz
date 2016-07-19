@@ -29,14 +29,14 @@ $(function() {
 
     DateEncoder.prototype.encodeDayOfWeek = function(input, bucketWidth) {
         if (bucketWidth && bucketWidth != this.bucketWidth) {
-            this.dayOfWeekEncoder = new HTM.encoders.PeriodicScalarEncoder(null, bucketWidth, 1, 0, 7);
+            this.dayOfWeekEncoder = new HTM.encoders.PeriodicScalarEncoder(null, bucketWidth, 1, 0, 6);
         }
         return this.dayOfWeekEncoder.encode(input.day());
     };
 
     DateEncoder.prototype.encodeWeekend= function(input, bucketWidth) {
         if (bucketWidth && bucketWidth != this.bucketWidth) {
-            this.weekendEncoder = new HTM.encoders.PeriodicScalarEncoder(null, bucketWidth, 1, 0, 2);
+            this.weekendEncoder = new HTM.encoders.PeriodicScalarEncoder(null, bucketWidth, 1, 0, 1);
         }
         var isWeekend = [0,6].indexOf(input.day()) > -1 ? 1 : 0;
         return this.weekendEncoder.encode(isWeekend);
@@ -44,7 +44,7 @@ $(function() {
 
     DateEncoder.prototype.encodeTimeOfDay= function(input, bucketWidth) {
         if (bucketWidth && bucketWidth != this.bucketWidth) {
-            this.timeOfDayEncoder = new HTM.encoders.PeriodicScalarEncoder(null, bucketWidth, 9.49, 0, 24);
+            this.timeOfDayEncoder = new HTM.encoders.PeriodicScalarEncoder(null, bucketWidth, 9.49, 0, 23);
         }
         return this.timeOfDayEncoder.encode(input.hour());
     };

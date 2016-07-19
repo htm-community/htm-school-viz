@@ -1,7 +1,7 @@
 $(function() {
 
     var scalarN = 400;
-    var inputW = 21;
+    var inputW = 27;
     var minInput = 0;
     var maxInput = 55;
     var scalarEncoder = new HTM.encoders.ScalarEncoder(
@@ -15,7 +15,7 @@ $(function() {
     var $uniquenessDisplay = $('#uniqueness-display');
 
     var chartWidth = 1800;
-    var chartHeight = 300;
+    var chartHeight = 260;
 
     var inputChart = new HTM.utils.chart.InputChart(
         '#input-chart', '/static/data/hotgym-short.csv',
@@ -30,7 +30,7 @@ $(function() {
         encoding = encoding.concat(scalarEncoder.encode(power));
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
         encoding = encoding.concat(dateEncoder.encodeWeekend(date));
-        SDR.draw(encoding, 'sdr', {spartan: true, size: 60});
+        SDR.draw(encoding, 'sdr', {spartan: true, size: 56});
 
         var uniqueness = SDR.tools.getUniqueness(encoding);
         if (Number.isNaN(uniqueness)) {
