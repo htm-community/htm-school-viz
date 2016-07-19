@@ -91,7 +91,7 @@ class SpWrapper:
 
 
   def getOverlaps(self):
-    return compressBinarySdr(self._sp.getOverlaps().tolist())
+    return self._sp.getOverlaps().tolist()
 
 
   def saveStateToRedis(self):

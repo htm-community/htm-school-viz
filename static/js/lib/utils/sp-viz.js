@@ -609,6 +609,8 @@ $(function() {
         var rowLength = Math.floor(width / fullRectSize);
         var connections = this._connections;
         var permanences = this._permanences;
+        var potentialPools = this.potentialPools;
+        var circleColor = '#6762ff';
 
         d3.select('#col-connections-svg')
             .attr('width', width)
@@ -632,20 +634,43 @@ $(function() {
                 return i;
             })
             .attr('style', function (d, i) {
-                var fill = ( d == 1 ? 'steelblue' : 'white');
+                //var potentialPool = potentialPools[i];
+                var fill = ( d == 1 ? '#CCC' : 'white');
                 var permanence = permanences[cursor][i] * 100;
-                var stroke = '#' + getGreenToRed(permanence);
-                console.log('%s : connection to input index %s is %s', stroke, i, permanence);
+                var stroke = '#' + getGreenToRed(100 - permanence);
                 var strokeWidth = 1;
-                if (connections[cursor].includes(i)) {
-                    //stroke = 'red';
-                    strokeWidth = 2;
-                }
+                //if (potentialPool.indexOf(i) == -1) {
+                //    stroke = 'white';
+                //}
+                console.log('%s : connection to input index %s is %s', stroke, i, permanence);
                 return 'stroke:' + stroke + ';'
                     + 'fill:' + fill + ';'
                     + 'stroke-width:' + strokeWidth + ';';
             })
         ;
+        d3.select('#col-connections-svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .selectAll('circle')
+            .data(connections[cursor])
+            .enter()
+            .append('circle')
+            .attr('r', rectSize / 3)
+            .attr('cx', function (d) {
+                var offset = d % rowLength;
+                return offset * fullRectSize + rectSize / 2;
+            })
+            .attr('cy', function (d) {
+                var offset = Math.floor(d / rowLength);
+                return offset * fullRectSize + rectSize / 2;
+            })
+            .attr('index', function (d, i) {
+                return d;
+            })
+            .attr('style', 'fill:' + circleColor + ';stroke:' + circleColor);
+        ;
+
     };
 
     SPViz.prototype._popupColumnHistory = function(index) {

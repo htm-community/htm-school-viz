@@ -115,7 +115,6 @@ class SPInterface:
       print "Unknown SP id {}!".format(spId)
       return web.badrequest()
 
-
     sp = spWrappers[spId]
 
     learn = True
