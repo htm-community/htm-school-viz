@@ -45,7 +45,7 @@ button#show-sp-params {
     fill: #ffcc6e !important;
 }
 
-#columns rect:hover {
+#columns rect:hover, #columns rect.clicked {
     stroke: #1f04ff;
     stroke-width: 3px;
     fill: #1f04ff;
@@ -58,4 +58,9 @@ button#show-sp-params {
 #connections circle {
     fill: #1f04ff;
     stroke: #6762ff;
+}
+
+#permanence-threshold {
+    border: solid black 1px;
+    background-color: white;
 }

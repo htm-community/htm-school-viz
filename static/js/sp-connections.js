@@ -21,10 +21,11 @@ $(function() {
     var waitingForServer = false;
 
     var showPerms = false;
-    var $showPerms = $('#show-perms').bootstrapSwitch({state: showPerms});
+    var showLines = true;
 
     var spData;
     var locked = false;
+    var clickedColumnIndex;
 
     /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
     function getGreenToRed(percent){
@@ -115,7 +116,6 @@ $(function() {
         var $connectedDisplay = $('#connected-display');
         var $connectionThresholdDisplay = $('#connection-threshold-display');
         var $permanenceDisplay = $('#permanence-display');
-        var clickedColumnIndex;
 
         drawSdr(columnSdr, $columns, 1040, 0, 1000, 1000);
         drawSdr(inputSdr, $input, 0, 0, 1000, 1000);
@@ -124,8 +124,7 @@ $(function() {
 
         var columnRects = $columns.selectAll('rect');
 
-        columnRects.on('mousemove', function(noop, columnIndex) {
-            if (locked) return;
+        var updateInputSpace = function(columnIndex) {
             var inputRects = $input.selectAll('rect');
             inputRects.attr('class', '');
             var pool = potentialPools[columnIndex];
@@ -150,6 +149,11 @@ $(function() {
             }
             $ppDisplay.html(pool.length);
             $connectedDisplay.html(connectedSynapses[columnIndex].length);
+        };
+
+        columnRects.on('mousemove', function(noop, columnIndex) {
+            if (locked) return;
+            updateInputSpace(columnIndex);
         });
 
         $columns.on('mouseout', function() {
@@ -162,12 +166,13 @@ $(function() {
         });
 
         columnRects.on('click', function(noop, columnIndex) {
-            locked = ! locked;
             var synapses = connectedSynapses[columnIndex];
             var colRectSize = parseInt(this.getAttribute('width'));
             var x1 = parseInt(this.getAttribute('x')) + colRectSize / 2;
             var y1 = parseInt(this.getAttribute('y')) + colRectSize / 2;
+            updateInputSpace(columnIndex);
             $connections.html('');
+            $columns.select('#columns-' + columnIndex).attr('class', 'clicked');
             _.each(synapses, function(i) {
                 var rect = $input.select('#input-' + i);
                 var inputRectSize = parseInt(rect.attr('width'));
@@ -178,33 +183,108 @@ $(function() {
                 if (showPerms) {
                     lineColor = '#' + getGreenToRed((1.0 - permanence) * 100);
                 }
-                $connections.append('line')
-                    .style('stroke', lineColor)
-                    .attr('x1', x1)
-                    .attr('y1', y1)
-                    .attr('x2', x2)
-                    .attr('y2', y2)
-                ;
+                if (showLines) {
+                    $connections.append('line')
+                        .style('stroke', lineColor)
+                        .attr('x1', x1)
+                        .attr('y1', y1)
+                        .attr('x2', x2)
+                        .attr('y2', y2)
+                    ;
+                }
                 $connections.append('circle')
                     .attr('cx', x2)
                     .attr('cy', y2)
                     .attr('r', inputRectSize / 3)
                 ;
             });
-            clickedColumnIndex = columnIndex;
+            lockColumn(columnIndex);
         });
 
         $input.selectAll('rect').on('mousemove', function() {
             var inputIndex = parseInt(this.getAttribute('index'));
             var perm = permanences[clickedColumnIndex][inputIndex];
             $permanenceDisplay.html(perm);
+            renderPermenanceGraphic(perm, spParams.getParams()['synPermConnected']);
         });
     }
 
-    $showPerms.on('switchChange.bootstrapSwitch', function(event, state) {
-        showPerms = state;
-        draw()
-    });
+    function lockColumn(index) {
+        if (locked) {
+            unlockColumn();
+        } else {
+            locked = true;
+            clickedColumnIndex = index;
+        }
+    }
+
+    function unlockColumn() {
+        locked = false;
+        $('rect.clicked').attr('class', '');
+    }
+
+    function renderPermenanceGraphic(permanence, threshold) {
+        var margin = {top: 20, right: 20, bottom: 0, left: 50},
+            width = 300 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+        var y = d3.scale.linear()
+            .domain([0.0, 1.0])
+            .range([height, 0]);
+        var yAxis = d3.svg.axis().scale(y).orient('left');
+        var translatedThreshold = y(threshold);
+        var color = getGreenToRed((1.0 - permanence) * 100);
+
+        var svg = d3.select("#permanence-threshold")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom);
+
+        svg.html('');
+
+        var g = svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        g.attr('width', width);
+        g.attr('height', height);
+
+        g.append('g')
+            .call(yAxis)
+        ;
+
+        // Permanence bar.
+        g.append('g')
+            .append('rect')
+            .style('fill', '#' + color)
+            .attr('x', 100)
+            .attr('y', y(permanence))
+            .attr('width', 50)
+            .attr('height', y(0));
+
+        // Threshold line.
+        g.append('g')
+            .append('line')
+            .style('stroke', 'black')
+            .style('stroke-width', '5')
+            .attr('x1', 10)
+            .attr('y1', translatedThreshold)
+            .attr('x2', width - 10)
+            .attr('y2', translatedThreshold)
+        ;
+
+    }
+
+    function initUi() {
+        var $showPerms = $('#show-perms').bootstrapSwitch({state: showPerms});
+        $showPerms.on('switchChange.bootstrapSwitch', function(event, state) {
+            showPerms = state;
+            draw()
+        });
+        var $showLines = $('#show-lines').bootstrapSwitch({state: showLines});
+        $showLines.on('switchChange.bootstrapSwitch', function(event, state) {
+            showLines = state;
+            draw()
+        });
+    }
+
 
     function paramChange() {
         initSp(function(r) {
@@ -213,6 +293,7 @@ $(function() {
         });
     }
 
+    initUi();
     spParams.render(paramChange, paramChange);
 
 });
