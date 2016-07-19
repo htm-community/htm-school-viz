@@ -27,6 +27,11 @@ $(function() {
     var locked = false;
     var clickedColumnIndex;
 
+    // Colors
+    var inputToColumnConnectionColor = '#7CDDFF';
+    var colToInputLineColor = '#6762ff';
+
+
     /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
     function getGreenToRed(percent){
         var r, g;
@@ -110,6 +115,7 @@ $(function() {
         var $input = d3.select('#input');
         var $columns = d3.select('#columns');
         var $connections = d3.select('#connections');
+        var $inputConnections = d3.select('#input-connections');
         var inputSdr = SDR.tools.getEmpty(inputSize);
         var columnSdr = SDR.tools.getEmpty(permanences.length);
         var $ppDisplay = $('#potential-pool-display');
@@ -179,7 +185,7 @@ $(function() {
                 var x2 = parseInt(rect.attr('x')) + inputRectSize / 2;
                 var y2 = parseInt(rect.attr('y')) + inputRectSize / 2;
                 var permanence = permanences[columnIndex][i];
-                var lineColor = '#6762ff';
+                var lineColor = colToInputLineColor;
                 if (showPerms) {
                     lineColor = '#' + getGreenToRed((1.0 - permanence) * 100);
                 }
@@ -201,11 +207,46 @@ $(function() {
             lockColumn(columnIndex);
         });
 
+        var showInputToColumnConnections = function(inputIndex) {
+            var columnsConnectedTo = [];
+            _.each(connectedSynapses, function(connections, columnIndex) {
+                if (connections.indexOf(inputIndex) > -1) {
+                    columnsConnectedTo.push(columnIndex);
+                }
+            });
+            $inputConnections.html('');
+            _.each(columnsConnectedTo, function(i) {
+                var rect = $columns.select('#columns-' + i);
+                var colRectSize = parseInt(rect.attr('width'));
+                var x2 = parseInt(rect.attr('x')) + colRectSize / 2;
+                var y2 = parseInt(rect.attr('y')) + colRectSize / 2;
+                $inputConnections.append('circle')
+                    .attr('cx', x2)
+                    .attr('cy', y2)
+                    .attr('r', colRectSize / 3)
+                    .attr('fill', inputToColumnConnectionColor)
+                ;
+            });
+        };
+
         $input.selectAll('rect').on('mousemove', function() {
             var inputIndex = parseInt(this.getAttribute('index'));
-            var perm = permanences[clickedColumnIndex][inputIndex];
-            $permanenceDisplay.html(perm);
-            renderPermenanceGraphic(perm, spParams.getParams()['synPermConnected']);
+            if (clickedColumnIndex != undefined) {
+                var perm = permanences[clickedColumnIndex][inputIndex];
+                $permanenceDisplay.html(perm);
+                renderPermenanceGraphic(perm, spParams.getParams()['synPermConnected']);
+            } else {
+                showInputToColumnConnections(inputIndex);
+            }
+        });
+
+        $input.selectAll('rect').on('click', function() {
+            var inputIndex = parseInt(this.getAttribute('index'));
+            showInputToColumnConnections(inputIndex);
+        });
+
+        $input.on('mouseout', function() {
+            $inputConnections.html('');
         });
     }
 
@@ -220,7 +261,9 @@ $(function() {
 
     function unlockColumn() {
         locked = false;
+        clickedColumnIndex = undefined;
         $('rect.clicked').attr('class', '');
+        $('#permanence-threshold').html('');
     }
 
     function renderPermenanceGraphic(permanence, threshold) {
