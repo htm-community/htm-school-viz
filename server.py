@@ -127,7 +127,7 @@ class SPInterface:
 
     inputArray = np.array([int(bit) for bit in encoding.split(",")])
 
-    print "Entering SP compute cycle...\n\tlearning on? {}".format(learn)
+    print "Entering SP compute cycle | Learning: {}".format(learn)
 
     response = sp.compute(inputArray, learn)
 

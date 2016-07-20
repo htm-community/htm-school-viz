@@ -35,11 +35,6 @@ p {
     font-weight: normal;
 }
 
-.back-button {
-    position: absolute;
-    right: 100px;
-    bottom: 100px;
-}
 table.props td {
     padding-right: 30px;
 }
