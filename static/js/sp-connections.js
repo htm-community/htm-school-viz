@@ -22,6 +22,7 @@ $(function() {
 
     var showPerms = false;
     var showLines = true;
+    var showInput = false;
 
     var spData;
     var locked = false;
@@ -30,6 +31,7 @@ $(function() {
     // Colors
     var inputToColumnConnectionColor = '#A14B5F';
     var colToInputLineColor = '#6762ff';
+    var connectionCircleColor = '#1f04ff';
 
     var permChartWidth = 300;
     var permChartHeight = 300;
@@ -85,6 +87,8 @@ $(function() {
         var rowLength = Math.floor(width / fullRectSize);
         var idPrefix = $el.attr('id');
 
+        $el.html('');
+
         $el
             .selectAll('rect')
             .data(sdr)
@@ -102,6 +106,9 @@ $(function() {
             })
             .attr('index', function(d, i) { return i; })
             .attr('id', function(d, i) { return idPrefix + '-' + i; })
+            .style('fill', function(d) {
+                return (showInput && d == 1 ? 'steelblue' : '');
+            })
         ;
         if (style) {
             $el.attr('style', style);
@@ -118,12 +125,13 @@ $(function() {
         var $columns = d3.select('#columns');
         var $connections = d3.select('#connections');
         var $inputConnections = d3.select('#input-connections');
-        var inputSdr = SDR.tools.getEmpty(inputSize);
+        var inputSdr = SDR.tools.getRandom(inputSize, inputSize / 3);
         var columnSdr = SDR.tools.getEmpty(permanences.length);
         var $ppDisplay = $('#potential-pool-display');
         var $connectedDisplay = $('#connected-display');
         var $connectionThresholdDisplay = $('#connection-threshold-display');
         var $permanenceDisplay = $('#permanence-display');
+        var $overlapDisplay = $('#overlap-display');
 
         drawSdr(columnSdr, $columns, 1040, 0, 1000, 1000);
         drawSdr(inputSdr, $input, 0, 0, 1000, 1000);
@@ -132,7 +140,7 @@ $(function() {
 
         var columnRects = $columns.selectAll('rect');
 
-        var updateInputSpace = function(columnIndex) {
+        var updateInputSpaceColors = function(columnIndex) {
             var inputRects = $input.selectAll('rect');
             inputRects.attr('class', '');
             var pool = potentialPools[columnIndex];
@@ -159,28 +167,13 @@ $(function() {
             $connectedDisplay.html(connectedSynapses[columnIndex].length);
         };
 
-        columnRects.on('mousemove', function(noop, columnIndex) {
-            if (locked) return;
-            updateInputSpace(columnIndex);
-        });
-
-        $columns.on('mouseout', function() {
-            if (locked) return;
-            $input.selectAll('rect')
-                .attr('class', '')
-                .attr('style', '')
-            ;
-            $connections.html('');
-        });
-
-        columnRects.on('click', function(noop, columnIndex) {
+        function drawConnectionsToInputSpace(columnIndex, columnRect) {
             var synapses = connectedSynapses[columnIndex];
-            var colRectSize = parseInt(this.getAttribute('width'));
-            var x1 = parseInt(this.getAttribute('x')) + colRectSize / 2;
-            var y1 = parseInt(this.getAttribute('y')) + colRectSize / 2;
-            updateInputSpace(columnIndex);
+            var colRectSize = parseInt(columnRect.getAttribute('width'));
+            var x1 = parseInt(columnRect.getAttribute('x')) + colRectSize / 2;
+            var y1 = parseInt(columnRect.getAttribute('y')) + colRectSize / 2;
             $connections.html('');
-            $columns.select('#columns-' + columnIndex).attr('class', 'clicked');
+            var overlapCount = 0;
             _.each(synapses, function(i) {
                 var rect = $input.select('#input-' + i);
                 var inputRectSize = parseInt(rect.attr('width'));
@@ -188,6 +181,15 @@ $(function() {
                 var y2 = parseInt(rect.attr('y')) + inputRectSize / 2;
                 var permanence = permanences[columnIndex][i];
                 var lineColor = colToInputLineColor;
+                var circleColor = connectionCircleColor;
+                if (showInput) {
+                    if (inputSdr[i] == 1) {
+                        circleColor = 'limegreen';
+                        overlapCount++;
+                    } else {
+                        circleColor = 'grey';
+                    }
+                }
                 if (showPerms) {
                     lineColor = '#' + getGreenToRed((1.0 - permanence) * 100);
                 }
@@ -204,8 +206,39 @@ $(function() {
                     .attr('cx', x2)
                     .attr('cy', y2)
                     .attr('r', inputRectSize / 3)
+                    .style('fill', circleColor)
                 ;
             });
+            if (showInput) {
+                $overlapDisplay.html(overlapCount);
+            }
+        }
+
+        columnRects.on('mousemove', function(noop, columnIndex) {
+            if (locked) return;
+            if (! showInput) {
+                updateInputSpaceColors(columnIndex);
+            } else {
+                drawConnectionsToInputSpace(columnIndex, this);
+            }
+        });
+
+        $columns.on('mouseout', function() {
+            if (locked) return;
+            if (! showInput) {
+                $input.selectAll('rect')
+                    .attr('class', '')
+                    .attr('style', '')
+                ;
+            }
+            $connections.html('');
+        });
+
+        columnRects.on('click', function(noop, columnIndex) {
+            if (! showInput) {
+                updateInputSpaceColors(columnIndex);
+            }
+            drawConnectionsToInputSpace(columnIndex, this);
             lockColumn(columnIndex);
         });
 
@@ -253,12 +286,11 @@ $(function() {
     }
 
     function lockColumn(index) {
-        if (locked) {
-            unlockColumn();
-        } else {
-            locked = true;
-            clickedColumnIndex = index;
-        }
+        locked = true;
+        clickedColumnIndex = index;
+        d3.select('#columns')
+            .select('#columns-' + clickedColumnIndex)
+            .attr('class', 'clicked');
     }
 
     function unlockColumn() {
@@ -328,6 +360,11 @@ $(function() {
             showLines = state;
             draw()
         });
+        var $showInput = $('#show-input').bootstrapSwitch({state: showInput});
+        $showInput.on('switchChange.bootstrapSwitch', function(event, state) {
+            showInput = state;
+            draw()
+        });
     }
 
 
@@ -340,5 +377,11 @@ $(function() {
 
     initUi();
     spParams.render(paramChange, paramChange);
+
+    $(document).keyup(function(e) {
+        if (e.keyCode === 27) {
+            unlockColumn();
+        }
+    });
 
 });
