@@ -11,12 +11,14 @@ $(function() {
     //    return out;
     //}
 
+    var host = 'http://localhost:8000';
+
     function SpHistoryClient(id) {
         this._id = id;
     }
 
     SpHistoryClient.prototype.getColumnHistory = function(columnIndex, callback) {
-        var url = '/_sp/' + this._id + '/history/' + columnIndex;
+        var url = host + '/_sp/' + this._id + '/history/' + columnIndex;
 
         $.ajax({
             type: 'GET',

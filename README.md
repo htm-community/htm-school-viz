@@ -1,3 +1,6 @@
+> ## Work In Progress!
+> This project is under very heavy development and will change drastically with no warning.
+
 # HTM School Visualizations
 
 These are supporting visualizations for the [HTM School](https://www.youtube.com/playlist?list=PL3yXMgtrZmDqhsFQzwUC9V8MeeVOQ7eZ9) educational video series.
@@ -8,9 +11,7 @@ This is a web application with a Python server (so we can run [NuPIC](https://gi
 
 ### Server
 
-- [web.py]()
-- NuPIC (for episodes 7+)
-- Redis (for saving SP state)
+- [web.py](http://webpy.org/) (for serving files and CORS HTTP Proxy [coming soon])
 
 ### Client
 
@@ -22,14 +23,16 @@ This is a web application with a Python server (so we can run [NuPIC](https://gi
 
 ## Install
 
-Make sure Redis is running. Everything assumes localhost and no credentials.
-
-It's up to you to get [NuPIC](https://github.com/numenta/nupic) installed properly. It is not defined in `requirements.txt` because it doesn't install properly via pip on Linux.
+Install web.py requirement:
 
     pip install -r requirements.txt
 
 ## Run
 
-    python server.py
+> **REQUIREMENT**: This server depends on the [nupic-history-server](https://github.com/htm-community/nupic-history-server) running on PORT 8000. You must have that server running for any spatial pooler visualizations to work.
+
+Now start this server on any port you like:
+
+    python server.py 8080
 
 View on <http://localhost:8080/>.

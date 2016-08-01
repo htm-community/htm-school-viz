@@ -1,5 +1,7 @@
 $(function() {
 
+    var host = 'http://localhost:8000';
+
     function uncompressSdr(sdr) {
         var out = [];
         _.times(sdr.length, function() {
@@ -19,7 +21,7 @@ $(function() {
 
     SpatialPoolerClient.prototype.initialize = function(params, opts, callback) {
         var me = this;
-        var url = '/_sp/';
+        var url = host + '/_sp/';
 
         if (typeof(opts) == 'function') {
             callback = opts;
@@ -44,7 +46,7 @@ $(function() {
     };
 
     SpatialPoolerClient.prototype.compute = function(encoding, opts, callback) {
-        var url = '/_sp/';
+        var url = host + '/_sp/';
 
         if (typeof(opts) == 'function') {
             callback = opts;
