@@ -17,6 +17,12 @@ $(function() {
         return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     }
 
+    function getPercentDistanceCrossed(min, value, max) {
+        var range = max - min;
+        var adjustedValue = value - min;
+        return adjustedValue / range;
+    }
+
     function getClosestSdrIndices(target, sdrs, count) {
         if (! count) count = 10;
         var overlaps = _.map(sdrs, function(sdr, i) {
@@ -51,12 +57,6 @@ $(function() {
         return _.map(a, function(aval, i) {
             return aval + b[i];
         });
-    }
-
-    function getPercentDistanceCrossed(min, value, max) {
-        var range = max - min;
-        var adjustedValue = value - min;
-        return adjustedValue / range;
     }
 
     function SPViz(id, spVizSelector, spParams, inputChart, save) {

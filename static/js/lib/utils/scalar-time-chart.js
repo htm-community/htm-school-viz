@@ -1,5 +1,26 @@
 $(function() {
 
+    /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
+    function getGreenToRed(percent){
+        var r, g;
+        percent = 100 - percent;
+        r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
+        g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
+        return rgbToHex(r, g, 0);
+    }
+
+    /* From http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
+    function rgbToHex(r, g, b) {
+        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    function getPercentDistanceCrossed(min, value, max) {
+        var range = max - min;
+        var adjustedValue = value - min;
+        return adjustedValue / range;
+    }
+
+
     function InputChart(elId, csv, w, h) {
         this.elId = elId;
         this.csv = csv;
@@ -8,6 +29,7 @@ $(function() {
         this.dataMarker = undefined;
         this.ecMarkers = undefined;
         this.acMarkers = undefined;
+        this.overlapMarkers = undefined;
         this.transformDateIntoXValue = undefined;
         this.yTransform = undefined;
         this.width = w;
@@ -142,6 +164,7 @@ $(function() {
 
             me.ecMarkers = svg.append('g');
             me.acMarkers = svg.append('g');
+            me.overlapMarkers = svg.append('g');
 
             me.yTransform = y;
 
@@ -189,6 +212,34 @@ $(function() {
                 })
                 .style('fill', 'green');
         }
+    };
+
+    InputChart.prototype.renderOverlapHistory = function(date, overlaps, data) {
+        var me = this;
+        var overlapMarkers = this.overlapMarkers;
+        var xVal = me.transformDateIntoXValue(date);
+        var min = _.min(overlaps);
+        var max = _.max(overlaps);
+
+        me.dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
+
+        overlapMarkers.html('');
+        overlapMarkers.selectAll('circle')
+            .data(overlaps)
+            .enter()
+            .append('circle')
+            .attr('r', 4)
+            .attr('cx', function(d, i) {
+                return me.transformDateIntoXValue(data[i].date);
+            })
+            .attr('cy', function(d, i) {
+                return me.yTransform(data[i].consumption);
+            })
+            .style('fill', function(d) {
+                var perc = getPercentDistanceCrossed(min, d, max);
+                var color = getGreenToRed((1.0 - perc) * 100);
+                return '#' + color;
+            });
     };
 
     InputChart.prototype.onMouseMove = function(fn) {

@@ -15,11 +15,14 @@
 </button>
 
 <div class="row">
-    <div class="col-md-2">
+    <div class="col-md-3">
         <div class="player text-center">
             <button type="button" id="play" class="btn">
                         <span class="glyphicon glyphicon-play"
                               aria-hidden="true"></span>
+            </button>
+            <button type="button" id="next" class="btn">
+                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
             </button>
         </div>
         <div class="row">
@@ -34,8 +37,13 @@
             <div class="col-sm-6 data-label">weekend</div>
             <div class="col-sm-6 data" id="weekend-display"></div>
         </div>
+        <div class="row">
+            <div class="col-sm-2 data-label">noise</div>
+            <div class="col-sm-2 data" id="noise-display">loading...</div>
+            <div class="col-sm-8 slider" id="noise-slider"></div>
+        </div>
     </div>
-    <div class="col-md-10">
+    <div class="col-md-9">
 
         <div class="row">
             <div class="col-md-12" id="random-chart"></div>
@@ -62,7 +70,10 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4" id="input-encoding"></div>
+        <div class="col-md-4">
+            <div id="input-encoding"></div>
+            <div id="noisy-encoding"></div>
+        </div>
         <div class="col-md-4" id="random-columns"></div>
         <div class="col-md-4" id="learning-columns"></div>
     </div>

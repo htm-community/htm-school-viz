@@ -11,6 +11,7 @@ $(function() {
 
     var learn = false;
     var playing = false;
+    var noise = 0.2;
 
     var randomHistory = {
         inputEncoding: [],
@@ -38,7 +39,7 @@ $(function() {
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var chartWidth = 2000;
+    var chartWidth = 1900;
     var chartHeight = 120;
     var randomChart = new HTM.utils.chart.InputChart(
         '#random-chart', '/static/data/hotgym-short.csv',
@@ -70,14 +71,18 @@ $(function() {
         }
     }
 
-    function getClosestSdrIndices(target, sdrs, count) {
-        if (! count) count = 10;
-        var overlaps = _.map(sdrs, function(sdr, i) {
+    function getOverlaps(target, sdrs) {
+        return _.map(sdrs, function (sdr, i) {
             return {
                 overlap: SDR.tools.getOverlapScore(target, sdr),
                 index: i
             };
         });
+    }
+
+    function getClosestSdrIndices(target, sdrs, count) {
+        if (! count) count = 10;
+        var overlaps = getOverlaps(target, sdrs);
         var sortedOverlaps = _.sortBy(overlaps, function(o) {
             return o.overlap;
         }).reverse();
@@ -175,6 +180,7 @@ $(function() {
         var date = moment(point.date);
         var power = parseFloat(point['consumption']);
         var encoding = [];
+        var noisyEncoding = [];
         var day = date.day();
         var isWeekend = (day == 6) || (day == 0);    // 6 = Saturday, 0 = Sunday
 
@@ -188,6 +194,8 @@ $(function() {
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
         encoding = encoding.concat(dateEncoder.encodeWeekend(date));
 
+        noisyEncoding = SDR.tools.addNoise(encoding, noise);
+
         function getClosest(target, sdrs, data, perc) {
             return _.map(getClosestSdrIndices(
                 target, sdrs, Math.floor(cursor * perc)
@@ -200,26 +208,28 @@ $(function() {
         }
 
         // Run encoding through SP.
-        randomSpClient.compute(encoding, {
+        randomSpClient.compute(noisyEncoding, {
             learn: learn
         }, function(randomSpBits) {
             var randomAc = randomSpBits.activeColumns;
-            var showPerc = 0.1;
 
-            learningSpClient.compute(encoding, {
+            learningSpClient.compute(noisyEncoding, {
                 learn: true
             }, function(learningSpBits) {
                 var learningAc = learningSpBits.activeColumns;
 
-                var closeRandomAc = getClosest(randomAc, randomHistory.activeColumns, data, showPerc);
-                var closeLearningAc = getClosest(learningAc, learningHistory.activeColumns, data, showPerc);
-                var closeEc = getClosest(encoding, randomHistory.inputEncoding, data, showPerc);
+                var randomAcOverlaps = _.map(randomHistory.activeColumns, function(hist) {
+                    return SDR.tools.getOverlapScore(randomAc, hist);
+                });
+                var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
+                    return SDR.tools.getOverlapScore(learningAc, hist);
+                });
 
-                randomChart.updateChartMarkers(date, closeRandomAc, closeEc);
-                learningChart.updateChartMarkers(date, closeLearningAc, closeEc);
+                randomChart.renderOverlapHistory(date, randomAcOverlaps, data);
+                learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
 
                 renderSdrs(
-                    encoding,
+                    noisyEncoding,
                     randomAc,
                     learningAc
                 );
@@ -255,6 +265,26 @@ $(function() {
                     $btn.find('span').attr('class', 'glyphicon glyphicon-pause');
                 }
                 $btn.toggleClass('btn-success');
+            } else if (this.id == 'next') {
+                runOnePointThroughSp();
+                randomChart.dataCursor++;
+                learningChart.dataCursor++;
+            }
+        });
+    }
+
+    function createSlider() {
+        var $noiseSlider = $('#noise-slider');
+        var $noiseDisplay = $('#noise-display');
+        $noiseDisplay.html(noise);
+        $noiseSlider.slider({
+            min: 0.0,
+            max: 1.0,
+            value: noise,
+            step: 0.1,
+            slide: function(event, ui) {
+                noise = ui.value;
+                $noiseDisplay.html(noise);
             }
         });
     }
@@ -271,6 +301,7 @@ $(function() {
     }
 
     spParams.render(function() {
+        createSlider();
         initSp(function() {
             randomChart.render(function() {
                 learningChart.render(function() {
