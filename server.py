@@ -1,9 +1,11 @@
 import web
+import requests
 
-
+NUPIC_SERVER = "http://localhost:8000"
 urls = (
   "/", "Index",
   "/client/(.+)", "Client",
+  "/_proxy/(.+)", "Proxy",
 )
 app = web.application(urls, globals())
 render = web.template.render("tmpl/")
@@ -43,6 +45,30 @@ class Client:
         templateNameToTitle(name),
         htmlFile.read()
       )
+
+
+class Proxy:
+
+
+  def GET(self, _):
+    return self._proxy()
+
+
+  def POST(self, _):
+    return self._proxy()
+
+
+  def PUT(self, _):
+    return self._proxy()
+
+
+  def _proxy(self):
+    path = web.ctx.fullpath
+    destinationUrl = path.replace("/_proxy", NUPIC_SERVER)
+    method = web.ctx.method
+    data = web.data()
+    response = requests.request(method, destinationUrl, data=data)
+    return response.text
 
 
 

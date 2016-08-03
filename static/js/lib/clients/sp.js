@@ -1,6 +1,6 @@
 $(function() {
 
-    var host = 'http://localhost:8000';
+    var host = '/_proxy';
 
     function uncompressSdr(sdr) {
         var out = [];
