@@ -11,7 +11,8 @@ $(function() {
 
     var learn = false;
     var playing = false;
-    var noise = 0.2;
+    var save = false;
+    var noise = 0.0;
 
     var randomHistory = {
         inputEncoding: [],
@@ -35,8 +36,11 @@ $(function() {
         + dateEncoder.weekendEncoder.getWidth()
     ];
     var columnDimensions = [2048];
-    var spParams = new HTM.utils.sp.Params(
-        'sp-params', inputDimensions, columnDimensions
+    var randSpParams = new HTM.utils.sp.Params(
+        '', inputDimensions, columnDimensions
+    );
+    var learnSpParams = new HTM.utils.sp.Params(
+        '', inputDimensions, columnDimensions
     );
 
     var chartWidth = 1900;
@@ -71,31 +75,14 @@ $(function() {
         }
     }
 
-    function getOverlaps(target, sdrs) {
-        return _.map(sdrs, function (sdr, i) {
-            return {
-                overlap: SDR.tools.getOverlapScore(target, sdr),
-                index: i
-            };
-        });
-    }
-
-    function getClosestSdrIndices(target, sdrs, count) {
-        if (! count) count = 10;
-        var overlaps = getOverlaps(target, sdrs);
-        var sortedOverlaps = _.sortBy(overlaps, function(o) {
-            return o.overlap;
-        }).reverse();
-        return _.map(sortedOverlaps, function(o) { return o.index; }).slice(0, count);
-    }
-
     function initSp(callback) {
-        var params = spParams.getParams();
         loading(true);
-        randomSpClient = new HTM.SpatialPoolerClient(false);
-        learningSpClient = new HTM.SpatialPoolerClient(false);
-        randomSpClient.initialize(params, function() {
-            learningSpClient.initialize(params, function() {
+        // This might be an interested view to show boosting in action.
+        //learnSpParams.setParam("maxBoost", 2);
+        randomSpClient = new HTM.SpatialPoolerClient(save);
+        learningSpClient = new HTM.SpatialPoolerClient(save);
+        randomSpClient.initialize(randSpParams.getParams(), function() {
+            learningSpClient.initialize(learnSpParams.getParams(), function() {
                 loading(false);
                 if (callback) callback();
             });
@@ -196,17 +183,6 @@ $(function() {
 
         noisyEncoding = SDR.tools.addNoise(encoding, noise);
 
-        function getClosest(target, sdrs, data, perc) {
-            return _.map(getClosestSdrIndices(
-                target, sdrs, Math.floor(cursor * perc)
-            ), function(inputIndex) {
-                return {
-                    index: inputIndex,
-                    data: data[inputIndex]
-                };
-            });
-        }
-
         // Run encoding through SP.
         randomSpClient.compute(noisyEncoding, {
             learn: learn
@@ -281,7 +257,7 @@ $(function() {
             min: 0.0,
             max: 1.0,
             value: noise,
-            step: 0.1,
+            step: 0.01,
             slide: function(event, ui) {
                 noise = ui.value;
                 $noiseDisplay.html(noise);
@@ -300,20 +276,17 @@ $(function() {
         playing = false;
     }
 
-    spParams.render(function() {
-        createSlider();
-        initSp(function() {
-            randomChart.render(function() {
-                learningChart.render(function() {
-                    addDataControlHandlers();
-                    runOnePointThroughSp();
-                    randomChart.dataCursor++;
-                    learningChart.dataCursor++;
-                });
+    createSlider();
+
+    initSp(function() {
+        randomChart.render(function() {
+            learningChart.render(function() {
+                addDataControlHandlers();
+                runOnePointThroughSp();
+                randomChart.dataCursor++;
+                learningChart.dataCursor++;
             });
         });
-    }, function() {
-        initSp();
     });
 
 });

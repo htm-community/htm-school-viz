@@ -17,6 +17,7 @@ $(function() {
     function getPercentDistanceCrossed(min, value, max) {
         var range = max - min;
         var adjustedValue = value - min;
+        if (range == 0) return 0;
         return adjustedValue / range;
     }
 

@@ -67,3 +67,14 @@ text {
 body {
     margin: 0;
 }
+
+#random-chart-label {
+    position: absolute;
+    top: 74px;
+    left: 700px;
+}
+#learning-chart-label {
+    position: absolute;
+    top: 220px;
+    left: 700px;
+}

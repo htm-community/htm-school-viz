@@ -148,6 +148,13 @@ $(function() {
         return out;
     };
 
+    SPParams.prototype.setParam = function(key, value) {
+        if (this.params[key] == undefined) {
+            throw Error("Missing SP Param '" + key + "'");
+        }
+        this.params[key] = value;
+    };
+
     SPParams.prototype.render = function(renderDone, valuesChanged) {
         var me = this;
         var data = {sides: [[],[]]};
