@@ -78,7 +78,7 @@ $(function() {
     }
 
     function initSp(callback) {
-        spClient = new HTM.SpatialPoolerClient(false);
+        spClient = new HTM.SpatialPoolerClient();
         loading(true);
         spClient.initialize(spParams.getParams(), function() {
             loading(false);
@@ -175,7 +175,8 @@ $(function() {
         // Run encoding through SP.
         spClient.compute(encoding, {
             learn: learn
-        }, function(spBits) {
+        }, function(err, spBits) {
+            if (err) throw err;
             var activeColumns = spBits.activeColumns;
             var overlaps = spBits.overlaps;
 

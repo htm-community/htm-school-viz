@@ -14,8 +14,11 @@ $(function() {
     }
 
     function SpatialPoolerClient(save) {
+        this._id = undefined;
         if (save != undefined) {
             this.save = save;
+        } else {
+            this.save = undefined;
         }
     }
 
@@ -28,7 +31,7 @@ $(function() {
             opts = {};
         }
         if (this.save != undefined) {
-            opts.save = this.save;
+            opts.save = this.save.join(',');
         }
         url += '?' + $.param(opts);
 
@@ -38,8 +41,8 @@ $(function() {
             url: url,
             data: JSON.stringify(params),
             success: function(response) {
-                me._id = response.id;
-                callback(response);
+                me._id = response.meta.id;
+                callback(null, response);
             },
             dataType: 'JSON'
         });
@@ -61,11 +64,23 @@ $(function() {
             data: encoding.join(','),
             success: function(response) {
                 response.activeColumns = uncompressSdr(response.activeColumns);
-                callback(response);
+                callback(null, response);
             },
             dataType: 'JSON'
         });
     };
 
+    var SpSnapshots = {
+        INPUT: 'input',
+        ACT_COL: 'activeColumns',
+        POT_POOLS: 'potentialPools',
+        CON_SYN: 'connectedSynapses',
+        PERMS: 'permanences',
+        OVERLAPS: 'overlaps',
+        ACT_DC: 'activeDutyCycles',
+        OVP_DC: 'overlapDutyCycles'
+    };
+
     window.HTM.SpatialPoolerClient = SpatialPoolerClient;
+    window.HTM.SpSnapshots = SpSnapshots;
 });

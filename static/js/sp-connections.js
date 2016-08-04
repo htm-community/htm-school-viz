@@ -68,13 +68,15 @@ $(function() {
     }
 
     function initSp(callback) {
-        spClient = new HTM.SpatialPoolerClient();
+        spClient = new HTM.SpatialPoolerClient([
+            HTM.SpSnapshots.POT_POOLS,
+            HTM.SpSnapshots.PERMS,
+            HTM.SpSnapshots.CON_SYN
+        ]);
         loading(true);
-        spClient.initialize(spParams.getParams(), {
-            detailed: true
-        }, function(resp) {
+        spClient.initialize(spParams.getParams(), function(err, resp) {
             loading(false);
-            if (callback) callback(resp);
+            if (callback) callback(err, resp);
         });
     }
 
@@ -369,7 +371,8 @@ $(function() {
 
 
     function paramChange() {
-        initSp(function(r) {
+        initSp(function(err, r) {
+            if (err) throw err;
             spData = r;
             draw()
         });

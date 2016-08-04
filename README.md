@@ -7,11 +7,11 @@ These are supporting visualizations for the [HTM School](https://www.youtube.com
 
 ## Stack
 
-This is a web application with a Python server (so we can run [NuPIC](https://github.com/numenta/nupic) and a JavaScript frontend.
+This is a web application with a Python server and a JavaScript frontend.
 
 ### Server
 
-- [web.py](http://webpy.org/) (for serving files and CORS HTTP Proxy [coming soon])
+- [web.py](http://webpy.org/) (for serving files and HTTP Proxy to [NuPIC History Server](https://github.com/htm-community/nupic-history-server))
 
 ### Client
 

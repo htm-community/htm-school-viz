@@ -11,8 +11,10 @@ $(function() {
 
     var learn = false;
     var playing = false;
-    var save = false;
     var noise = 0.0;
+    var save = [
+        HTM.SpSnapshots.PERMS
+    ];
 
     var randomHistory = {
         inputEncoding: [],
@@ -75,17 +77,23 @@ $(function() {
         }
     }
 
-    function initSp(callback) {
+    function initSp(mainCallback) {
+        var inits = [];
         loading(true);
         // This might be an interested view to show boosting in action.
         //learnSpParams.setParam("maxBoost", 2);
-        randomSpClient = new HTM.SpatialPoolerClient(save);
+        randomSpClient = new HTM.SpatialPoolerClient();
         learningSpClient = new HTM.SpatialPoolerClient(save);
-        randomSpClient.initialize(randSpParams.getParams(), function() {
-            learningSpClient.initialize(learnSpParams.getParams(), function() {
-                loading(false);
-                if (callback) callback();
-            });
+        inits.push(function(callback) {
+            randomSpClient.initialize(randSpParams.getParams(), callback);
+        });
+        inits.push(function(callback) {
+            learningSpClient.initialize(learnSpParams.getParams(), callback);
+        });
+        async.parallel(inits, function(err) {
+            if (err) throw err;
+            loading(false);
+            if (mainCallback) mainCallback();
         });
     }
 
@@ -159,7 +167,7 @@ $(function() {
         );
     }
 
-    function runOnePointThroughSp(callback) {
+    function runOnePointThroughSp(mainCallback) {
         var chart = randomChart;
         var cursor = chart.dataCursor;
         var data = chart.data;
@@ -170,6 +178,7 @@ $(function() {
         var noisyEncoding = [];
         var day = date.day();
         var isWeekend = (day == 6) || (day == 0);    // 6 = Saturday, 0 = Sunday
+        var computes = {};
 
         // Update UI display of current data point.
         $powerDisplay.html(power);
@@ -183,40 +192,78 @@ $(function() {
 
         noisyEncoding = SDR.tools.addNoise(encoding, noise);
 
-        // Run encoding through SP.
-        randomSpClient.compute(noisyEncoding, {
-            learn: learn
-        }, function(randomSpBits) {
-            var randomAc = randomSpBits.activeColumns;
-
+        computes.random = function(callback) {
+            randomSpClient.compute(noisyEncoding, {
+                learn: learn
+            }, callback);
+        };
+        computes.learning = function(callback) {
             learningSpClient.compute(noisyEncoding, {
                 learn: true
-            }, function(learningSpBits) {
-                var learningAc = learningSpBits.activeColumns;
+            }, callback);
+        };
 
-                var randomAcOverlaps = _.map(randomHistory.activeColumns, function(hist) {
-                    return SDR.tools.getOverlapScore(randomAc, hist);
-                });
-                var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
-                    return SDR.tools.getOverlapScore(learningAc, hist);
-                });
+        async.parallel(computes, function(error, response) {
+            if (error) throw error;
 
-                randomChart.renderOverlapHistory(date, randomAcOverlaps, data);
-                learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
+            var randomAc = response.random.activeColumns;
+            var learningAc = response.learning.activeColumns;
 
-                renderSdrs(
-                    noisyEncoding,
-                    randomAc,
-                    learningAc
-                );
-
-                randomHistory.inputEncoding[cursor] = encoding;
-                randomHistory.activeColumns[cursor] = randomAc;
-                learningHistory.activeColumns[cursor] = learningAc;
-                if (callback) callback();
+            var randomAcOverlaps = _.map(randomHistory.activeColumns, function(hist) {
+                return SDR.tools.getOverlapScore(randomAc, hist);
+            });
+            var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
+                return SDR.tools.getOverlapScore(learningAc, hist);
             });
 
+            randomChart.renderOverlapHistory(date, randomAcOverlaps, data);
+            learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
+
+            renderSdrs(
+                noisyEncoding,
+                randomAc,
+                learningAc
+            );
+
+            randomHistory.inputEncoding[cursor] = encoding;
+            randomHistory.activeColumns[cursor] = randomAc;
+            learningHistory.activeColumns[cursor] = learningAc;
+            if (mainCallback) mainCallback();
         });
+
+        //randomSpClient.compute(noisyEncoding, {
+        //    learn: learn
+        //}, function(randomSpBits) {
+        //    var randomAc = randomSpBits.activeColumns;
+        //
+        //    learningSpClient.compute(noisyEncoding, {
+        //        learn: true
+        //    }, function(learningSpBits) {
+        //        var learningAc = learningSpBits.activeColumns;
+        //
+        //        var randomAcOverlaps = _.map(randomHistory.activeColumns, function(hist) {
+        //            return SDR.tools.getOverlapScore(randomAc, hist);
+        //        });
+        //        var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
+        //            return SDR.tools.getOverlapScore(learningAc, hist);
+        //        });
+        //
+        //        randomChart.renderOverlapHistory(date, randomAcOverlaps, data);
+        //        learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
+        //
+        //        renderSdrs(
+        //            noisyEncoding,
+        //            randomAc,
+        //            learningAc
+        //        );
+        //
+        //        randomHistory.inputEncoding[cursor] = encoding;
+        //        randomHistory.activeColumns[cursor] = randomAc;
+        //        learningHistory.activeColumns[cursor] = learningAc;
+        //        if (mainCallback) mainCallback();
+        //    });
+        //
+        //});
     }
 
     function stepThroughData(callback) {
