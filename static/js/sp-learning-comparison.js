@@ -24,12 +24,20 @@ $(function() {
         activeColumns: []
     };
 
+    // 3D object keyed first Sp, then by iteration, then by column index.
+    var connectionCache = {
+        random: {},
+        learning: {}
+    };
+
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
     var $weekendDisplay = $('#weekend-display');
 
-    var randomSpClient;
-    var learningSpClient;
+    var spClients = {
+        random: undefined,
+        learning: undefined
+    };
 
     // SP params we are not allowing user to change
     var inputDimensions = [
@@ -77,18 +85,22 @@ $(function() {
         }
     }
 
+    function getConnectedSynapses(columnIndex, type) {
+
+    }
+
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
         // This might be an interested view to show boosting in action.
         //learnSpParams.setParam("maxBoost", 2);
-        randomSpClient = new HTM.SpatialPoolerClient();
-        learningSpClient = new HTM.SpatialPoolerClient(save);
+        spClients.random = new HTM.SpatialPoolerClient();
+        spClients.learning = new HTM.SpatialPoolerClient(save);
         inits.push(function(callback) {
-            randomSpClient.initialize(randSpParams.getParams(), callback);
+            spClients.random.initialize(randSpParams.getParams(), callback);
         });
         inits.push(function(callback) {
-            learningSpClient.initialize(learnSpParams.getParams(), callback);
+            spClients.learning.initialize(learnSpParams.getParams(), callback);
         });
         async.parallel(inits, function(err) {
             if (err) throw err;
@@ -149,6 +161,7 @@ $(function() {
             .attr('height', rectSize)
             .attr('style', styleFunction)
         ;
+        return svg;
     }
 
     function renderSdrs(inputEncoding,
@@ -162,9 +175,68 @@ $(function() {
         drawSdr(
             'random-columns', randomAc, dim, dim, 'orange'
         );
-        drawSdr(
+        var learningSvg = drawSdr(
             'learning-columns', learningAc, dim, dim, 'orange'
         );
+
+        var $learningRects = learningSvg.selectAll('rect');
+
+        function drawConnectionsToInputSpace(type,
+                                             columnRect,
+                                             columnIndex,
+                                             iteration) {
+            getConnectedSynapses(columnIndex, function(error, synapses) {
+                if (connectionCache[type])
+            });
+            //var synapses = connectedSynapses[columnIndex];
+            //var colRectSize = parseInt(columnRect.getAttribute('width'));
+            //var x1 = parseInt(columnRect.getAttribute('x')) + colRectSize / 2;
+            //var y1 = parseInt(columnRect.getAttribute('y')) + colRectSize / 2;
+            //$connections.html('');
+            //var overlapCount = 0;
+            //_.each(synapses, function(i) {
+            //    var rect = $input.select('#input-' + i);
+            //    var inputRectSize = parseInt(rect.attr('width'));
+            //    var x2 = parseInt(rect.attr('x')) + inputRectSize / 2;
+            //    var y2 = parseInt(rect.attr('y')) + inputRectSize / 2;
+            //    var permanence = permanences[columnIndex][i];
+            //    var lineColor = colToInputLineColor;
+            //    var circleColor = connectionCircleColor;
+            //    if (showInput) {
+            //        if (inputSdr[i] == 1) {
+            //            circleColor = 'limegreen';
+            //            overlapCount++;
+            //        } else {
+            //            circleColor = 'grey';
+            //        }
+            //    }
+            //    if (showPerms) {
+            //        lineColor = '#' + getGreenToRed((1.0 - permanence) * 100);
+            //    }
+            //    if (showLines) {
+            //        $connections.append('line')
+            //            .style('stroke', lineColor)
+            //            .attr('x1', x1)
+            //            .attr('y1', y1)
+            //            .attr('x2', x2)
+            //            .attr('y2', y2)
+            //        ;
+            //    }
+            //    $connections.append('circle')
+            //        .attr('cx', x2)
+            //        .attr('cy', y2)
+            //        .attr('r', inputRectSize / 3)
+            //        .style('fill', circleColor)
+            //    ;
+            //});
+            //if (showInput) {
+            //    $overlapDisplay.html(overlapCount);
+            //}
+        }
+
+        $learningRects.on('mousemove', function(noop, columnIndex) {
+            drawConnectionsToInputSpace(columnIndex, this);
+        });
     }
 
     function runOnePointThroughSp(mainCallback) {
@@ -192,16 +264,11 @@ $(function() {
 
         noisyEncoding = SDR.tools.addNoise(encoding, noise);
 
-        computes.random = function(callback) {
-            randomSpClient.compute(noisyEncoding, {
-                learn: learn
-            }, callback);
-        };
-        computes.learning = function(callback) {
-            learningSpClient.compute(noisyEncoding, {
-                learn: true
-            }, callback);
-        };
+        _.each(spClients, function(client, name) {
+            computes[name] = spClinets[name].compute(noisyEncoding, {
+                learn: (name == 'learning')
+            })
+        });
 
         async.parallel(computes, function(error, response) {
             if (error) throw error;
@@ -230,40 +297,6 @@ $(function() {
             learningHistory.activeColumns[cursor] = learningAc;
             if (mainCallback) mainCallback();
         });
-
-        //randomSpClient.compute(noisyEncoding, {
-        //    learn: learn
-        //}, function(randomSpBits) {
-        //    var randomAc = randomSpBits.activeColumns;
-        //
-        //    learningSpClient.compute(noisyEncoding, {
-        //        learn: true
-        //    }, function(learningSpBits) {
-        //        var learningAc = learningSpBits.activeColumns;
-        //
-        //        var randomAcOverlaps = _.map(randomHistory.activeColumns, function(hist) {
-        //            return SDR.tools.getOverlapScore(randomAc, hist);
-        //        });
-        //        var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
-        //            return SDR.tools.getOverlapScore(learningAc, hist);
-        //        });
-        //
-        //        randomChart.renderOverlapHistory(date, randomAcOverlaps, data);
-        //        learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
-        //
-        //        renderSdrs(
-        //            noisyEncoding,
-        //            randomAc,
-        //            learningAc
-        //        );
-        //
-        //        randomHistory.inputEncoding[cursor] = encoding;
-        //        randomHistory.activeColumns[cursor] = randomAc;
-        //        learningHistory.activeColumns[cursor] = learningAc;
-        //        if (mainCallback) mainCallback();
-        //    });
-        //
-        //});
     }
 
     function stepThroughData(callback) {
