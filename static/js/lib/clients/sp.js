@@ -70,6 +70,21 @@ $(function() {
         });
     };
 
+    SpatialPoolerClient.prototype.getColumnHistory = function(columnIndex, callback) {
+        var url = host + '/_sp/' + this._id + '/history/' + columnIndex;
+
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response) {
+                console.log(response);
+                callback(response);
+            },
+            dataType: 'JSON'
+        });
+    };
+
+
     var SpSnapshots = {
         INPUT: 'input',
         ACT_COL: 'activeColumns',

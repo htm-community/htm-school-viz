@@ -30,6 +30,7 @@ $(function() {
         learning: {}
     };
 
+    var encodeWeekends = shouldEncodeWeekends();
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
     var $weekendDisplay = $('#weekend-display');
@@ -40,11 +41,15 @@ $(function() {
     };
 
     // SP params we are not allowing user to change
-    var inputDimensions = [
-        scalarN
-        + dateEncoder.timeOfDayEncoder.getWidth()
-        + dateEncoder.weekendEncoder.getWidth()
-    ];
+    function getInputDimension() {
+        var bits = scalarN + dateEncoder.timeOfDayEncoder.getWidth();
+        if (encodeWeekends) {
+            bits += dateEncoder.weekendEncoder.getWidth()
+        }
+        return [bits];
+    }
+
+    var inputDimensions = getInputDimension();
     var columnDimensions = [2048];
     var randSpParams = new HTM.utils.sp.Params(
         '', inputDimensions, columnDimensions
@@ -67,6 +72,25 @@ $(function() {
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
+
+    function getUrlParameter(sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
+    }
+
+    function shouldEncodeWeekends() {
+        return getUrlParameter('weekends') == 'true';
+    }
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -94,7 +118,7 @@ $(function() {
         loading(true);
         // This might be an interested view to show boosting in action.
         //learnSpParams.setParam("maxBoost", 2);
-        spClients.random = new HTM.SpatialPoolerClient();
+        spClients.random = new HTM.SpatialPoolerClient(save);
         spClients.learning = new HTM.SpatialPoolerClient(save);
         inits.push(function(callback) {
             spClients.random.initialize(randSpParams.getParams(), callback);
@@ -186,8 +210,9 @@ $(function() {
                                              columnIndex,
                                              iteration) {
             getConnectedSynapses(columnIndex, function(error, synapses) {
-                if (connectionCache[type])
+                //if (connectionCache[type])
             });
+
             //var synapses = connectedSynapses[columnIndex];
             //var colRectSize = parseInt(columnRect.getAttribute('width'));
             //var x1 = parseInt(columnRect.getAttribute('x')) + colRectSize / 2;
@@ -255,19 +280,25 @@ $(function() {
         // Update UI display of current data point.
         $powerDisplay.html(power);
         $todDisplay.html(date.format('h A'));
-        $weekendDisplay.html(isWeekend ? 'yes' : 'no');
+        if (encodeWeekends) {
+            $weekendDisplay.html(isWeekend ? 'yes' : 'no');
+        }
 
         // Encode data point into SDR.
         encoding = encoding.concat(scalarEncoder.encode(power));
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
-        encoding = encoding.concat(dateEncoder.encodeWeekend(date));
+        if (encodeWeekends) {
+            encoding = encoding.concat(dateEncoder.encodeWeekend(date));
+        }
 
         noisyEncoding = SDR.tools.addNoise(encoding, noise);
 
         _.each(spClients, function(client, name) {
-            computes[name] = spClinets[name].compute(noisyEncoding, {
-                learn: (name == 'learning')
-            })
+            computes[name] = function(callback) {
+                spClients[name].compute(noisyEncoding, {
+                    learn: (name == 'learning')
+                }, callback)
+            };
         });
 
         async.parallel(computes, function(error, response) {
