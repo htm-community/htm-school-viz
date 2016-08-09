@@ -9,7 +9,6 @@ $(function() {
     );
     var dateEncoder = new HTM.encoders.DateEncoder(51);
 
-    var learn = false;
     var playing = false;
     var noise = 0.0;
     var save = [
@@ -24,11 +23,15 @@ $(function() {
         activeColumns: []
     };
 
-    // 3D object keyed first Sp, then by iteration, then by column index.
+    // Object keyed by SP type / column index / snapshot type. Contains an array
+    // at this point with iteration data.
     var connectionCache = {
         random: {},
         learning: {}
     };
+    var inputCache = [];
+    var selectedColumn = undefined;
+    var selectedColumnType = undefined;
 
     var encodeWeekends = shouldEncodeWeekends();
     var $powerDisplay = $('#power-display');
@@ -39,15 +42,6 @@ $(function() {
         random: undefined,
         learning: undefined
     };
-
-    // SP params we are not allowing user to change
-    function getInputDimension() {
-        var bits = scalarN + dateEncoder.timeOfDayEncoder.getWidth();
-        if (encodeWeekends) {
-            bits += dateEncoder.weekendEncoder.getWidth()
-        }
-        return [bits];
-    }
 
     var inputDimensions = getInputDimension();
     var columnDimensions = [2048];
@@ -72,6 +66,30 @@ $(function() {
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
+
+    /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
+    function getGreenToRed(percent){
+        var r, g;
+        percent = 100 - percent;
+        r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
+        g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
+        return rgbToHex(r, g, 0);
+    }
+
+    /* From http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
+    function rgbToHex(r, g, b) {
+        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    // SP params we are not allowing user to change
+    function getInputDimension() {
+        var bits = scalarN + dateEncoder.timeOfDayEncoder.getWidth();
+        if (encodeWeekends) {
+            bits += dateEncoder.weekendEncoder.getWidth()
+        }
+        return [bits];
+    }
+
 
     function getUrlParameter(sParam) {
         var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -109,10 +127,6 @@ $(function() {
         }
     }
 
-    function getConnectedSynapses(columnIndex, type) {
-
-    }
-
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
@@ -133,22 +147,99 @@ $(function() {
         });
     }
 
-    function drawSdr(id, sdr, w, h, style) {
-        var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = w - margin.left - margin.right,
-            height = h - margin.top - margin.bottom,
-            rowLength = Math.floor(Math.sqrt(sdr.length)),
-            fullRectSize = Math.floor(width / rowLength),
-            rectSize = fullRectSize - 1,
-            onColor = 'steelblue'
-            ;
+    function renderColumnConnections(iteration) {
+        var width = 1000,
+            height = 1000;
+        var inputEncoding = inputCache[iteration];
+        var bits = inputEncoding.length;
+        var area = width * height;
+        var squareArea = area / bits;
+        var fullRectSize = Math.floor(Math.sqrt(squareArea));
+        var rectSize = fullRectSize - 1;
+        var rowLength = Math.floor(width / fullRectSize);
+        var circleColor = '#6762ff';
+        var permanences = connectionCache[selectedColumnType][selectedColumn].permanences[iteration];
+        var threshold = randSpParams.getParams().synPermConnected;
+        var connections = [];
 
-        $('#' + id).html('');
+        _.each(permanences, function(perm, index) {
+            if (perm >= threshold) {
+                connections.push(index);
+            }
+        });
 
-        var svg = d3.select('#' + id).append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            ;
+        d3.select('#col-connections-svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .selectAll('rect')
+            .data(inputEncoding)
+            .enter()
+            .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
+            .attr('x', function (d, i) {
+                var offset = i % rowLength;
+                return offset * fullRectSize;
+            })
+            .attr('y', function (d, i) {
+                var offset = Math.floor(i / rowLength);
+                return offset * fullRectSize;
+            })
+            .attr('index', function (d, i) {
+                return i;
+            })
+            .attr('style', function (d, i) {
+                //var potentialPool = potentialPools[i];
+                var fill = ( d == 1 ? '#CCC' : 'white');
+                var permanence = permanences[i] * 100;
+                var stroke = '#' + getGreenToRed(100 - permanence);
+                var strokeWidth = 1;
+                //if (potentialPool.indexOf(i) == -1) {
+                //    stroke = 'white';
+                //}
+                //console.log('%s : connection to input index %s is %s', stroke, i, permanence);
+                return 'stroke:' + stroke + ';'
+                    + 'fill:' + fill + ';'
+                    + 'stroke-width:' + strokeWidth + ';';
+            })
+        ;
+        d3.select('#col-connections-svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .selectAll('circle')
+            .data(connections)
+            .enter()
+            .append('circle')
+            .attr('r', rectSize / 3)
+            .attr('cx', function (d) {
+                var offset = d % rowLength;
+                return offset * fullRectSize + rectSize / 2;
+            })
+            .attr('cy', function (d) {
+                var offset = Math.floor(d / rowLength);
+                return offset * fullRectSize + rectSize / 2;
+            })
+            .attr('index', function (d, i) {
+                return d;
+            })
+            .attr('style', 'fill:' + circleColor + ';stroke:' + circleColor)
+        ;
+
+    }
+
+    function drawSdr(sdr, $el, x, y, width, height, style) {
+        var bits = sdr.length;
+        var area = width * height;
+        var squareArea = area / bits;
+        var fullRectSize = Math.floor(Math.sqrt(squareArea));
+        var rectSize = fullRectSize - 1;
+        var rowLength = Math.floor(width / fullRectSize);
+        var idPrefix = $el.attr('id');
+        var onColor = 'steelblue';
+
+        $el.html('');
 
         var styleFunction = function(d, i) {
             var fill = 'white';
@@ -157,7 +248,6 @@ $(function() {
             }
             return 'fill:' + fill;
         };
-
         if (style) {
             if (typeof(style) == 'string') {
                 onColor = style;
@@ -168,99 +258,75 @@ $(function() {
             }
         }
 
-        svg.selectAll('rect')
+        $el
+            .selectAll('rect')
             .data(sdr)
             .enter()
             .append('rect')
+            .attr('width', rectSize)
+            .attr('height', rectSize)
             .attr('x', function(d, i) {
                 var offset = i % rowLength;
-                return offset * fullRectSize;
+                return offset * fullRectSize + x;
             })
             .attr('y', function(d, i) {
                 var offset = Math.floor(i / rowLength);
-                return offset * fullRectSize;
+                return offset * fullRectSize + y;
             })
             .attr('index', function(d, i) { return i; })
-            .attr('width', rectSize)
-            .attr('height', rectSize)
+            .attr('id', function(d, i) { return idPrefix + '-' + i; })
             .attr('style', styleFunction)
         ;
-        return svg;
     }
 
     function renderSdrs(inputEncoding,
                         randomAc,
-                        learningAc) {
+                        learningAc,
+                        iteration) {
 
         var dim = 800;
+        var $input = d3.select('#input-encoding');
         drawSdr(
-            'input-encoding', inputEncoding, dim, dim, 'green'
+            inputEncoding, $input,
+            0, 0, dim, dim, 'green'
         );
+        var $random = d3.select('#random-columns');
         drawSdr(
-            'random-columns', randomAc, dim, dim, 'orange'
+            randomAc, $random,
+            840, 0, dim, dim, 'orange'
         );
-        var learningSvg = drawSdr(
-            'learning-columns', learningAc, dim, dim, 'orange'
+        var $learning = d3.select('#learning-columns');
+        drawSdr(
+            learningAc, $learning,
+            1700, 0, dim, dim, 'orange'
         );
 
-        var $learningRects = learningSvg.selectAll('rect');
+        function drawConnectionsToInputSpace(columnIndex, type) {
+            var spClient = spClients[type];
+            var $connections = d3.select('#connections');
+            selectedColumn = columnIndex;
+            selectedColumnType = type;
+            if (connectionCache[type][columnIndex] != undefined) {
+                renderConnections();
+            } else {
+                loading(true);
+                spClient.getColumnHistory(columnIndex, function(err, history) {
+                    connectionCache[type][columnIndex] = history;
+                    renderConnections(iteration);
+                    loading(false);
+                });
+            }
 
-        function drawConnectionsToInputSpace(type,
-                                             columnRect,
-                                             columnIndex,
-                                             iteration) {
-            getConnectedSynapses(columnIndex, function(error, synapses) {
-                //if (connectionCache[type])
-            });
-
-            //var synapses = connectedSynapses[columnIndex];
-            //var colRectSize = parseInt(columnRect.getAttribute('width'));
-            //var x1 = parseInt(columnRect.getAttribute('x')) + colRectSize / 2;
-            //var y1 = parseInt(columnRect.getAttribute('y')) + colRectSize / 2;
-            //$connections.html('');
-            //var overlapCount = 0;
-            //_.each(synapses, function(i) {
-            //    var rect = $input.select('#input-' + i);
-            //    var inputRectSize = parseInt(rect.attr('width'));
-            //    var x2 = parseInt(rect.attr('x')) + inputRectSize / 2;
-            //    var y2 = parseInt(rect.attr('y')) + inputRectSize / 2;
-            //    var permanence = permanences[columnIndex][i];
-            //    var lineColor = colToInputLineColor;
-            //    var circleColor = connectionCircleColor;
-            //    if (showInput) {
-            //        if (inputSdr[i] == 1) {
-            //            circleColor = 'limegreen';
-            //            overlapCount++;
-            //        } else {
-            //            circleColor = 'grey';
-            //        }
-            //    }
-            //    if (showPerms) {
-            //        lineColor = '#' + getGreenToRed((1.0 - permanence) * 100);
-            //    }
-            //    if (showLines) {
-            //        $connections.append('line')
-            //            .style('stroke', lineColor)
-            //            .attr('x1', x1)
-            //            .attr('y1', y1)
-            //            .attr('x2', x2)
-            //            .attr('y2', y2)
-            //        ;
-            //    }
-            //    $connections.append('circle')
-            //        .attr('cx', x2)
-            //        .attr('cy', y2)
-            //        .attr('r', inputRectSize / 3)
-            //        .style('fill', circleColor)
-            //    ;
-            //});
-            //if (showInput) {
-            //    $overlapDisplay.html(overlapCount);
-            //}
+            function renderConnections() {
+                $connections.html('');
+                renderColumnConnections(iteration);
+                createColumnSlider();
+                $('#column-history').modal({show: true});
+            }
         }
 
-        $learningRects.on('mousemove', function(noop, columnIndex) {
-            drawConnectionsToInputSpace(columnIndex, this);
+        $learning.selectAll('rect').on('click', function(noop, columnIndex) {
+            drawConnectionsToInputSpace(columnIndex, 'learning');
         });
     }
 
@@ -293,6 +359,8 @@ $(function() {
 
         noisyEncoding = SDR.tools.addNoise(encoding, noise);
 
+        inputCache.push(noisyEncoding);
+
         _.each(spClients, function(client, name) {
             computes[name] = function(callback) {
                 spClients[name].compute(noisyEncoding, {
@@ -320,7 +388,8 @@ $(function() {
             renderSdrs(
                 noisyEncoding,
                 randomAc,
-                learningAc
+                learningAc,
+                cursor
             );
 
             randomHistory.inputEncoding[cursor] = encoding;
@@ -360,7 +429,20 @@ $(function() {
         });
     }
 
-    function createSlider() {
+    function createColumnSlider() {
+        var $colHistSlider = $('#column-history-slider');
+        $colHistSlider.slider({
+            min: 0,
+            max: randomChart.dataCursor,
+            value: randomChart.dataCursor,
+            step: 1,
+            slide: function(event, ui) {
+                renderColumnConnections(ui.value);
+            }
+        });
+    }
+
+    function createNoiseSlider() {
         var $noiseSlider = $('#noise-slider');
         var $noiseDisplay = $('#noise-display');
         $noiseDisplay.html(noise);
@@ -387,7 +469,7 @@ $(function() {
         playing = false;
     }
 
-    createSlider();
+    createNoiseSlider();
 
     initSp(function() {
         randomChart.render(function() {

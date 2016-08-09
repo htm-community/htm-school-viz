@@ -78,3 +78,9 @@ body {
     top: 220px;
     left: 700px;
 }
+.modal-dialog {
+    width: 80%;
+}
+.modal-content .row {
+    margin: 0;
+}
