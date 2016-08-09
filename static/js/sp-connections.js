@@ -135,8 +135,8 @@ $(function() {
         var $permanenceDisplay = $('#permanence-display');
         var $overlapDisplay = $('#overlap-display');
 
-        drawSdr(columnSdr, $columns, 1040, 0, 1000, 1000);
         drawSdr(inputSdr, $input, 0, 0, 1000, 1000);
+        drawSdr(columnSdr, $columns, 1040, 0, 1000, 1000);
 
         $connectionThresholdDisplay.html(spParams.getParams()['synPermConnected']);
 

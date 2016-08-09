@@ -77,8 +77,7 @@ $(function() {
             type: 'GET',
             url: url,
             success: function(response) {
-                console.log(response);
-                callback(response);
+                callback(null, response);
             },
             dataType: 'JSON'
         });
