@@ -29,8 +29,10 @@ $(function() {
     var $todDisplay = $('#tod-display');
     var $weekendDisplay = $('#weekend-display');
 
-    var randomSpClient;
-    var learningSpClient;
+    var spClients = {
+        random: undefined,
+        learning: undefined
+    };
 
     // SP params we are not allowing user to change
     function getInputDimension() {
@@ -106,13 +108,13 @@ $(function() {
         loading(true);
         // This might be an interested view to show boosting in action.
         //learnSpParams.setParam("maxBoost", 2);
-        randomSpClient = new HTM.SpatialPoolerClient();
-        learningSpClient = new HTM.SpatialPoolerClient();
+        spClients.random = new HTM.SpatialPoolerClient(save);
+        spClients.learning = new HTM.SpatialPoolerClient(save);
         inits.push(function(callback) {
-            randomSpClient.initialize(randSpParams.getParams(), callback);
+            spClients.random.initialize(randSpParams.getParams(), callback);
         });
         inits.push(function(callback) {
-            learningSpClient.initialize(learnSpParams.getParams(), callback);
+            spClients.learning.initialize(learnSpParams.getParams(), callback);
         });
         async.parallel(inits, function(err) {
             if (err) throw err;
@@ -221,12 +223,12 @@ $(function() {
         noisyEncoding = SDR.tools.addNoise(encoding, noise);
 
         computes.random = function(callback) {
-            randomSpClient.compute(noisyEncoding, {
+            spClients.random.compute(noisyEncoding, {
                 learn: learn
             }, callback);
         };
         computes.learning = function(callback) {
-            learningSpClient.compute(noisyEncoding, {
+            spClients.learning.compute(noisyEncoding, {
                 learn: true
             }, callback);
         };
