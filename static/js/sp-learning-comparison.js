@@ -24,6 +24,7 @@ $(function() {
         activeColumns: []
     };
 
+    var encodeWeekends = shouldEncodeWeekends();
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
     var $weekendDisplay = $('#weekend-display');
@@ -32,11 +33,15 @@ $(function() {
     var learningSpClient;
 
     // SP params we are not allowing user to change
-    var inputDimensions = [
-        scalarN
-        + dateEncoder.timeOfDayEncoder.getWidth()
-        + dateEncoder.weekendEncoder.getWidth()
-    ];
+    function getInputDimension() {
+        var bits = scalarN + dateEncoder.timeOfDayEncoder.getWidth();
+        if (encodeWeekends) {
+            bits += dateEncoder.weekendEncoder.getWidth()
+        }
+        return [bits];
+    }
+
+    var inputDimensions = getInputDimension();
     var columnDimensions = [2048];
     var randSpParams = new HTM.utils.sp.Params(
         '', inputDimensions, columnDimensions
@@ -59,6 +64,25 @@ $(function() {
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
+
+    function getUrlParameter(sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
+    }
+
+    function shouldEncodeWeekends() {
+        return getUrlParameter('weekends') == 'true';
+    }
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -83,7 +107,7 @@ $(function() {
         // This might be an interested view to show boosting in action.
         //learnSpParams.setParam("maxBoost", 2);
         randomSpClient = new HTM.SpatialPoolerClient();
-        learningSpClient = new HTM.SpatialPoolerClient(save);
+        learningSpClient = new HTM.SpatialPoolerClient();
         inits.push(function(callback) {
             randomSpClient.initialize(randSpParams.getParams(), callback);
         });
@@ -183,12 +207,16 @@ $(function() {
         // Update UI display of current data point.
         $powerDisplay.html(power);
         $todDisplay.html(date.format('h A'));
-        $weekendDisplay.html(isWeekend ? 'yes' : 'no');
+        if (encodeWeekends) {
+            $weekendDisplay.html(isWeekend ? 'yes' : 'no');
+        }
 
         // Encode data point into SDR.
         encoding = encoding.concat(scalarEncoder.encode(power));
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
-        encoding = encoding.concat(dateEncoder.encodeWeekend(date));
+        if (encodeWeekends) {
+            encoding = encoding.concat(dateEncoder.encodeWeekend(date));
+        }
 
         noisyEncoding = SDR.tools.addNoise(encoding, noise);
 
@@ -231,39 +259,6 @@ $(function() {
             if (mainCallback) mainCallback();
         });
 
-        //randomSpClient.compute(noisyEncoding, {
-        //    learn: learn
-        //}, function(randomSpBits) {
-        //    var randomAc = randomSpBits.activeColumns;
-        //
-        //    learningSpClient.compute(noisyEncoding, {
-        //        learn: true
-        //    }, function(learningSpBits) {
-        //        var learningAc = learningSpBits.activeColumns;
-        //
-        //        var randomAcOverlaps = _.map(randomHistory.activeColumns, function(hist) {
-        //            return SDR.tools.getOverlapScore(randomAc, hist);
-        //        });
-        //        var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
-        //            return SDR.tools.getOverlapScore(learningAc, hist);
-        //        });
-        //
-        //        randomChart.renderOverlapHistory(date, randomAcOverlaps, data);
-        //        learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
-        //
-        //        renderSdrs(
-        //            noisyEncoding,
-        //            randomAc,
-        //            learningAc
-        //        );
-        //
-        //        randomHistory.inputEncoding[cursor] = encoding;
-        //        randomHistory.activeColumns[cursor] = randomAc;
-        //        learningHistory.activeColumns[cursor] = learningAc;
-        //        if (mainCallback) mainCallback();
-        //    });
-        //
-        //});
     }
 
     function stepThroughData(callback) {
