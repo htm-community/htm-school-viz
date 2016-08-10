@@ -158,7 +158,7 @@ $(function() {
         var rectSize = fullRectSize - 1;
         var rowLength = Math.floor(width / fullRectSize);
         var circleColor = '#6762ff';
-        var permanences = connectionCache[selectedColumnType][selectedColumn].permanences[iteration];
+        var permanences = connectionCache[selectedColumnType][selectedColumn].permanences[iteration-1];
         var threshold = randSpParams.getParams().synPermConnected;
         var connections = [];
 
