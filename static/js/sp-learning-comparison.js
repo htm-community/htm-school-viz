@@ -12,6 +12,7 @@ $(function() {
     var playing = false;
     var noise = 0.0;
     var save = [
+        HTM.SpSnapshots.ACT_COL,
         HTM.SpSnapshots.PERMS
     ];
 
@@ -158,9 +159,24 @@ $(function() {
         var rectSize = fullRectSize - 1;
         var rowLength = Math.floor(width / fullRectSize);
         var circleColor = '#6762ff';
-        var permanences = connectionCache[selectedColumnType][selectedColumn].permanences[iteration-1];
+        var columnHist = connectionCache[selectedColumnType][selectedColumn];
+        var permanences = columnHist.permanences[iteration];
+        var activeColumns = columnHist.activeColumns;
         var threshold = randSpParams.getParams().synPermConnected;
         var connections = [];
+        var $selectedColumnDisplay = $('#selected-column-display');
+        var $selectedColumnRect = $('#selected-column-rect');
+        var $selectedColumnIter = $('#selected-column-iteration');
+
+        $selectedColumnDisplay.html(selectedColumn);
+        $selectedColumnIter.html(iteration);
+        var selectedColumnActive = activeColumns[iteration] == 1;
+
+        if (selectedColumnActive) {
+            $selectedColumnRect.addClass('on');
+        } else {
+            $selectedColumnRect.removeClass('on');
+        }
 
         _.each(permanences, function(perm, index) {
             if (perm >= threshold) {
@@ -190,15 +206,10 @@ $(function() {
                 return i;
             })
             .attr('style', function (d, i) {
-                //var potentialPool = potentialPools[i];
                 var fill = ( d == 1 ? '#CCC' : 'white');
                 var permanence = permanences[i] * 100;
                 var stroke = '#' + getGreenToRed(100 - permanence);
                 var strokeWidth = 1;
-                //if (potentialPool.indexOf(i) == -1) {
-                //    stroke = 'white';
-                //}
-                //console.log('%s : connection to input index %s is %s', stroke, i, permanence);
                 return 'stroke:' + stroke + ';'
                     + 'fill:' + fill + ';'
                     + 'stroke-width:' + strokeWidth + ';';
@@ -301,11 +312,19 @@ $(function() {
             1700, 0, dim, dim, 'orange'
         );
 
-        function drawConnectionsToInputSpace(columnIndex, type) {
+        function drawConnectionsToInputSpace(columnIndex, type, rect) {
             var spClient = spClients[type];
             var $connections = d3.select('#connections');
             selectedColumn = columnIndex;
             selectedColumnType = type;
+
+            function renderConnections() {
+                $connections.html('');
+                renderColumnConnections(iteration);
+                createColumnSlider();
+                $('#column-history').modal({show: true});
+            }
+
             if (connectionCache[type][columnIndex] != undefined) {
                 renderConnections();
             } else {
@@ -317,16 +336,10 @@ $(function() {
                 });
             }
 
-            function renderConnections() {
-                $connections.html('');
-                renderColumnConnections(iteration);
-                createColumnSlider();
-                $('#column-history').modal({show: true});
-            }
         }
 
         $learning.selectAll('rect').on('click', function(noop, columnIndex) {
-            drawConnectionsToInputSpace(columnIndex, 'learning');
+            drawConnectionsToInputSpace(columnIndex, 'learning', this);
         });
     }
 
@@ -433,8 +446,8 @@ $(function() {
         var $colHistSlider = $('#column-history-slider');
         $colHistSlider.slider({
             min: 0,
-            max: randomChart.dataCursor,
-            value: randomChart.dataCursor,
+            max: randomChart.dataCursor - 1,
+            value: randomChart.dataCursor - 1,
             step: 1,
             slide: function(event, ui) {
                 renderColumnConnections(ui.value);

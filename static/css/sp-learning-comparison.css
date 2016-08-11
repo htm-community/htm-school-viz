@@ -84,3 +84,16 @@ body {
 .modal-content .row {
     margin: 0;
 }
+#selected-column-rect {
+    width: 50px;
+    height: 50px;
+    border: solid black 2px;
+    background-color: white;
+}
+#selected-column-rect.on {
+    background-color: orange;
+}
+
+code {
+    font-size: 24pt;
+}

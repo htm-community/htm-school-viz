@@ -1,0 +1,66 @@
+body {
+    margin: 10px;
+}
+
+#loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(100, 100, 100, 0.6);
+    text-align: center;
+    padding-top: 200px;
+}
+
+#loading.little {
+    right: inherit;
+    left: inherit;
+    bottom: inherit;
+    background-color: inherit;
+    padding: 0;
+    margin-left: 400px;
+}
+
+#sp-params-modal .modal-dialog {
+    width: 80%;
+}
+.modal-content .row {
+    margin: 0;
+}
+button#show-sp-params {
+    position: absolute;
+    left: 807px;
+    top: 30px;
+}
+
+#input rect {
+    fill: white;
+}
+#input rect:hover {
+    stroke: black;
+    stroke-width: 5px;
+}
+#input rect.pool {
+    fill: #ffcc6e !important;
+}
+
+#columns rect:hover, #columns rect.clicked {
+    stroke: #1f04ff;
+    stroke-width: 3px;
+    fill: #1f04ff;
+}
+
+#connections line {
+    stroke-width: 1px;
+}
+
+#connections circle {
+    fill: #1f04ff;
+    stroke: #6762ff;
+}
+
+#permanence-threshold {
+    border: solid black 1px;
+    background-color: white;
+}
