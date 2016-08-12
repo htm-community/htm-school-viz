@@ -196,6 +196,7 @@ $(function() {
                     lineColor = '#' + getGreenToRed((1.0 - permanence) * 100);
                 }
                 if (showLines) {
+                    // TODO: Bezier curves to better illustrate dendritic segment.
                     $connections.append('line')
                         .style('stroke', lineColor)
                         .attr('x1', x1)

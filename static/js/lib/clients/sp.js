@@ -30,7 +30,7 @@ $(function() {
             callback = opts;
             opts = {};
         }
-        if (this.save != undefined) {
+        if (this.save) {
             opts.save = this.save.join(',');
         }
         url += '?' + $.param(opts);

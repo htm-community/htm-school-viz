@@ -9,16 +9,12 @@
                 <div class="slider" id="column-history-slider"></div>
                 <hr/>
                 <div class="row">
-                    <div class="col-md-7">
+                    <div class="col-md-8">
                         <svg id="col-connections-svg"></svg>
                     </div>
-                    <div class="col-md-5">
-                        <h2>Column <code id="selected-column-display"></code> Connection History</h2>
-                        <h2>Time Step: <code id="selected-column-iteration"></code></h2>
-                        <h2>Newly Connected Synapses: <code id="new-connected"></code></h2>
-                        <h2>Newly Disconnected Synapses: <code id="disconnected"></code></h2>
-                        <hr/>
-                        <h2>Overlap: <code id="selected-column-overlap"></code></h2>
+                    <div class="col-md-4">
+                        <h3>Column <code id="selected-column-display"></code> Connection History</h3>
+                        <h3>Time Step: <code id="selected-column-iteration"></code></h3>
                         <div id="selected-column-rect"></div>
                     </div>
                 </div>
@@ -28,8 +24,8 @@
 </div>
 
 <!-- super hacky absolute positioned labels over the charts -->
-<div id="random-chart-label">Random SP</div>
-<div id="learning-chart-label">Learning SP</div>
+<div id="left-chart-label">Left SP</div>
+<div id="right-chart-label">Right SP</div>
 
 <div class="row">
     <div class="col-md-3">
@@ -67,10 +63,10 @@
     <div class="col-md-9">
 
         <div class="row">
-            <div class="col-md-12" id="random-chart"></div>
+            <div class="col-md-12" id="left-chart"></div>
         </div>
         <div class="row">
-            <div class="col-md-12" id="learning-chart"></div>
+            <div class="col-md-12" id="right-chart"></div>
         </div>
 
     </div>
@@ -84,17 +80,17 @@
             <h2>Input Space <small>(encoding)</small></h2>
         </div>
         <div class="col-md-4">
-            <h2>Random SP Active Columns</h2>
+            <h2>Left SP Active Columns</h2>
         </div>
         <div class="col-md-4">
-            <h2>Learning SP Active Columns</h2>
+            <h2>Right SP Active Columns</h2>
         </div>
     </div>
 
     <svg width="2500" height="1050">
         <g id="input-encoding"></g>
-        <g id="random-columns"></g>
-        <g id="learning-columns"></g>
+        <g id="left-columns"></g>
+        <g id="right-columns"></g>
         <g id="connections"></g>
     </svg>
 

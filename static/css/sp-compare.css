@@ -68,12 +68,12 @@ body {
     margin: 0;
 }
 
-#random-chart-label {
+#left-chart-label {
     position: absolute;
     top: 74px;
     left: 700px;
 }
-#learning-chart-label {
+#right-chart-label {
     position: absolute;
     top: 220px;
     left: 700px;
@@ -96,9 +96,4 @@ body {
 
 code {
     font-size: 24pt;
-}
-
-#ac-context {
-    width: 600px;
-    height: 600px;
 }

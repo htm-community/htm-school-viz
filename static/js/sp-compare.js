@@ -11,30 +11,30 @@ $(function() {
 
     var playing = false;
     var noise = 0.0;
+
     var save = [
         HTM.SpSnapshots.ACT_COL,
         HTM.SpSnapshots.PERMS
     ];
+    save = false;
 
-    var randomHistory = {
+    var leftHistory = {
         inputEncoding: [],
         activeColumns: []
     };
-    var learningHistory = {
+    var rightHistory = {
         activeColumns: []
     };
 
     // Object keyed by SP type / column index / snapshot type. Contains an array
     // at this point with iteration data.
     var connectionCache = {
-        random: {},
-        learning: {}
+        left: {},
+        right: {}
     };
     var inputCache = [];
     var selectedColumn = undefined;
     var selectedColumnType = undefined;
-    var lastShownConnections = [];
-    var lastShownIteration = undefined;
 
     var encodeWeekends = shouldEncodeWeekends();
     var $powerDisplay = $('#power-display');
@@ -42,27 +42,32 @@ $(function() {
     var $weekendDisplay = $('#weekend-display');
 
     var spClients = {
-        random: undefined,
-        learning: undefined
+        left: undefined,
+        right: undefined
     };
 
     var inputDimensions = getInputDimension();
     var columnDimensions = [2048];
-    var randSpParams = new HTM.utils.sp.Params(
+    var leftSpParams = new HTM.utils.sp.Params(
         '', inputDimensions, columnDimensions
     );
-    var learnSpParams = new HTM.utils.sp.Params(
+    var rightSpParams = new HTM.utils.sp.Params(
         '', inputDimensions, columnDimensions
     );
 
+    // EXPERIMENTS WITH DIFFERENT PARAMS
+    rightSpParams.setParam('stimulusThreshold', 27);
+    //rightSpParams.setParam("maxBoost", 2);
+    //leftSpParams.setParam("maxBoost", 10);
+
     var chartWidth = 1900;
     var chartHeight = 120;
-    var randomChart = new HTM.utils.chart.InputChart(
-        '#random-chart', '/static/data/hotgym-short.csv',
+    var leftChart = new HTM.utils.chart.InputChart(
+        '#left-chart', '/static/data/hotgym-short.csv',
         chartWidth, chartHeight
     );
-    var learningChart = new HTM.utils.chart.InputChart(
-        '#learning-chart', '/static/data/hotgym-short.csv',
+    var rightChart = new HTM.utils.chart.InputChart(
+        '#right-chart', '/static/data/hotgym-short.csv',
         chartWidth, chartHeight
     );
 
@@ -133,15 +138,13 @@ $(function() {
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
-        // This might be an interested view to show boosting in action.
-        //learnSpParams.setParam("maxBoost", 2);
-        spClients.random = new HTM.SpatialPoolerClient();
-        spClients.learning = new HTM.SpatialPoolerClient(save);
+        spClients.left = new HTM.SpatialPoolerClient(save);
+        spClients.right = new HTM.SpatialPoolerClient(save);
         inits.push(function(callback) {
-            spClients.random.initialize(randSpParams.getParams(), callback);
+            spClients.left.initialize(leftSpParams.getParams(), callback);
         });
         inits.push(function(callback) {
-            spClients.learning.initialize(learnSpParams.getParams(), callback);
+            spClients.right.initialize(rightSpParams.getParams(), callback);
         });
         async.parallel(inits, function(err) {
             if (err) throw err;
@@ -158,25 +161,17 @@ $(function() {
         var area = width * height;
         var squareArea = area / bits;
         var fullRectSize = Math.floor(Math.sqrt(squareArea));
-        var strokeWidth = 2;
-        var rectSize = fullRectSize - strokeWidth;
+        var rectSize = fullRectSize - 1;
         var rowLength = Math.floor(width / fullRectSize);
         var circleColor = '#6762ff';
         var columnHist = connectionCache[selectedColumnType][selectedColumn];
         var permanences = columnHist.permanences[iteration];
         var activeColumns = columnHist.activeColumns;
-        var threshold = randSpParams.getParams().synPermConnected;
+        var threshold = leftSpParams.getParams().synPermConnected;
         var connections = [];
-        var newlyConnectedCount = 0;
-        var disconnectedCount = 0;
-        var annotatedConnections = [];
-        var overlap = 0;
         var $selectedColumnDisplay = $('#selected-column-display');
         var $selectedColumnRect = $('#selected-column-rect');
         var $selectedColumnIter = $('#selected-column-iteration');
-        var $selectedColumnOverlap = $('#selected-column-overlap');
-        var $newlyConnectedCount = $('#new-connected');
-        var $disconnectedCount = $('#disconnected');
 
         $selectedColumnDisplay.html(selectedColumn);
         $selectedColumnIter.html(iteration);
@@ -188,48 +183,11 @@ $(function() {
             $selectedColumnRect.removeClass('on');
         }
 
-        // Computes connections based on the permanences.
         _.each(permanences, function(perm, index) {
             if (perm >= threshold) {
                 connections.push(index);
             }
         });
-
-        // Calculate overlap of connections and input encoding bits
-        _.each(connections, function(connectionIndex) {
-            if (inputEncoding[connectionIndex] == 1) {
-                overlap++;
-            }
-        });
-
-        $selectedColumnOverlap.html(overlap);
-
-        // This prevents the "new" and "gone" connections from displaying when
-        // moving backwards in time, which is confusing on the UI.
-        if (lastShownIteration && lastShownIteration > iteration) {
-            lastShownConnections = [];
-        }
-        // Add info about new and gone connections.
-        _.each(connections, function(con) {
-            var isNew = lastShownConnections.length > 0
-                && lastShownConnections.indexOf(con) == -1;
-            annotatedConnections.push({
-                index: con, isNew: isNew
-            });
-            if (isNew) newlyConnectedCount++;
-        });
-        _.each(lastShownConnections, function(con) {
-            var isGone = connections.indexOf(con) == -1;
-            if (isGone) {
-                disconnectedCount++;
-                annotatedConnections.push({
-                    index: con, isGone: true
-                });
-            }
-        });
-
-        $newlyConnectedCount.html(newlyConnectedCount);
-        $disconnectedCount.html(disconnectedCount);
 
         d3.select('#col-connections-svg')
             .attr('width', width)
@@ -256,52 +214,35 @@ $(function() {
                 var fill = ( d == 1 ? '#CCC' : 'white');
                 var permanence = permanences[i] * 100;
                 var stroke = '#' + getGreenToRed(100 - permanence);
+                var strokeWidth = 1;
                 return 'stroke:' + stroke + ';'
                     + 'fill:' + fill + ';'
                     + 'stroke-width:' + strokeWidth + ';';
             })
         ;
-
         d3.select('#col-connections-svg')
             .attr('width', width)
             .attr('height', height)
             .append('g')
             .selectAll('circle')
-            .data(annotatedConnections)
+            .data(connections)
             .enter()
             .append('circle')
             .attr('r', rectSize / 3)
             .attr('cx', function (d) {
-                var offset = d.index % rowLength;
+                var offset = d % rowLength;
                 return offset * fullRectSize + rectSize / 2;
             })
             .attr('cy', function (d) {
-                var offset = Math.floor(d.index / rowLength);
+                var offset = Math.floor(d / rowLength);
                 return offset * fullRectSize + rectSize / 2;
             })
-            .attr('index', function (d) {
-                return d.index;
+            .attr('index', function (d, i) {
+                return d;
             })
-            .attr('style', function(d) {
-                var dashed = '';
-                var color = circleColor;
-                var strokeColor = circleColor;
-                var opacity = '1.0';
-                if (d.isNew) {
-                    color = 'cyan';
-                } else if (d.isGone) {
-                    dashed = 'stroke-dasharray:1,1;stroke-width:2';
-                    opacity = '0.0';
-                }
-                return 'fill:' + color + ';' +
-                    'stroke:' + strokeColor + ';' +
-                    'fill-opacity:' + opacity + ';' +
-                    dashed;
-            })
+            .attr('style', 'fill:' + circleColor + ';stroke:' + circleColor)
         ;
 
-        lastShownConnections = connections;
-        lastShownIteration = iteration;
     }
 
     function drawSdr(sdr, $el, x, y, width, height, style) {
@@ -355,8 +296,8 @@ $(function() {
     }
 
     function renderSdrs(inputEncoding,
-                        randomAc,
-                        learningAc,
+                        leftAc,
+                        rightAc,
                         iteration) {
 
         var dim = 800;
@@ -365,28 +306,26 @@ $(function() {
             inputEncoding, $input,
             0, 0, dim, dim, 'green'
         );
-        var $random = d3.select('#random-columns');
+        var $left = d3.select('#left-columns');
         drawSdr(
-            randomAc, $random,
+            leftAc, $left,
             840, 0, dim, dim, 'orange'
         );
-        var $learning = d3.select('#learning-columns');
+        var $right = d3.select('#right-columns');
         drawSdr(
-            learningAc, $learning,
+            rightAc, $right,
             1700, 0, dim, dim, 'orange'
         );
 
-        function drawConnectionsToInputSpace(columnIndex, type) {
+        function drawConnectionsToInputSpace(columnIndex, type, rect) {
             var spClient = spClients[type];
             var $connections = d3.select('#connections');
             selectedColumn = columnIndex;
             selectedColumnType = type;
 
-            // Resets any cached connections remaining from previous displays.
-            lastShownConnections = [];
             function renderConnections() {
                 $connections.html('');
-                renderColumnConnections(0);
+                renderColumnConnections(iteration);
                 createColumnSlider();
                 $('#column-history').modal({show: true});
             }
@@ -397,20 +336,20 @@ $(function() {
                 loading(true);
                 spClient.getColumnHistory(columnIndex, function(err, history) {
                     connectionCache[type][columnIndex] = history;
-                    renderConnections(0);
+                    renderConnections(iteration);
                     loading(false);
                 });
             }
 
         }
 
-        $learning.selectAll('rect').on('click', function(noop, columnIndex) {
-            drawConnectionsToInputSpace(columnIndex, 'learning');
+        $right.selectAll('rect').on('click', function(noop, columnIndex) {
+            drawConnectionsToInputSpace(columnIndex, 'right', this);
         });
     }
 
     function runOnePointThroughSp(mainCallback) {
-        var chart = randomChart;
+        var chart = leftChart;
         var cursor = chart.dataCursor;
         var data = chart.data;
         var point = data[cursor];
@@ -443,7 +382,7 @@ $(function() {
         _.each(spClients, function(client, name) {
             computes[name] = function(callback) {
                 spClients[name].compute(noisyEncoding, {
-                    learn: (name == 'learning')
+                    learn: true
                 }, callback)
             };
         });
@@ -451,41 +390,41 @@ $(function() {
         async.parallel(computes, function(error, response) {
             if (error) throw error;
 
-            var randomAc = response.random.activeColumns;
-            var learningAc = response.learning.activeColumns;
+            var leftAc = response.left.activeColumns;
+            var rightAc = response.right.activeColumns;
 
-            var randomAcOverlaps = _.map(randomHistory.activeColumns, function(hist) {
-                return SDR.tools.getOverlapScore(randomAc, hist);
+            var leftAcOverlaps = _.map(leftHistory.activeColumns, function(hist) {
+                return SDR.tools.getOverlapScore(leftAc, hist);
             });
-            var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
-                return SDR.tools.getOverlapScore(learningAc, hist);
+            var rightAcOverlaps = _.map(rightHistory.activeColumns, function(hist) {
+                return SDR.tools.getOverlapScore(rightAc, hist);
             });
 
-            randomChart.renderOverlapHistory(date, randomAcOverlaps, data);
-            learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
+            leftChart.renderOverlapHistory(date, leftAcOverlaps, data);
+            rightChart.renderOverlapHistory(date, rightAcOverlaps, data);
 
             renderSdrs(
                 noisyEncoding,
-                randomAc,
-                learningAc,
+                leftAc,
+                rightAc,
                 cursor
             );
 
-            randomHistory.inputEncoding[cursor] = encoding;
-            randomHistory.activeColumns[cursor] = randomAc;
-            learningHistory.activeColumns[cursor] = learningAc;
+            leftHistory.inputEncoding[cursor] = encoding;
+            leftHistory.activeColumns[cursor] = leftAc;
+            rightHistory.activeColumns[cursor] = rightAc;
             if (mainCallback) mainCallback();
         });
     }
 
     function stepThroughData(callback) {
-        if (!playing || randomChart.dataCursor == randomChart.data.length - 1) {
+        if (!playing || leftChart.dataCursor == leftChart.data.length - 1) {
             if (callback) callback();
             return;
         }
         runOnePointThroughSp(stepThroughData);
-        randomChart.dataCursor++;
-        learningChart.dataCursor++;
+        leftChart.dataCursor++;
+        rightChart.dataCursor++;
     }
 
     function addDataControlHandlers() {
@@ -502,8 +441,8 @@ $(function() {
                 $btn.toggleClass('btn-success');
             } else if (this.id == 'next') {
                 runOnePointThroughSp();
-                randomChart.dataCursor++;
-                learningChart.dataCursor++;
+                leftChart.dataCursor++;
+                rightChart.dataCursor++;
             }
         });
     }
@@ -512,8 +451,8 @@ $(function() {
         var $colHistSlider = $('#column-history-slider');
         $colHistSlider.slider({
             min: 0,
-            max: randomChart.dataCursor - 1,
-            value: 0,
+            max: leftChart.dataCursor - 1,
+            value: leftChart.dataCursor - 1,
             step: 1,
             slide: function(event, ui) {
                 renderColumnConnections(ui.value);
@@ -551,12 +490,12 @@ $(function() {
     createNoiseSlider();
 
     initSp(function() {
-        randomChart.render(function() {
-            learningChart.render(function() {
+        leftChart.render(function() {
+            rightChart.render(function() {
                 addDataControlHandlers();
                 runOnePointThroughSp();
-                randomChart.dataCursor++;
-                learningChart.dataCursor++;
+                leftChart.dataCursor++;
+                rightChart.dataCursor++;
             });
         });
     });

@@ -152,7 +152,7 @@ $(function() {
         if (this.params[key] == undefined) {
             throw Error("Missing SP Param '" + key + "'");
         }
-        this.params[key] = value;
+        this.params[key].val = value;
     };
 
     SPParams.prototype.render = function(renderDone, valuesChanged) {
