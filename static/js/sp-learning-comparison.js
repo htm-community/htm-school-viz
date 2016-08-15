@@ -154,7 +154,7 @@ $(function() {
         });
     }
 
-    function renderColumnConnections(iteration) {
+    function renderColumnState(iteration) {
         var width = 1000,
             height = 1000;
         var inputEncoding = inputCache[iteration];
@@ -162,7 +162,7 @@ $(function() {
         var area = width * height;
         var squareArea = area / bits;
         var fullRectSize = Math.floor(Math.sqrt(squareArea));
-        var strokeWidth = 2;
+        var strokeWidth = 1;
         var rectSize = fullRectSize - strokeWidth;
         var rowLength = Math.floor(width / fullRectSize);
         var circleColor = '#6762ff';
@@ -258,10 +258,8 @@ $(function() {
             })
             .attr('style', function (d, i) {
                 var fill = ( d == 1 ? '#CCC' : 'white');
-                var permanence = permanences[i] * 100;
-                var stroke = '#' + getGreenToRed(100 - permanence);
-                return 'stroke:' + stroke + ';'
-                    + 'fill:' + fill + ';'
+                return 'fill:' + fill + ';'
+                    + 'stroke: #AAA;'
                     + 'stroke-width:' + strokeWidth + ';';
             })
         ;
@@ -287,34 +285,32 @@ $(function() {
                 return d.index;
             })
             .attr('style', function(d) {
-                var dashed = '';
                 var color = circleColor;
                 var strokeColor = circleColor;
                 var opacity = '1.0';
                 if (d.isNew) {
                     color = 'cyan';
                 } else if (d.isGone) {
-                    dashed = 'stroke-dasharray:1,1;stroke-width:2';
+                    strokeColor = 'red';
                     opacity = '0.0';
                 }
                 return 'fill:' + color + ';' +
                     'stroke:' + strokeColor + ';' +
-                    'fill-opacity:' + opacity + ';' +
-                    dashed;
+                    'fill-opacity:' + opacity + ';';
             })
         ;
 
         // Adjust the jump to buttons to be disabled if can't navigate further
         if (iteration == 0 ||
-            activeColumns.slice(0, iteration - 1).indexOf(1) == -1) {
-            $jumpPrevAc.addClass('disabled');
+            activeColumns.slice(0, iteration).indexOf(1) == -1) {
+            $jumpPrevAc.attr('disabled', 'disabled');
         } else {
-            $jumpPrevAc.removeClass('disabled')
+            $jumpPrevAc.removeAttr('disabled');
         }
         if (activeColumns.slice(iteration + 1).indexOf(1) == -1) {
-            $jumpNextAc.addClass('disabled');
+            $jumpNextAc.attr('disabled', 'disabled');
         } else {
-            $jumpNextAc.removeClass('disabled')
+            $jumpNextAc.removeAttr('disabled');
         }
 
         lastShownConnections = connections;
@@ -373,8 +369,7 @@ $(function() {
 
     function renderSdrs(inputEncoding,
                         randomAc,
-                        learningAc,
-                        iteration) {
+                        learningAc) {
 
         var dim = 800;
         var $input = d3.select('#input-encoding');
@@ -403,7 +398,7 @@ $(function() {
             lastShownConnections = [];
             function renderConnections() {
                 $connections.html('');
-                renderColumnConnections(0);
+                renderColumnState(0);
                 createColumnSlider();
                 $('#column-history').modal({show: true});
             }
@@ -484,8 +479,7 @@ $(function() {
             renderSdrs(
                 noisyEncoding,
                 randomAc,
-                learningAc,
-                cursor
+                learningAc
             );
 
             randomHistory.inputEncoding[cursor] = encoding;
@@ -532,7 +526,7 @@ $(function() {
             value: 0,
             step: 1,
             slide: function(event, ui) {
-                renderColumnConnections(ui.value);
+                renderColumnState(ui.value);
             }
         });
     }
@@ -573,7 +567,7 @@ $(function() {
             if (activeColumns[jumpTo] != 1) {
                 throw new Error("why you jumping there bro?");
             }
-            renderColumnConnections(jumpTo);
+            renderColumnState(jumpTo);
         });
     }
 
