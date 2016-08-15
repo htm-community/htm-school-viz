@@ -1,6 +1,12 @@
 $(function() {
 
     var scalarN = 400;
+    var inputW = 27;
+    var minInput = 0;
+    var maxInput = 55;
+    var scalarEncoder = new HTM.encoders.ScalarEncoder(
+        scalarN, inputW, minInput, maxInput
+    );
     var dateEncoder = new HTM.encoders.DateEncoder(51);
 
     var spClient;
@@ -15,26 +21,21 @@ $(function() {
     var spParams = new HTM.utils.sp.Params(
         'sp-params', inputDimensions, columnDimensions
     );
+    var maxActiveColumns = undefined;
 
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
 
-    var showPerms = false;
-    var showLines = true;
-    var showInput = false;
+    var showInput = true;
 
     var spData;
     var locked = false;
     var clickedColumnIndex;
+    var rankedColumns = [];
 
     // Colors
-    var inputToColumnConnectionColor = '#A14B5F';
-    var colToInputLineColor = '#6762ff';
     var connectionCircleColor = '#1f04ff';
-
-    var permChartWidth = 300;
-    var permChartHeight = 300;
 
     /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
     function getGreenToRed(percent){
@@ -80,6 +81,49 @@ $(function() {
         });
     }
 
+    function getInputSdr() {
+        var encoding = [];
+        var date = moment();
+        encoding = encoding.concat(scalarEncoder.encode(20.4));
+        encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
+        encoding = encoding.concat(dateEncoder.encodeWeekend(date));
+        return encoding;
+    }
+
+    function renderColumnCompetition(allColumns) {
+        // Operate on a local slice of columns.
+        var columns = allColumns.slice(0, 70);
+        var $container = $('#column-winners');
+        var max = _.max(_.map(columns, function(col) {
+            return col.overlap;
+        }));
+        $container.html('');
+        _.each(columns, function(col, i) {
+            var overlap = col.overlap;
+            var percent = overlap / max * 100;
+            var clazz = 'progress';
+            if (i < maxActiveColumns) {
+                clazz += ' match';
+            }
+            var html = '<div class="' + clazz + '" data-column="' + col.index + '">' +
+                    '<div class="progress-bar" role="progressbar" ' +
+                        'style="width: ' + percent + '%;">' + overlap
+                    + '</div>'
+                + '</div>';
+            $container.append(html);
+        });
+        // Highlight column on mouseover competition
+        $container.find('.progress').on('mouseover', function() {
+            if (locked) return;
+            var index = $(this).data('column');
+            columnHighlighted(index);
+        });
+        $container.find('.progress').click(function() {
+            var index = $(this).data('column');
+            lockColumn(index);
+        });
+    }
+
     function drawSdr(sdr, $el, x, y, width, height, style) {
         var bits = sdr.length;
         var area = width * height;
@@ -88,7 +132,15 @@ $(function() {
         var rectSize = fullRectSize - 1;
         var rowLength = Math.floor(width / fullRectSize);
         var idPrefix = $el.attr('id');
+        var styleFn = undefined;
 
+        if (style != undefined) {
+            styleFn = style;
+        } else {
+            styleFn = function(d, i) {
+                return 'fill:' + (d == 1 ? 'steelblue' : '');
+            };
+        }
         $el.html('');
 
         $el
@@ -108,122 +160,98 @@ $(function() {
             })
             .attr('index', function(d, i) { return i; })
             .attr('id', function(d, i) { return idPrefix + '-' + i; })
-            .style('fill', function(d) {
-                return (showInput && d == 1 ? 'steelblue' : '');
-            })
+            .attr('style', styleFn)
         ;
-        if (style) {
-            $el.attr('style', style);
-        } else {
-            $el.style('fill', 'white');
-        }
+    }
+
+    function columnHighlighted(columnIndex) {
+        var connectedSynapses = spData.connectedSynapses;
+        var $connections = d3.select('#connections');
+        var $input = d3.select('#input');
+        var $overlapDisplay = $('#overlap-display');
+        var inputSdr = getInputSdr();
+        // render the input space in the context of this column
+        var synapses = connectedSynapses[columnIndex];
+        $connections.html('');
+        var overlapCount = 0;
+        _.each(synapses, function(i) {
+            var rect = $input.select('#input-' + i);
+            var inputRectSize = parseInt(rect.attr('width'));
+            var x2 = parseInt(rect.attr('x')) + inputRectSize / 2;
+            var y2 = parseInt(rect.attr('y')) + inputRectSize / 2;
+            var circleColor = connectionCircleColor;
+            if (inputSdr[i] == 1) {
+                circleColor = 'limegreen';
+                overlapCount++;
+            } else {
+                circleColor = 'grey';
+            }
+            $connections.append('circle')
+                .attr('cx', x2)
+                .attr('cy', y2)
+                .attr('r', inputRectSize / 3)
+                .style('fill', circleColor)
+            ;
+        });
+        $overlapDisplay.html(overlapCount);
+        // Highlight this column in the AC SDR.
+        var $activeColumns = $('#columns');
+        $activeColumns.find('.highlighted').attr('class', '');
+        $('#columns-' + columnIndex).attr('class', 'highlighted');
+
+        // Highlight this column in the stack rank.
+        var $columnWinners = $('#column-winners');
+        $columnWinners.find('.highlighted').removeClass('highlighted');
+        $columnWinners.find('[data-column=' + columnIndex + ']').addClass('highlighted');
     }
 
     function draw() {
-        var potentialPools = spData.potentialPools;
         var connectedSynapses = spData.connectedSynapses;
         var permanences = spData.permanences;
         var $input = d3.select('#input');
         var $columns = d3.select('#columns');
         var $connections = d3.select('#connections');
-        var $inputConnections = d3.select('#input-connections');
-        var inputSdr = SDR.tools.getRandom(inputSize, inputSize / 3);
+        var inputSdr = getInputSdr();
         var columnSdr = SDR.tools.getEmpty(permanences.length);
-        var $ppDisplay = $('#potential-pool-display');
-        var $connectedDisplay = $('#connected-display');
-        var $connectionThresholdDisplay = $('#connection-threshold-display');
-        var $permanenceDisplay = $('#permanence-display');
-        var $overlapDisplay = $('#overlap-display');
+
+        // Stack rank each column based on overlap of connections with input
+        // space.
+        _.each(connectedSynapses, function(synapses, index) {
+            var overlapCount = 0;
+            _.each(synapses, function(i) {
+                if (inputSdr[i] == 1) {
+                    overlapCount++;
+                }
+            });
+            rankedColumns.push({
+                index: index,
+                overlap: overlapCount
+            });
+        });
+        rankedColumns = _.sortBy(rankedColumns, function(it) {
+            return it.overlap;
+        }).reverse();
 
         drawSdr(inputSdr, $input, 0, 0, 1000, 1000);
-        drawSdr(columnSdr, $columns, 1040, 0, 1000, 1000);
-
-        $connectionThresholdDisplay.html(spParams.getParams()['synPermConnected']);
+        drawSdr(columnSdr, $columns, 1040, 0, 1000, 1000, function(d, i) {
+            var fill = 'white';
+            var rank = _.findIndex(rankedColumns, function(col) {
+                return col.index == i;
+            });
+            if (rank <= maxActiveColumns) {
+                fill = 'green';
+            }
+            console.log('rank of column %s is %s', i, rank);
+            return 'fill:' + fill;
+        });
 
         var columnRects = $columns.selectAll('rect');
 
-        var updateInputSpaceColors = function(columnIndex) {
-            var inputRects = $input.selectAll('rect');
-            inputRects.attr('class', '');
-            var pool = potentialPools[columnIndex];
-            var perms = permanences[columnIndex];
-            if (showPerms) {
-                _.each(perms, function(permanence, i) {
-                    var rect = $input.select('#input-' + i);
-                    rect.style('fill', '#' + getGreenToRed((1.0 - permanence) * 100));
-                });
-                inputRects.each(function() {
-                    var rect = this;
-                    var index = parseInt(rect.getAttribute('index'));
-                    if (pool.indexOf(index) == -1) {
-                        rect.setAttribute('style', 'fill:white');
-                    }
-                });
-            } else {
-                _.each(pool, function(i) {
-                    var rect = $input.select('#input-' + i);
-                    rect.attr('class', 'pool');
-                });
-            }
-            $ppDisplay.html(pool.length);
-            $connectedDisplay.html(connectedSynapses[columnIndex].length);
-        };
-
-        function drawConnectionsToInputSpace(columnIndex, columnRect) {
-            var synapses = connectedSynapses[columnIndex];
-            var colRectSize = parseInt(columnRect.getAttribute('width'));
-            var x1 = parseInt(columnRect.getAttribute('x')) + colRectSize / 2;
-            var y1 = parseInt(columnRect.getAttribute('y')) + colRectSize / 2;
-            $connections.html('');
-            var overlapCount = 0;
-            _.each(synapses, function(i) {
-                var rect = $input.select('#input-' + i);
-                var inputRectSize = parseInt(rect.attr('width'));
-                var x2 = parseInt(rect.attr('x')) + inputRectSize / 2;
-                var y2 = parseInt(rect.attr('y')) + inputRectSize / 2;
-                var permanence = permanences[columnIndex][i];
-                var lineColor = colToInputLineColor;
-                var circleColor = connectionCircleColor;
-                if (showInput) {
-                    if (inputSdr[i] == 1) {
-                        circleColor = 'limegreen';
-                        overlapCount++;
-                    } else {
-                        circleColor = 'grey';
-                    }
-                }
-                if (showPerms) {
-                    lineColor = '#' + getGreenToRed((1.0 - permanence) * 100);
-                }
-                if (showLines) {
-                    // TODO: Bezier curves to better illustrate dendritic segment.
-                    $connections.append('line')
-                        .style('stroke', lineColor)
-                        .attr('x1', x1)
-                        .attr('y1', y1)
-                        .attr('x2', x2)
-                        .attr('y2', y2)
-                    ;
-                }
-                $connections.append('circle')
-                    .attr('cx', x2)
-                    .attr('cy', y2)
-                    .attr('r', inputRectSize / 3)
-                    .style('fill', circleColor)
-                ;
-            });
-            if (showInput) {
-                $overlapDisplay.html(overlapCount);
-            }
-        }
+        renderColumnCompetition(rankedColumns);
 
         columnRects.on('mousemove', function(noop, columnIndex) {
             if (locked) return;
-            if (! showInput) {
-                updateInputSpaceColors(columnIndex);
-            } else {
-                drawConnectionsToInputSpace(columnIndex, this);
-            }
+            columnHighlighted(columnIndex);
         });
 
         $columns.on('mouseout', function() {
@@ -238,54 +266,10 @@ $(function() {
         });
 
         columnRects.on('click', function(noop, columnIndex) {
-            if (! showInput) {
-                updateInputSpaceColors(columnIndex);
-            }
-            drawConnectionsToInputSpace(columnIndex, this);
+            columnHighlighted(columnIndex);
             lockColumn(columnIndex);
         });
 
-        var showInputToColumnConnections = function(inputIndex) {
-            var columnsConnectedTo = [];
-            _.each(connectedSynapses, function(connections, columnIndex) {
-                if (connections.indexOf(inputIndex) > -1) {
-                    columnsConnectedTo.push(columnIndex);
-                }
-            });
-            $inputConnections.html('');
-            _.each(columnsConnectedTo, function(i) {
-                var rect = $columns.select('#columns-' + i);
-                var colRectSize = parseInt(rect.attr('width'));
-                var x2 = parseInt(rect.attr('x')) + colRectSize / 2;
-                var y2 = parseInt(rect.attr('y')) + colRectSize / 2;
-                $inputConnections.append('circle')
-                    .attr('cx', x2)
-                    .attr('cy', y2)
-                    .attr('r', colRectSize / 3)
-                    .attr('fill', inputToColumnConnectionColor)
-                ;
-            });
-        };
-
-        $input.selectAll('rect').on('mousemove', function() {
-            var inputIndex = parseInt(this.getAttribute('index'));
-            if (clickedColumnIndex != undefined) {
-                var perm = permanences[clickedColumnIndex][inputIndex];
-                $permanenceDisplay.html(perm);
-                renderPermenanceGraphic(perm, spParams.getParams()['synPermConnected']);
-            } else {
-                showInputToColumnConnections(inputIndex);
-            }
-        });
-
-        $input.selectAll('rect').on('click', function() {
-            var inputIndex = parseInt(this.getAttribute('index'));
-            showInputToColumnConnections(inputIndex);
-        });
-
-        $input.on('mouseout', function() {
-            $inputConnections.html('');
-        });
     }
 
     function lockColumn(index) {
@@ -303,75 +287,8 @@ $(function() {
         $('#permanence-threshold').html('');
     }
 
-    function renderPermenanceGraphic(permanence, threshold) {
-        var margin = {top: 20, right: 20, bottom: 0, left: 50},
-            width = permChartWidth - margin.left - margin.right,
-            height = permChartHeight - margin.top - margin.bottom;
-        var y = d3.scale.linear()
-            .domain([0.0, 1.0])
-            .range([height, 0]);
-        var yAxis = d3.svg.axis().scale(y).orient('left');
-        var translatedThreshold = y(threshold);
-        var color = getGreenToRed((1.0 - permanence) * 100);
-
-        var svg = d3.select("#permanence-threshold")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom);
-
-        svg.html('');
-
-        var g = svg.append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        g.attr('width', width);
-        g.attr('height', height);
-
-        g.append('g')
-            .call(yAxis)
-        ;
-
-        // Permanence bar.
-        g.append('g')
-            .append('rect')
-            .style('fill', '#' + color)
-            .attr('x', 100)
-            .attr('y', y(permanence))
-            .attr('width', 50)
-            .attr('height', y(0));
-
-        // Threshold line.
-        g.append('g')
-            .append('line')
-            .style('stroke', 'black')
-            .style('stroke-width', '5')
-            .attr('x1', 10)
-            .attr('y1', translatedThreshold)
-            .attr('x2', width - 10)
-            .attr('y2', translatedThreshold)
-        ;
-
-    }
-
-    function initUi() {
-        var $showPerms = $('#show-perms').bootstrapSwitch({state: showPerms});
-        $showPerms.on('switchChange.bootstrapSwitch', function(event, state) {
-            showPerms = state;
-            draw()
-        });
-        var $showLines = $('#show-lines').bootstrapSwitch({state: showLines});
-        $showLines.on('switchChange.bootstrapSwitch', function(event, state) {
-            showLines = state;
-            draw()
-        });
-        var $showInput = $('#show-input').bootstrapSwitch({state: showInput});
-        $showInput.on('switchChange.bootstrapSwitch', function(event, state) {
-            showInput = state;
-            draw()
-        });
-    }
-
-
     function paramChange() {
+        maxActiveColumns = spParams.getParams()["numActiveColumnsPerInhArea"];
         initSp(function(err, r) {
             if (err) throw err;
             spData = r;
@@ -379,7 +296,6 @@ $(function() {
         });
     }
 
-    initUi();
     spParams.render(paramChange, paramChange);
 
     $(document).keyup(function(e) {

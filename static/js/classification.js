@@ -78,7 +78,6 @@ $(function() {
             $stack.prepend(
                 '<div class="row sdr">'
               + '<div class="col-md-10 plot" id="' + sdrId + '"></div>'
-              //+ '<div class="col-md-1 marker"></div>'
               + '<div class="col-md-2 overlap"></div>'
               + '</div>'
             );
