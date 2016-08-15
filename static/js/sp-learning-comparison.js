@@ -70,6 +70,10 @@ $(function() {
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
 
+    var $colHistSlider = $('#column-history-slider');
+    var $jumpPrevAc = $('#jumpto-prev-ac');
+    var $jumpNextAc = $('#jumpto-next-ac');
+
     /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
     function getGreenToRed(percent){
         var r, g;
@@ -300,6 +304,19 @@ $(function() {
             })
         ;
 
+        // Adjust the jump to buttons to be disabled if can't navigate further
+        if (iteration == 0 ||
+            activeColumns.slice(0, iteration - 1).indexOf(1) == -1) {
+            $jumpPrevAc.addClass('disabled');
+        } else {
+            $jumpPrevAc.removeClass('disabled')
+        }
+        if (activeColumns.slice(iteration + 1).indexOf(1) == -1) {
+            $jumpNextAc.addClass('disabled');
+        } else {
+            $jumpNextAc.removeClass('disabled')
+        }
+
         lastShownConnections = connections;
         lastShownIteration = iteration;
     }
@@ -509,7 +526,6 @@ $(function() {
     }
 
     function createColumnSlider() {
-        var $colHistSlider = $('#column-history-slider');
         $colHistSlider.slider({
             min: 0,
             max: randomChart.dataCursor - 1,
@@ -537,6 +553,30 @@ $(function() {
         });
     }
 
+    function addColumnHistoryJumpButtonHandlers() {
+        $('#ac-jump').click(function(event) {
+            var id = event.target.getAttribute('id');
+            var columnHist = connectionCache[selectedColumnType][selectedColumn];
+            var activeColumns = columnHist.activeColumns;
+            var jumpTo = undefined;
+            var historySlice = undefined;
+            if (id == 'jumpto-prev-ac') {
+                historySlice = activeColumns.slice(0, lastShownIteration);
+                jumpTo = historySlice.lastIndexOf(1);
+
+            } else {
+                historySlice = activeColumns.slice(lastShownIteration + 1);
+                jumpTo = lastShownIteration + historySlice.indexOf(1) + 1;
+            }
+            console.log('jumping from %s to %s', lastShownIteration, jumpTo);
+            $colHistSlider.slider('value', jumpTo);
+            if (activeColumns[jumpTo] != 1) {
+                throw new Error("why you jumping there bro?");
+            }
+            renderColumnConnections(jumpTo);
+        });
+    }
+
     function play() {
         playing = true;
         stepThroughData(function (err) {
@@ -549,6 +589,7 @@ $(function() {
     }
 
     createNoiseSlider();
+    addColumnHistoryJumpButtonHandlers();
 
     initSp(function() {
         randomChart.render(function() {
