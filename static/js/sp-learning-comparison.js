@@ -11,10 +11,11 @@ $(function() {
 
     var playing = false;
     var noise = 0.0;
-    var save = [
+    var snapsToSave = [
         HTM.SpSnapshots.ACT_COL,
         HTM.SpSnapshots.PERMS
     ];
+    var save = snapsToSave;
 
     var randomHistory = {
         inputEncoding: [],
@@ -296,6 +297,7 @@ $(function() {
                 }
                 return 'fill:' + color + ';' +
                     'stroke:' + strokeColor + ';' +
+                    'stroke-width:3;' +
                     'fill-opacity:' + opacity + ';';
             })
         ;
@@ -531,6 +533,27 @@ $(function() {
         });
     }
 
+    function decideWhetherToSave() {
+        // this is some bad code but I'm in a hurry and it'll never see production :P
+        //                              ____
+        //                      __,-~~/~    `---.
+        //                    _/_,---(      ,    )
+        //                __ /        <    /   )  \___
+        // - ------===;;;'====------------------===;;;===----- -  -
+        //                   \/  ~"~"~"~"~"~\~"~)~"/
+        //                   (_ (   \  (     >    \)
+        //                    \_( _ <         >_>'
+        //                       ~ `-i' ::>|--"
+        //                           I;|.|.|
+        //                          <|i::|i|`.
+        //                         (` ^'"`-' ")
+        // ------------------------------------------------------------------
+        var isTransient = getUrlParameter('transient') == 'true';
+        if (isTransient) {
+            save = false;
+        }
+    }
+
     function createNoiseSlider() {
         var $noiseSlider = $('#noise-slider');
         var $noiseDisplay = $('#noise-display');
@@ -584,6 +607,7 @@ $(function() {
 
     createNoiseSlider();
     addColumnHistoryJumpButtonHandlers();
+    decideWhetherToSave();
 
     initSp(function() {
         randomChart.render(function() {
