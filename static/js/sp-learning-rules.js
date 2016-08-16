@@ -34,22 +34,11 @@ $(function() {
     var clickedColumnIndex;
     var rankedColumns = [];
 
+    var $connections = d3.select('#connections');
+    var $potentialPool = d3.select('#potential-pool');
+
     // Colors
     var connectionCircleColor = '#1f04ff';
-
-    /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
-    function getGreenToRed(percent){
-        var r, g;
-        percent = 100 - percent;
-        r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
-        g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
-        return rgbToHex(r, g, 0);
-    }
-
-    /* From http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
-    function rgbToHex(r, g, b) {
-        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-    }
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -92,7 +81,7 @@ $(function() {
 
     function renderColumnCompetition(allColumns) {
         // Operate on a local slice of columns.
-        var columns = allColumns.slice(0, 70);
+        var columns = allColumns.slice();
         var $container = $('#column-winners');
         var max = _.max(_.map(columns, function(col) {
             return col.overlap;
@@ -165,13 +154,15 @@ $(function() {
     }
 
     function columnHighlighted(columnIndex) {
-        var connectedSynapses = spData.connectedSynapses;
-        var $connections = d3.select('#connections');
+        var synapses = spData.connectedSynapses[columnIndex];
+        var potentialPool = spData.potentialPools[columnIndex];
         var $input = d3.select('#input');
         var $overlapDisplay = $('#overlap-display');
         var inputSdr = getInputSdr();
+
         // render the input space in the context of this column
-        var synapses = connectedSynapses[columnIndex];
+
+        // Draw circles for connections.
         $connections.html('');
         var overlapCount = 0;
         _.each(synapses, function(i) {
@@ -193,6 +184,23 @@ $(function() {
                 .style('fill', circleColor)
             ;
         });
+
+        // Draw an semi-transparent mask over cells in the input space outside
+        // the potential pool for this column.
+        drawSdr(inputSdr, $potentialPool, 0, 0, 1000, 1000, function(d, i) {
+            var inPool = (potentialPool.indexOf(i) > -1);
+            var color = '#FFF';
+            var opacity = '0.35';
+            if (inPool) {
+                opacity = '0.0'
+            }
+            if (d == 0) {
+                color = '#AAA';
+            }
+            return 'fill:' + color + ';fill-opacity:' + opacity;
+        });
+
+
         $overlapDisplay.html(overlapCount);
         // Highlight this column in the AC SDR.
         var $activeColumns = $('#columns');
@@ -206,17 +214,15 @@ $(function() {
     }
 
     function draw() {
-        var connectedSynapses = spData.connectedSynapses;
-        var permanences = spData.permanences;
         var $input = d3.select('#input');
         var $columns = d3.select('#columns');
         var $connections = d3.select('#connections');
         var inputSdr = getInputSdr();
-        var columnSdr = SDR.tools.getEmpty(permanences.length);
+        var columnSdr = SDR.tools.getEmpty(spData.permanences.length);
 
         // Stack rank each column based on overlap of connections with input
         // space.
-        _.each(connectedSynapses, function(synapses, index) {
+        _.each(spData.connectedSynapses, function(synapses, index) {
             var overlapCount = 0;
             _.each(synapses, function(i) {
                 if (inputSdr[i] == 1) {
@@ -241,7 +247,6 @@ $(function() {
             if (rank <= maxActiveColumns) {
                 fill = 'green';
             }
-            console.log('rank of column %s is %s', i, rank);
             return 'fill:' + fill;
         });
 

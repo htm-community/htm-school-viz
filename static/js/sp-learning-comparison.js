@@ -37,10 +37,8 @@ $(function() {
     var lastShownConnections = [];
     var lastShownIteration = undefined;
 
-    var encodeWeekends = shouldEncodeWeekends();
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
-    var $weekendDisplay = $('#weekend-display');
 
     var spClients = {
         random: undefined,
@@ -92,9 +90,6 @@ $(function() {
     // SP params we are not allowing user to change
     function getInputDimension() {
         var bits = scalarN + dateEncoder.timeOfDayEncoder.getWidth();
-        if (encodeWeekends) {
-            bits += dateEncoder.weekendEncoder.getWidth()
-        }
         return [bits];
     }
 
@@ -112,10 +107,6 @@ $(function() {
                 return sParameterName[1] === undefined ? true : sParameterName[1];
             }
         }
-    }
-
-    function shouldEncodeWeekends() {
-        return getUrlParameter('weekends') == 'true';
     }
 
     function loading(isLoading, isModal) {
@@ -433,22 +424,15 @@ $(function() {
         var encoding = [];
         var noisyEncoding = [];
         var day = date.day();
-        var isWeekend = (day == 6) || (day == 0);    // 6 = Saturday, 0 = Sunday
         var computes = {};
 
         // Update UI display of current data point.
         $powerDisplay.html(power);
         $todDisplay.html(date.format('h A'));
-        if (encodeWeekends) {
-            $weekendDisplay.html(isWeekend ? 'yes' : 'no');
-        }
 
         // Encode data point into SDR.
         encoding = encoding.concat(scalarEncoder.encode(power));
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
-        if (encodeWeekends) {
-            encoding = encoding.concat(dateEncoder.encodeWeekend(date));
-        }
 
         noisyEncoding = SDR.tools.addNoise(encoding, noise);
 
