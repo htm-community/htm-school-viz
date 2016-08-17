@@ -102,3 +102,6 @@ code {
     width: 600px;
     height: 600px;
 }
+.legend img {
+    margin-top: 16px;
+}
