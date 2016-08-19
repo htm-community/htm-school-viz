@@ -1,0 +1,52 @@
+rect {
+  stroke: #CACACA;
+}
+#loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(100, 100, 100, 0.6);
+  text-align: center;
+  padding-top: 200px;
+}
+#loading.little {
+  right: inherit;
+  left: inherit;
+  bottom: inherit;
+  background-color: inherit;
+  padding: 0;
+  margin-left: 400px;
+}
+.modal-dialog {
+  width: 80%;
+}
+.modal-content .row {
+  margin: 0;
+}
+text {
+  font-size: 6pt;
+}
+
+body {
+  margin: 0;
+}
+#selected-column-rect {
+  width: 50px;
+  height: 50px;
+  border: solid black 2px;
+  background-color: white;
+}
+#selected-column-rect.on {
+  background-color: orange;
+}
+
+code {
+  font-size: 24pt;
+}
+
+#ac-context {
+  width: 600px;
+  height: 600px;
+}
