@@ -6,7 +6,7 @@ $(function() {
     //var gifName = 'kick.json';
     //var gifName = 'stickmen_boxer_100-100.json';
     //var gifName = 'run-cat.json';
-    //var gifName = 'running-stickman.json';
+    var gifName = 'running-stickman.json';
     //var gifName = 'cleanruncycle1.json';
     //var gifName = 'Dancing_cartoon_cat.json';
 
@@ -35,7 +35,7 @@ $(function() {
     var spClient;
 
     var inputDimensions = undefined;
-    var columnDimensions = [2048];
+    var columnDimensions = undefined;
     var spParams = undefined;
 
     var paused = false;
@@ -298,15 +298,16 @@ $(function() {
 
     // SP params we are not allowing user to change
     function getInputDimension() {
-        var numBits = gifData.dimensions[0] * gifData.dimensions[1];
-        console.log("Total length of input encoding: %s", numBits);
-        return [numBits];
+        //var numBits = gifData.dimensions[0] * gifData.dimensions[1];
+        //console.log("Total length of input encoding: %s", numBits);
+        return [gifData.dimensions[0], gifData.dimensions[1]];
     }
 
     function loadGifJson(path, callback) {
         $.getJSON(path, function(data) {
             gifData = data;
             inputDimensions = getInputDimension();
+            columnDimensions = [inputDimensions[0] * 2, inputDimensions[1] * 2]
             spParams = new HTM.utils.sp.Params(
                 '', inputDimensions, columnDimensions
             );
@@ -320,7 +321,7 @@ $(function() {
         var $input = d3.select('#input-encoding');
         drawSdr(
             inputEncoding, $input,
-            0, 0, dim, dim, 'green', gifData.dimensions[0]
+            0, 0, dim, dim, 'green', inputDimensions[0]
         );
         var $learning = d3.select('#active-columns');
         drawSdr(
@@ -481,6 +482,13 @@ $(function() {
         // This might be an interested view to show boosting in action.
         //learnSpParams.setParam("maxBoost", 2);
         spClient = new HTM.SpatialPoolerClient(save);
+
+        // Custom stuff for topology
+        spParams.setParam('globalInhibition', false);
+        spParams.setParam('potentialRadius', Math.floor(inputDimensions[0] / 4));
+        spParams.setParam('localAreaDensity', 0.10);
+        spParams.setParam('numActiveColumnsPerInhArea', 1);
+
         spClient.initialize(spParams.getParams(), function(err) {
             if (err) throw err;
             loading(false);

@@ -18,9 +18,9 @@ $(function() {
             name: 'potential percent'
         },
         localAreaDensity: {
-            val: -1.0,
-            min: -1.0,
-            max: 10.0,
+            val: 0,
+            min: 0,
+            max: 1.0,
             name: 'local area density'
         },
         numActiveColumnsPerInhArea: {
