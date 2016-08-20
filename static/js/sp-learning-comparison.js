@@ -504,20 +504,6 @@ $(function() {
     }
 
     function decideWhetherToSave() {
-        // this is some bad code but I'm in a hurry and it'll never see production :P
-        //                              ____
-        //                      __,-~~/~    `---.
-        //                    _/_,---(      ,    )
-        //                __ /        <    /   )  \___
-        // - ------===;;;'====------------------===;;;===----- -  -
-        //                   \/  ~"~"~"~"~"~\~"~)~"/
-        //                   (_ (   \  (     >    \)
-        //                    \_( _ <         >_>'
-        //                       ~ `-i' ::>|--"
-        //                           I;|.|.|
-        //                          <|i::|i|`.
-        //                         (` ^'"`-' ")
-        // ------------------------------------------------------------------
         var isTransient = getUrlParameter('transient') == 'true';
         if (isTransient) {
             save = false;

@@ -2,11 +2,16 @@ $(function() {
 
     var gifDataPath = '/static/data/gifdata';
 
-    var gifName = 'shapes.json';
+    //var gifName = 'bird.json';
+    var gifName = 'victory dance.json';
+    //var gifName = 'Spinning octopus-32.json';
+    //var gifName = 'note.json';
+    //var gifName = 'cattinywhitesleepin.json';
+    //var gifName = 'shapes.json';
     //var gifName = 'kick.json';
     //var gifName = 'stickmen_boxer_100-100.json';
     //var gifName = 'run-cat.json';
-    var gifName = 'running-stickman.json';
+    //var gifName = 'running-stickman.json';
     //var gifName = 'cleanruncycle1.json';
     //var gifName = 'Dancing_cartoon_cat.json';
 
@@ -17,7 +22,8 @@ $(function() {
 
     var snapsToSave = [
         HTM.SpSnapshots.ACT_COL,
-        HTM.SpSnapshots.PERMS
+        HTM.SpSnapshots.POT_POOLS,
+        HTM.SpSnapshots.CON_SYN
     ];
     var save = snapsToSave;
     var history = {
@@ -42,6 +48,15 @@ $(function() {
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
+
+    var showLines = true;
+
+    var spData;
+
+    // Colors
+    var colToInputLineColor = '#6762ff';
+    var connectionCircleColor = '#1f04ff';
+
 
     var $colHistSlider = $('#column-history-slider');
     var $jumpPrevAc = $('#jumpto-prev-ac');
@@ -303,11 +318,15 @@ $(function() {
         return [gifData.dimensions[0], gifData.dimensions[1]];
     }
 
+    function getColumnDimensions() {
+        return [inputDimensions[0], inputDimensions[1]];
+    }
+
     function loadGifJson(path, callback) {
         $.getJSON(path, function(data) {
             gifData = data;
             inputDimensions = getInputDimension();
-            columnDimensions = [inputDimensions[0] * 2, inputDimensions[1] * 2]
+            columnDimensions = getColumnDimensions();
             spParams = new HTM.utils.sp.Params(
                 '', inputDimensions, columnDimensions
             );
@@ -316,20 +335,81 @@ $(function() {
     }
 
     function renderSdrs(inputEncoding, columns) {
-
-        var dim = 800;
+        var potentialPools = spData.potentialPools;
+        var connectedSynapses = spData.connectedSynapses;
         var $input = d3.select('#input-encoding');
+        var $connections = d3.select('#connections');
+        var $potentialPool = d3.select('#potential-pool-overlay');
+        var $columns = d3.select('#active-columns');
+        var dim = 800;
+
         drawSdr(
             inputEncoding, $input,
             0, 0, dim, dim, 'green', inputDimensions[0]
         );
-        var $learning = d3.select('#active-columns');
         drawSdr(
-            columns, $learning,
-            1000, 0, dim, dim, 'orange'
+            columns, $columns,
+            1000, 0, dim, dim, 'orange', columnDimensions[0]
         );
 
-        function drawConnectionsToInputSpace(columnIndex, type) {
+        var columnRects = $columns.selectAll('rect');
+
+        var overlayPotentialPools = function(columnIndex) {
+            var potentialPool = potentialPools[columnIndex];
+            drawSdr(inputEncoding, $potentialPool, 0, 0, dim, dim, function(d, i) {
+                var inPool = (potentialPool.indexOf(i) > -1);
+                var color = '#000';
+                var opacity = '0.1';
+                if (d == 1) {
+                    opacity = '0.5';
+                }
+                if (inPool) {
+                    opacity = '0.0'
+                }
+                return 'fill:' + color + ';fill-opacity:' + opacity;
+            }, inputDimensions[0]);
+
+        };
+
+        function drawConnectionsToInputSpace(columnIndex, columnRect) {
+            var synapses = connectedSynapses[columnIndex];
+            var colRectSize = parseInt(columnRect.getAttribute('width'));
+            var x1 = parseInt(columnRect.getAttribute('x')) + colRectSize / 2;
+            var y1 = parseInt(columnRect.getAttribute('y')) + colRectSize / 2;
+            $connections.html('');
+            var overlapCount = 0;
+            _.each(synapses, function(i) {
+                var rect = $input.select('#input-encoding-' + i);
+                var inputRectSize = parseInt(rect.attr('width'));
+                var x2 = parseInt(rect.attr('x')) + inputRectSize / 2;
+                var y2 = parseInt(rect.attr('y')) + inputRectSize / 2;
+                var lineColor = colToInputLineColor;
+                var circleColor = connectionCircleColor;
+                if (inputEncoding[i] == 1) {
+                    circleColor = 'limegreen';
+                    overlapCount++;
+                } else {
+                    circleColor = 'grey';
+                }
+                if (showLines) {
+                    $connections.append('line')
+                        .style('stroke', lineColor)
+                        .attr('x1', x1)
+                        .attr('y1', y1)
+                        .attr('x2', x2)
+                        .attr('y2', y2)
+                    ;
+                }
+                $connections.append('circle')
+                    .attr('cx', x2)
+                    .attr('cy', y2)
+                    .attr('r', inputRectSize / 3)
+                    .style('fill', circleColor)
+                ;
+            });
+        }
+
+        function showColumnHistory(columnIndex) {
             var $connections = d3.select('#connections');
             selectedColumn = columnIndex;
 
@@ -355,9 +435,20 @@ $(function() {
 
         }
 
-        $learning.selectAll('rect').on('click', function(noop, columnIndex) {
-            drawConnectionsToInputSpace(columnIndex, 'learning');
+        columnRects.on('click', function(noop, columnIndex) {
+            showColumnHistory(columnIndex);
         });
+
+        columnRects.on('mousemove', function(noop, columnIndex) {
+            overlayPotentialPools(columnIndex);
+            drawConnectionsToInputSpace(columnIndex, this);
+        });
+
+        $columns.on('mouseout', function() {
+            $potentialPool.html('');
+            $connections.html('');
+        });
+
     }
 
     function sendSpData(data, mainCallback) {
@@ -409,20 +500,6 @@ $(function() {
     }
 
     function decideWhetherToSave() {
-        // this is some bad code but I'm in a hurry and it'll never see production :P
-        //                              ____
-        //                      __,-~~/~    `---.
-        //                    _/_,---(      ,    )
-        //                __ /        <    /   )  \___
-        // - ------===;;;'====------------------===;;;===----- -  -
-        //                   \/  ~"~"~"~"~"~\~"~)~"/
-        //                   (_ (   \  (     >    \)
-        //                    \_( _ <         >_>'
-        //                       ~ `-i' ::>|--"
-        //                           I;|.|.|
-        //                          <|i::|i|`.
-        //                         (` ^'"`-' ")
-        // ------------------------------------------------------------------
         var isTransient = getUrlParameter('transient') == 'true';
         if (isTransient) {
             save = false;
@@ -486,13 +563,13 @@ $(function() {
         // Custom stuff for topology
         spParams.setParam('globalInhibition', false);
         spParams.setParam('potentialRadius', Math.floor(inputDimensions[0] / 4));
-        spParams.setParam('localAreaDensity', 0.10);
+        spParams.setParam('localAreaDensity', 0.1);
         spParams.setParam('numActiveColumnsPerInhArea', 1);
+        spParams.setParam('wrapAround', false);
 
-        spClient.initialize(spParams.getParams(), function(err) {
-            if (err) throw err;
+        spClient.initialize(spParams.getParams(), function(err, resp) {
             loading(false);
-            if (mainCallback) mainCallback();
+            if (mainCallback) mainCallback(err, resp);
         });
     }
 
@@ -500,7 +577,9 @@ $(function() {
     decideWhetherToSave();
 
     loadGifJson(gifPath, function() {
-        initSp(function() {
+        initSp(function(err, r) {
+            if (err) throw err;
+            spData = r;
             addDataControlHandlers();
         });
     });
