@@ -1,21 +1,6 @@
 $(function() {
 
-    var gifDataPath = '/static/data/gifdata';
-
-    //var gifName = 'bird.json';
-    var gifName = 'victory dance.json';
-    //var gifName = 'Spinning octopus-32.json';
-    //var gifName = 'note.json';
-    //var gifName = 'cattinywhitesleepin.json';
-    //var gifName = 'shapes.json';
-    //var gifName = 'kick.json';
-    //var gifName = 'stickmen_boxer_100-100.json';
-    //var gifName = 'run-cat.json';
-    //var gifName = 'running-stickman.json';
-    //var gifName = 'cleanruncycle1.json';
-    //var gifName = 'Dancing_cartoon_cat.json';
-
-    var gifPath = gifDataPath + '/' + gifName;
+    var gifPath = undefined;
     var gifData = undefined;
     var currentFrame = 0;
     var framesSeen = 0;
@@ -573,16 +558,40 @@ $(function() {
         });
     }
 
+    function loadGifList() {
+        $.getJSON("/_giflist", function(resp) {
+            var $giflist = $('#choose-gif');
+            _.each(resp.gifs, function(gif) {
+                var name = gif.split('/').pop().split('.').shift();
+                var $li = $('<li>');
+                var $btn = $('<button>');
+                $btn.html(name);
+                $btn.data('gif', gif);
+                $li.append($btn);
+                $giflist.append($li);
+                $btn.click(function() {
+                    var chosen = $(this).data('gif');
+                    gifPath = chosen;
+                    $giflist.remove();
+                    gifChosen();
+                });
+            });
+        });
+    }
+
+    function gifChosen() {
+        loadGifJson(gifPath, function() {
+            initSp(function(err, r) {
+                if (err) throw err;
+                spData = r;
+                addDataControlHandlers();
+            });
+        });
+    }
+
     addColumnHistoryJumpButtonHandlers();
     decideWhetherToSave();
 
-    loadGifJson(gifPath, function() {
-        initSp(function(err, r) {
-            if (err) throw err;
-            spData = r;
-            addDataControlHandlers();
-        });
-    });
-
+    loadGifList();
 
 });

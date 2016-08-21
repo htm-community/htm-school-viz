@@ -1,11 +1,16 @@
+import os
+
+import json
 import web
 import requests
 
 NUPIC_SERVER = "http://localhost:8000"
+GIF_PATH = "static/data/gifdata/"
 urls = (
   "/", "Index",
   "/client/(.+)", "Client",
   "/_proxy/(.+)", "Proxy",
+  "/_giflist", "GifList",
 )
 app = web.application(urls, globals())
 render = web.template.render("tmpl/")
@@ -69,6 +74,15 @@ class Proxy:
     data = web.data()
     response = requests.request(method, destinationUrl, data=data)
     return response.text
+
+
+class GifList:
+
+  def GET(self):
+    gifs = ["/" + GIF_PATH + f 
+            for f in os.listdir(GIF_PATH) 
+            if f[-4:] == "json"]
+    return json.dumps({"gifs": gifs})
 
 
 
