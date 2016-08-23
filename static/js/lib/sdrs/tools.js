@@ -101,6 +101,14 @@ $(function() {
 
         },
 
+        // Flips every bit.
+        invert: function(sdr) {
+            return _.map(sdr, function(bit) {
+                if (bit == 0) return 1;
+                return 0;
+            });
+        },
+
         // Adds a percent noise by turning on X percent of the off bits and
         // turning off X percent of the on bits.
         addNoise: function(sdr, percentNoise) {

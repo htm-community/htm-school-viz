@@ -437,12 +437,17 @@ $(function() {
     }
 
     function sendSpData(data, mainCallback) {
-        spClient.compute(data, {learn: true}, function(err, response) {
+        var encoding = data;
+        if (SDR.tools.population(data) > data.length *.9) {
+            encoding = SDR.tools.invert(data);
+        }
+        spClient.compute(encoding, {learn: true}, function(err, response) {
             if (err) throw err;
             framesSeen++;
             var activeColumns = response.activeColumns;
-            renderSdrs(data, activeColumns);
-            history.input.push(data);
+            $('#num-active-columns').html(SDR.tools.population(activeColumns));
+            renderSdrs(encoding, activeColumns);
+            history.input.push(encoding);
             history.activeColumns.push(activeColumns);
             if (mainCallback) mainCallback();
         });
@@ -551,6 +556,7 @@ $(function() {
         spParams.setParam('localAreaDensity', 0.1);
         spParams.setParam('numActiveColumnsPerInhArea', 1);
         spParams.setParam('wrapAround', false);
+        //spParams.setParam('stimulusThreshold', 10.0);
 
         spClient.initialize(spParams.getParams(), function(err, resp) {
             loading(false);
