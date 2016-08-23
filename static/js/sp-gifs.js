@@ -567,13 +567,20 @@ $(function() {
     function loadGifList() {
         $.getJSON("/_giflist", function(resp) {
             var $giflist = $('#choose-gif');
-            _.each(resp.gifs, function(gif) {
-                var name = gif.split('/').pop().split('.').shift();
+            _.each(resp.gifs, function(gifdata) {
+                var path = gifdata.path;
+                var dimensions = gifdata.dimensions;
+                var name = path.split('/').pop().split('.').shift();
                 var $li = $('<li>');
                 var $btn = $('<button>');
+                var $dim = $('<code>');
                 $btn.html(name);
-                $btn.data('gif', gif);
+                $btn.addClass('btn-lg btn-primary');
+                $btn.data('gif', path);
+                $dim.addClass('dim');
+                $dim.html('(' + dimensions.join(' x ') + ')');
                 $li.append($btn);
+                $li.append($dim);
                 $giflist.append($li);
                 $btn.click(function() {
                     var chosen = $(this).data('gif');

@@ -81,3 +81,7 @@ code {
   border: solid black 1px;
   background-color: white;
 }
+
+code.dim {
+  margin-left: 10px;
+}

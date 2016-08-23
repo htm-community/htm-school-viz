@@ -79,10 +79,18 @@ class Proxy:
 class GifList:
 
   def GET(self):
-    gifs = ["/" + GIF_PATH + f 
+    gifs = [GIF_PATH + f 
             for f in os.listdir(GIF_PATH) 
             if f[-4:] == "json"]
-    return json.dumps({"gifs": gifs})
+    out = []
+    for gif in gifs:
+      with open(gif, "r") as giffile:
+        gifdata = json.loads(giffile.read())
+        out.append({
+          "path": "/" + gif,
+          "dimensions": gifdata["dimensions"],
+        })
+    return json.dumps({"gifs": out})
 
 
 
