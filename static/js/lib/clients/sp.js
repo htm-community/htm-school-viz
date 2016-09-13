@@ -88,6 +88,7 @@ $(function() {
         INPUT: 'input',
         ACT_COL: 'activeColumns',
         POT_POOLS: 'potentialPools',
+        INH_MASKS: 'inhibitionMasks',
         CON_SYN: 'connectedSynapses',
         PERMS: 'permanences',
         OVERLAPS: 'overlaps',

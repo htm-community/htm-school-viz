@@ -8,7 +8,8 @@ $(function() {
     var snapsToSave = [
         HTM.SpSnapshots.ACT_COL,
         HTM.SpSnapshots.POT_POOLS,
-        HTM.SpSnapshots.CON_SYN
+        HTM.SpSnapshots.INH_MASKS,
+        HTM.SpSnapshots.CON_SYN,
     ];
     var save = snapsToSave;
     var history = {
@@ -33,8 +34,10 @@ $(function() {
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
+    var showLines = false;
 
-    var showLines = true;
+    var wrapAround = false;
+    var restrictColumnDimensions = true;
 
     var spData;
 
@@ -304,7 +307,11 @@ $(function() {
     }
 
     function getColumnDimensions() {
-        return [inputDimensions[0], inputDimensions[1]];
+        var dim = [inputDimensions[0], inputDimensions[1]];
+        if (restrictColumnDimensions && _.max(inputDimensions) > 32) {
+            dim = [inputDimensions[0] / 2, inputDimensions[1] / 2];
+        }
+        return dim;
     }
 
     function loadGifJson(path, callback) {
@@ -555,7 +562,8 @@ $(function() {
         spParams.setParam('potentialRadius', Math.floor(inputDimensions[0] / 4));
         spParams.setParam('localAreaDensity', 0.1);
         spParams.setParam('numActiveColumnsPerInhArea', 1);
-        spParams.setParam('wrapAround', false);
+        spParams.setParam('wrapAround', wrapAround);
+        spParams.setParam('maxBoost', 2.0);
         //spParams.setParam('stimulusThreshold', 10.0);
 
         spClient.initialize(spParams.getParams(), function(err, resp) {
@@ -575,7 +583,7 @@ $(function() {
                 var $btn = $('<button>');
                 var $dim = $('<code>');
                 $btn.html(name);
-                $btn.addClass('btn-lg btn-primary');
+                $btn.addClass('btn btn-default btn-primary');
                 $btn.data('gif', path);
                 $dim.addClass('dim');
                 $dim.html('(' + dimensions.join(' x ') + ')');
