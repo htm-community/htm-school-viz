@@ -1,0 +1,66 @@
+rect {
+    stroke: #CACACA;
+}
+#loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(100, 100, 100, 0.6);
+    text-align: center;
+    padding-top: 200px;
+}
+#loading.little {
+    right: inherit;
+    left: inherit;
+    bottom: inherit;
+    background-color: inherit;
+    padding: 0;
+    margin-left: 400px;
+}
+.modal-dialog {
+    width: 80%;
+}
+.modal-content .row {
+    margin: 0;
+}
+
+#input-chart {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+svg#visualization {
+    border: solid 1px slategrey;
+    background-color: white;
+}
+button#show-sp-params {
+    position: absolute;
+    left: 807px;
+    top: 30px;
+}
+.sdrs div {
+    text-align: center;
+}
+
+#tm {
+    width: 1000px;
+    height: 700px;
+}

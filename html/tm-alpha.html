@@ -1,0 +1,74 @@
+<script src="https://ci.numenta.com/browse/RES-NCV-29/artifact/shared/Webpacked-dyson-bundle.js/dyson-bundle.js"></script>
+
+<div class="modal fade" id="sp-params-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Spatial Pooling Parameters</h4>
+            </div>
+            <div id="sp-params" class="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+<button type="button" id="show-sp-params" class="btn btn-primary btn-md" data-toggle="modal" data-target="#sp-params-modal">
+    Show SP Params
+</button>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="player text-center">
+            <button type="button" id="play" class="btn">
+                        <span class="glyphicon glyphicon-play"
+                              aria-hidden="true"></span>
+            </button>
+            <button type="button" id="next" class="btn">
+                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+            </button>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 data-label">power consumption</div>
+            <div class="col-sm-6 data" id="power-display"></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 data-label">time of day</div>
+            <div class="col-sm-6 data" id="tod-display"></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 data-label">weekend</div>
+            <div class="col-sm-6 data" id="weekend-display"></div>
+        </div>
+    </div>
+    <div class="col-md-10" id="input-chart"></div>
+</div>
+
+<hr />
+
+<div class="sdrs">
+
+    <div class="row">
+        <div class="col-md-3">
+            <h2>Input Space <small>(encoding)</small></h2>
+        </div>
+        <div class="col-md-3">
+            <h2>Active SP Columns</h2>
+        </div>
+        <div class="col-md-6">
+            <h2>TM</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3" id="input-encoding"></div>
+        <div class="col-md-3" id="active-columns"></div>
+        <div class="col-md-6" id="tm">
+
+        </div>
+    </div>
+
+</div>
+
+<div id="loading" style="display:none">
+    <img src="/static/img/ajax-loader.gif"/>
+</div>
