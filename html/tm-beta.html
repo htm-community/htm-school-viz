@@ -1,4 +1,4 @@
-<script src="https://ci.numenta.com/browse/RES-NCV-29/artifact/shared/Webpacked-dyson-bundle.js/dyson-bundle.js"></script>
+<script src="https://ci.numenta.com/browse/RES-NCV-31/artifact/shared/Webpacked-dyson-bundle.js/dyson-bundle.js"></script>
 
 <div class="modal fade" id="sp-params-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog">
@@ -28,19 +28,35 @@
             </button>
         </div>
     </div>
-    <div class="col-md-10">
-        <div class="row">
-            <div class="col-md-3"></div>
-            <div class="col-md-3">
-                <h3>Shake it up</h3>
-                <input type="checkbox" id="swap">
-            </div>
-            <div class="col-md-3">
-                <h3>Reset</h3>
-                <input type="checkbox" id="reset">
-            </div>
-            <div class="col-md-3"></div>
-        </div>
+    <div class="col-md-2">
+        <h3>Shake it up</h3>
+        <input type="checkbox" id="swap">
+    </div>
+    <div class="col-md-2">
+        <h3>Reset</h3>
+        <input type="checkbox" id="reset">
+    </div>
+    <div class="col-md-6">
+        <table id="cell-legend"><tbody>
+        <tr>
+            <td class="inactive key"></td>
+            <th class="desc">inactive cells</th>
+            <td class="predictive key"></td>
+            <th class="desc">predictive cells</th>
+        </tr>
+        <tr>
+            <td class="active key"></td>
+            <th class="desc">active cells</th>
+            <td class="active predictive key"></td>
+            <th class="desc">active &amp; predictive cells</th>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td class="correct key"></td>
+            <th class="desc">correctly predicted cells</th>
+        </tr>
+        </tbody></table>
     </div>
 </div>
 

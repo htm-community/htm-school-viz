@@ -45,9 +45,40 @@ button#show-sp-params {
 
 #tm {
     width: 1200px;
-    height: 1000px;
+    height: 940px;
 }
 
 #tm canvas {
     border: 3px solid rgb(24, 93, 139);
+}
+
+#cell-legend .key {
+    border: solid black 2px;
+    width: 50px;
+    height: 50px;
+}
+
+#cell-legend .inactive {
+    background-color: #FFFFFF;
+}
+
+#cell-legend .active {
+    background-color: #FFFF00;
+}
+
+#cell-legend .predictive {
+    background-color: #FF0000;
+}
+
+#cell-legend .active.predictive {
+    background-color: #FFAC33;
+}
+
+#cell-legend .correct {
+    background-color: #6699FF;
+}
+
+#cell-legend .desc {
+    padding-left: 30px;
+    padding-right: 30px;
 }

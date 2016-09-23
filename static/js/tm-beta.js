@@ -46,8 +46,8 @@ $(function() {
         }
     }
 
-    // TODO: This is dumb but fine for now
     function getTmParams() {
+        // TODO: Provide a UI to change TM Params.
         return {
             columnDimensions: columnDimensions,
             cellsPerColumn: cellsPerColumn,
@@ -160,7 +160,7 @@ $(function() {
             0: 0xFFFFFF, // white for inactive cells
             1: 0xFFFF00, // yellow for active cells
             2: 0xFF0000, // red for predictive cells
-            3: 0xFFAC33, // orange for predictive cells
+            3: 0xFFAC33, // orange for active & predictive cells
             4: 0x6699FF  // cyan for correctly predicted cells from last step
         };
 
