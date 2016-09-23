@@ -1,0 +1,53 @@
+body {
+    margin: 0;
+}
+
+rect {
+    stroke: #CACACA;
+}
+#loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(100, 100, 100, 0.6);
+    text-align: center;
+    padding-top: 200px;
+}
+#loading.little {
+    right: inherit;
+    left: inherit;
+    bottom: inherit;
+    background-color: inherit;
+    padding: 0;
+    margin-left: 400px;
+}
+.modal-dialog {
+    width: 80%;
+}
+.modal-content .row {
+    margin: 0;
+}
+
+svg#visualization {
+    border: solid 1px slategrey;
+    background-color: white;
+}
+button#show-sp-params {
+    position: absolute;
+    left: 807px;
+    top: 30px;
+}
+.sdrs div {
+    text-align: center;
+}
+
+#tm {
+    width: 1200px;
+    height: 1000px;
+}
+
+#tm canvas {
+    border: 3px solid rgb(24, 93, 139);
+}
