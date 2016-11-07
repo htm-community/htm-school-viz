@@ -219,28 +219,32 @@ $(function() {
         var me = this;
         var overlapMarkers = this.overlapMarkers;
         var xVal = me.transformDateIntoXValue(date);
-        var min = _.min(overlaps);
-        var max = _.max(overlaps);
+        var min, max;
 
         me.dataMarker.attr("d", "M " + xVal + ",0 " + xVal + ",1000");
 
-        overlapMarkers.html('');
-        overlapMarkers.selectAll('circle')
-            .data(overlaps)
-            .enter()
-            .append('circle')
-            .attr('r', 4)
-            .attr('cx', function(d, i) {
-                return me.transformDateIntoXValue(data[i].date);
-            })
-            .attr('cy', function(d, i) {
-                return me.yTransform(data[i].consumption);
-            })
-            .style('fill', function(d) {
-                var perc = getPercentDistanceCrossed(min, d, max);
-                var color = getGreenToRed((1.0 - perc) * 100);
-                return '#' + color;
-            });
+        if (overlaps && data) {
+            min = _.min(overlaps);
+            max = _.max(overlaps);
+
+            overlapMarkers.html('');
+            overlapMarkers.selectAll('circle')
+                .data(overlaps)
+                .enter()
+                .append('circle')
+                .attr('r', 4)
+                .attr('cx', function(d, i) {
+                    return me.transformDateIntoXValue(data[i].date);
+                })
+                .attr('cy', function(d, i) {
+                    return me.yTransform(data[i].consumption);
+                })
+                .style('fill', function(d) {
+                    var perc = getPercentDistanceCrossed(min, d, max);
+                    var color = getGreenToRed((1.0 - perc) * 100);
+                    return '#' + color;
+                });
+        }
     };
 
     InputChart.prototype.onMouseMove = function(fn) {
