@@ -1,2 +1,2 @@
-web: python server.py ${PORT}
+web: node index.js ${PORT}
 
