@@ -2,8 +2,8 @@ $(function() {
 
     var scalarN = 400;
     var inputW = 21;
-    var minInput = 0;
-    var maxInput = 55;
+    var minInput = 1769;
+    var maxInput = 29985;
     var scalarEncoder = new HTM.encoders.ScalarEncoder(
         scalarN, inputW, minInput, maxInput
     );
@@ -49,7 +49,7 @@ $(function() {
     var chartWidth = 1900;
     var chartHeight = 120;
     var learningChart = new HTM.utils.chart.InputChart(
-        '#learning-chart', '/static/data/hotgym-short.csv',
+        '#learning-chart', '/static/data/nyc_taxi_treated.csv',
         chartWidth, chartHeight
     );
 
@@ -387,8 +387,9 @@ $(function() {
     }
 
     function renderSdrs(inputEncoding,
+                        activeColumns,
                         activeDutyCycles,
-                        learningAc) {
+                        boostFactors) {
 
         var dim = 800;
         var $input = d3.select('#input-encoding');
@@ -406,12 +407,23 @@ $(function() {
             normalizedActiveDutyCycles, $activeDutyCycles, 840, 0, dim, dim,
             function(d, i) {
                 return 'fill: #' + getGreenToRed(d * 100);
-            }, learningAc
+            }, activeColumns
         );
-        var $learning = d3.select('#learning-columns');
+
+        var $boostFactors = d3.select('#boost-factors');
+        var minBoostFactor = _.min(boostFactors);
+        var maxBoostFactor = _.max(boostFactors);
+        var normalizedBoostFactors = boostFactors;
+        if (minBoostFactor != maxBoostFactor) {
+            normalizedBoostFactors = _.map(boostFactors, function(value) {
+                return translate(value, minBoostFactor, maxBoostFactor);
+            });
+        }
         drawSdr(
-            learningAc, $learning,
-            1700, 0, dim, dim, 'orange'
+            normalizedBoostFactors, $boostFactors, 1700, 0, dim, dim,
+            function(d, i) {
+                return 'fill: #' + getGreenToRed(d * 100);
+            }, activeColumns
         );
 
         function drawConnectionsToInputSpace(columnIndex, type) {
@@ -442,7 +454,7 @@ $(function() {
 
         }
 
-        $learning.selectAll('rect').on('click', function(noop, columnIndex) {
+        $boostFactors.selectAll('rect').on('click', function(noop, columnIndex) {
             drawConnectionsToInputSpace(columnIndex, 'learning');
         });
         $activeDutyCycles.selectAll('rect').on('click', function(noop, columnIndex) {
@@ -488,6 +500,7 @@ $(function() {
 
             var learningAc = response.learning.activeColumns;
             var activeDutyCycles = response.learning.activeDutyCycles;
+            var boostFactors = response.learning.boostFactors;
 
             var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
                 return SDR.tools.getOverlapScore(learningAc, hist);
@@ -495,7 +508,7 @@ $(function() {
 
             learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
 
-            renderSdrs(noisyEncoding, activeDutyCycles, learningAc);
+            renderSdrs(noisyEncoding, learningAc, activeDutyCycles, boostFactors);
 
             learningHistory.inputEncoding[cursor] = encoding;
             learningHistory.activeColumns[cursor] = learningAc;
