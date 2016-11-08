@@ -7,11 +7,11 @@ These are supporting visualizations for the [HTM School](https://www.youtube.com
 
 ## Stack
 
-This is a web application with a Python server and a JavaScript frontend.
+This is a web application with a Nodejs server and a JavaScript frontend.
 
 ### Server
 
-- [web.py](http://webpy.org/) (for serving files and HTTP Proxy to [NuPIC History Server](https://github.com/htm-community/nupic-history-server))
+- [node.js](http://nodejs.org/) (for serving files and HTTP Proxy to [NuPIC History Server](https://github.com/htm-community/nupic-history-server))
 
 ### Client
 
@@ -23,9 +23,9 @@ This is a web application with a Python server and a JavaScript frontend.
 
 ## Install
 
-Install web.py requirement:
+Install npm requirements:
 
-    pip install -r requirements.txt
+    npm install
 
 ## Run
 
@@ -33,6 +33,6 @@ Install web.py requirement:
 
 Now start this server on any port you like:
 
-    python server.py 8080
+    npm start 8080
 
 View on <http://localhost:8080/>.
