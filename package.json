@@ -2,7 +2,7 @@
   "name": "htm-school-viz",
   "version": "1.0.0",
   "description": "Sparse Distributed Representation Vizualizations",
-  "main": "build.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
