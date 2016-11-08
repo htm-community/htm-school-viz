@@ -41,7 +41,8 @@ $(function() {
         PERMS: 'permanences',
         OVERLAPS: 'overlaps',
         ACT_DC: 'activeDutyCycles',
-        OVP_DC: 'overlapDutyCycles'
+        OVP_DC: 'overlapDutyCycles',
+        BST_FCTRS: 'boostFactors'
     };
 
     function SpatialPoolerClient(save) {

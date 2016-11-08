@@ -67,6 +67,7 @@
 </div>
 
 <!-- super hacky absolute positioned labels over the charts -->
+<div id="random-chart-label">Random SP</div>
 <div id="learning-chart-label">Learning SP</div>
 
 <div class="row">
@@ -97,6 +98,9 @@
     <div class="col-md-9">
 
         <div class="row">
+            <div class="col-md-12" id="random-chart"></div>
+        </div>
+        <div class="row">
             <div class="col-md-12" id="learning-chart"></div>
         </div>
 
@@ -110,14 +114,17 @@
         <div class="col-md-4">
             <h2>Input Space <small>(encoding)</small></h2>
         </div>
-        <div class="col-md-8">
+        <div class="col-md-4">
+            <h2>Active Duty Cycles</h2>
+        </div>
+        <div class="col-md-4">
             <h2>Learning SP Active Columns</h2>
         </div>
     </div>
 
     <svg width="2500" height="1050">
         <g id="input-encoding"></g>
-        <g id="random-columns"></g>
+        <g id="active-duty-cycles"></g>
         <g id="learning-columns"></g>
         <g id="connections"></g>
     </svg>

@@ -18,6 +18,7 @@ $(function() {
     var save = snapsToSave;
 
     var learningHistory = {
+        inputEncoding: [],
         activeColumns: []
     };
 
@@ -41,12 +42,12 @@ $(function() {
 
     var inputDimensions = getInputDimension();
     var columnDimensions = [2048];
-    var learnSpParams = new HTM.utils.sp.Params(
+    var learningSpParams = new HTM.utils.sp.Params(
         '', inputDimensions, columnDimensions
     );
 
     var chartWidth = 1900;
-    var chartHeight = 240;
+    var chartHeight = 120;
     var learningChart = new HTM.utils.chart.InputChart(
         '#learning-chart', '/static/data/hotgym-short.csv',
         chartWidth, chartHeight
@@ -66,6 +67,19 @@ $(function() {
         return [numBits];
     }
 
+    /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
+    function getGreenToRed(percent){
+        var r, g;
+        percent = 100 - percent;
+        r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
+        g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
+        return rgbToHex(r, g, 0);
+    }
+
+    /* From http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
+    function rgbToHex(r, g, b) {
+        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
 
     function getUrlParameter(sParam) {
         var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -102,15 +116,22 @@ $(function() {
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
+        // This might be an interested view to show boosting in action.
+        learningSpParams.setParam("maxBoost", 2);
         spClients.learning = new HTM.SpatialPoolerClient(save);
         inits.push(function(callback) {
-            spClients.learning.initialize(learnSpParams.getParams(), callback);
+            spClients.learning.initialize(learningSpParams.getParams(), callback);
         });
         async.parallel(inits, function(err) {
             if (err) throw err;
             loading(false);
             if (mainCallback) mainCallback();
         });
+    }
+
+    function translate(x, min, max) {
+        var range = max - min;
+        return (x - min) / range;
     }
 
     function renderColumnState(iteration) {
@@ -128,7 +149,7 @@ $(function() {
         var columnHist = connectionCache[selectedColumnType][selectedColumn];
         var permanences = columnHist.permanences[iteration];
         var activeColumns = columnHist.activeColumns;
-        var threshold = learnSpParams.getParams().synPermConnected;
+        var threshold = learningSpParams.getParams().synPermConnected;
         var connections = [];
         var newlyConnectedCount = 0;
         var disconnectedCount = 0;
@@ -277,7 +298,7 @@ $(function() {
         lastShownIteration = iteration;
     }
 
-    function drawSdr(sdr, $el, x, y, width, height, style) {
+    function drawSdr(sdr, $el, x, y, width, height, style, circles) {
         var bits = sdr.length;
         var area = width * height;
         var squareArea = area / bits;
@@ -286,6 +307,7 @@ $(function() {
         var rowLength = Math.floor(width / fullRectSize);
         var idPrefix = $el.attr('id');
         var onColor = 'steelblue';
+        var circleColor = '#6762ff';
 
         $el.html('');
 
@@ -325,9 +347,47 @@ $(function() {
             .attr('id', function(d, i) { return idPrefix + '-' + i; })
             .attr('style', styleFunction)
         ;
+
+        if (circles) {
+            $el
+                .selectAll('circle')
+                .data(circles)
+                .enter()
+                .append('circle')
+                .attr('r', rectSize / 6)
+                .attr('cx', function (d, i) {
+                    var offset = i % rowLength;
+                    var left = offset * fullRectSize + x;
+                    return left + fullRectSize / 2 - 1; // -1 for the border
+                })
+                .attr('cy', function (d, i) {
+                    var offset = Math.floor(i / rowLength);
+                    var top = offset * fullRectSize + y;
+                    return top + fullRectSize / 2 - 1; // -1 for the border
+                })
+                .attr('index', function (d, i) {
+                    return i;
+                })
+                .attr('style', function(d, i) {
+                    var color = circleColor;
+                    var strokeColor = circleColor;
+                    var opacity = '1.0';
+                    if (d == 0) {
+                        opacity = '0.0';
+                        strokeColor = 'rgba(0,0,0,0.0)';
+                    }
+                    return 'fill:' + color + ';' +
+                        'stroke:' + strokeColor + ';' +
+                        'stroke-width:3;' +
+                        'fill-opacity:' + opacity + ';';
+                })
+            ;
+
+        }
     }
 
     function renderSdrs(inputEncoding,
+                        activeDutyCycles,
                         learningAc) {
 
         var dim = 800;
@@ -335,6 +395,18 @@ $(function() {
         drawSdr(
             inputEncoding, $input,
             0, 0, dim, dim, 'green'
+        );
+        var $activeDutyCycles = d3.select('#active-duty-cycles');
+        var minActiveDutyCycle = _.min(activeDutyCycles);
+        var maxActiveDutyCycle = _.max(activeDutyCycles);
+        var normalizedActiveDutyCycles = _.map(activeDutyCycles, function(value) {
+            return translate(value, minActiveDutyCycle, maxActiveDutyCycle);
+        });
+        drawSdr(
+            normalizedActiveDutyCycles, $activeDutyCycles, 840, 0, dim, dim,
+            function(d, i) {
+                return 'fill: #' + getGreenToRed(d * 100);
+            }, learningAc
         );
         var $learning = d3.select('#learning-columns');
         drawSdr(
@@ -373,6 +445,9 @@ $(function() {
         $learning.selectAll('rect').on('click', function(noop, columnIndex) {
             drawConnectionsToInputSpace(columnIndex, 'learning');
         });
+        $activeDutyCycles.selectAll('rect').on('click', function(noop, columnIndex) {
+            drawConnectionsToInputSpace(columnIndex, 'learning');
+        });
     }
 
     function runOnePointThroughSp(mainCallback) {
@@ -384,7 +459,6 @@ $(function() {
         var power = parseFloat(point['consumption']);
         var encoding = [];
         var noisyEncoding = [];
-        var day = date.day();
         var computes = {};
 
         // Update UI display of current data point.
@@ -402,7 +476,9 @@ $(function() {
         _.each(spClients, function(client, name) {
             computes[name] = function(callback) {
                 spClients[name].compute(noisyEncoding, {
-                    learn: (name == 'learning')
+                    learn: (name == 'learning'),
+                    getActiveDutyCycles: true,
+                    getBoostFactors: true
                 }, callback)
             };
         });
@@ -411,14 +487,17 @@ $(function() {
             if (error) throw error;
 
             var learningAc = response.learning.activeColumns;
+            var activeDutyCycles = response.learning.activeDutyCycles;
 
-            learningChart.renderOverlapHistory(date);
+            var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
+                return SDR.tools.getOverlapScore(learningAc, hist);
+            });
 
-            renderSdrs(
-                noisyEncoding,
-                learningAc
-            );
+            learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
 
+            renderSdrs(noisyEncoding, activeDutyCycles, learningAc);
+
+            learningHistory.inputEncoding[cursor] = encoding;
             learningHistory.activeColumns[cursor] = learningAc;
             if (mainCallback) mainCallback();
         });
@@ -527,9 +606,11 @@ $(function() {
 
     initSp(function() {
         learningChart.render(function() {
-            addDataControlHandlers();
-            runOnePointThroughSp();
-            learningChart.dataCursor++;
+            learningChart.render(function() {
+                addDataControlHandlers();
+                runOnePointThroughSp();
+                learningChart.dataCursor++;
+            });
         });
     });
 
