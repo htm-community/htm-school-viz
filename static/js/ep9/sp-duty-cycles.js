@@ -2,15 +2,16 @@ $(function() {
 
     var scalarN = 400;
     var inputW = 21;
-    var minInput = 1769;
-    var maxInput = 29985;
+    //var minInput = 1769;
+    //var maxInput = 29985;
+    var minInput = 0;
+    var maxInput = 55;
     var scalarEncoder = new HTM.encoders.ScalarEncoder(
         scalarN, inputW, minInput, maxInput
     );
-    var dateEncoder = new HTM.encoders.DateEncoder(51);
+    var dateEncoder = new HTM.encoders.DateEncoder(41);
 
     var playing = false;
-    var noise = 0.0;
     var snapsToSave = [
         HTM.SpSnapshots.ACT_COL,
         HTM.SpSnapshots.PERMS
@@ -35,6 +36,11 @@ $(function() {
 
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
+    var $weekendDisplay = $('#weekend-display');
+    var $adcMin = $('#adc-min');
+    var $adcMax = $('#adc-max');
+    var $boostMin = $('#boost-min');
+    var $boostMax = $('#boost-max');
 
     var spClients = {
         learning: undefined
@@ -49,7 +55,8 @@ $(function() {
     var chartWidth = 1900;
     var chartHeight = 120;
     var learningChart = new HTM.utils.chart.InputChart(
-        '#learning-chart', '/static/data/nyc_taxi_treated.csv',
+        //'#learning-chart', '/static/data/nyc_taxi_treated.csv',
+        '#learning-chart', '/static/data/hotgym-short.csv',
         chartWidth, chartHeight
     );
 
@@ -63,7 +70,9 @@ $(function() {
 
     // SP params we are not allowing user to change
     function getInputDimension() {
-        var numBits = scalarN + dateEncoder.timeOfDayEncoder.getWidth();
+        var numBits = scalarN
+            + dateEncoder.timeOfDayEncoder.getWidth()
+            + dateEncoder.weekendEncoder.getWidth();
         return [numBits];
     }
 
@@ -307,7 +316,8 @@ $(function() {
         var rowLength = Math.floor(width / fullRectSize);
         var idPrefix = $el.attr('id');
         var onColor = 'steelblue';
-        var circleColor = '#6762ff';
+        var circleColor = '#fff';
+        var circleStrokeColor = '#000';
 
         $el.html('');
 
@@ -354,7 +364,7 @@ $(function() {
                 .data(circles)
                 .enter()
                 .append('circle')
-                .attr('r', rectSize / 6)
+                .attr('r', rectSize / 3)
                 .attr('cx', function (d, i) {
                     var offset = i % rowLength;
                     var left = offset * fullRectSize + x;
@@ -370,7 +380,7 @@ $(function() {
                 })
                 .attr('style', function(d, i) {
                     var color = circleColor;
-                    var strokeColor = circleColor;
+                    var strokeColor = circleStrokeColor;
                     var opacity = '1.0';
                     if (d == 0) {
                         opacity = '0.0';
@@ -378,7 +388,7 @@ $(function() {
                     }
                     return 'fill:' + color + ';' +
                         'stroke:' + strokeColor + ';' +
-                        'stroke-width:3;' +
+                        'stroke-width:1;' +
                         'fill-opacity:' + opacity + ';';
                 })
             ;
@@ -410,6 +420,9 @@ $(function() {
             }, activeColumns
         );
 
+        $adcMin.html(minActiveDutyCycle.toFixed(2));
+        $adcMax.html(maxActiveDutyCycle.toFixed(2));
+
         var $boostFactors = d3.select('#boost-factors');
         var minBoostFactor = _.min(boostFactors);
         var maxBoostFactor = _.max(boostFactors);
@@ -425,6 +438,9 @@ $(function() {
                 return 'fill: #' + getGreenToRed(d * 100);
             }, activeColumns
         );
+
+        $boostMin.html(minBoostFactor.toFixed(2));
+        $boostMax.html(maxBoostFactor.toFixed(2));
 
         function drawConnectionsToInputSpace(columnIndex, type) {
             var spClient = spClients[type];
@@ -468,26 +484,27 @@ $(function() {
         var data = chart.data;
         var point = data[cursor];
         var date = moment(point.date);
+        var day = date.day();
+        var isWeekend = (day == 6) || (day == 0);    // 6 = Saturday, 0 = Sunday
         var power = parseFloat(point['consumption']);
         var encoding = [];
-        var noisyEncoding = [];
         var computes = {};
 
         // Update UI display of current data point.
         $powerDisplay.html(power);
         $todDisplay.html(date.format('h A'));
+        $weekendDisplay.html(isWeekend ? 'yes' : 'no');
 
         // Encode data point into SDR.
         encoding = encoding.concat(scalarEncoder.encode(power));
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
+        encoding = encoding.concat(dateEncoder.encodeWeekend(date));
 
-        noisyEncoding = SDR.tools.addNoise(encoding, noise);
-
-        inputCache.push(noisyEncoding);
+        inputCache.push(encoding);
 
         _.each(spClients, function(client, name) {
             computes[name] = function(callback) {
-                spClients[name].compute(noisyEncoding, {
+                spClients[name].compute(encoding, {
                     learn: (name == 'learning'),
                     getActiveDutyCycles: true,
                     getBoostFactors: true
@@ -508,7 +525,7 @@ $(function() {
 
             learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
 
-            renderSdrs(noisyEncoding, learningAc, activeDutyCycles, boostFactors);
+            renderSdrs(encoding, learningAc, activeDutyCycles, boostFactors);
 
             learningHistory.inputEncoding[cursor] = encoding;
             learningHistory.activeColumns[cursor] = learningAc;
@@ -563,22 +580,6 @@ $(function() {
         }
     }
 
-    function createNoiseSlider() {
-        var $noiseSlider = $('#noise-slider');
-        var $noiseDisplay = $('#noise-display');
-        $noiseDisplay.html(noise);
-        $noiseSlider.slider({
-            min: 0.0,
-            max: 1.0,
-            value: noise,
-            step: 0.01,
-            slide: function(event, ui) {
-                noise = ui.value;
-                $noiseDisplay.html(noise);
-            }
-        });
-    }
-
     function addColumnHistoryJumpButtonHandlers() {
         $('#ac-jump').click(function(event) {
             var id = event.target.getAttribute('id');
@@ -613,7 +614,6 @@ $(function() {
         playing = false;
     }
 
-    createNoiseSlider();
     addColumnHistoryJumpButtonHandlers();
     decideWhetherToSave();
 
