@@ -34,13 +34,13 @@ $(function() {
 
     var inputDimensions = getInputDimension();
     var columnDimensions = [2048];
-    var learningSpParams = new HTM.utils.sp.Params(
-        '', inputDimensions, columnDimensions
+    var spParams = new HTM.utils.sp.Params(
+        'sp-params', inputDimensions, columnDimensions
     );
 
     var chartWidth = 1900;
     var chartHeight = 120;
-    var learningChart = new HTM.utils.chart.InputChart(
+    var inputChart = new HTM.utils.chart.InputChart(
         //'#boost-on-chart', '/static/data/nyc_taxi_treated.csv',
         '#boost-on-chart', '/static/data/hotgym-short.csv',
         chartWidth, chartHeight
@@ -92,11 +92,9 @@ $(function() {
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
-        // This might be an interested view to show boosting in action.
-        learningSpParams.setParam("maxBoost", 2);
         spClients.learning = new HTM.SpatialPoolerClient(save);
         inits.push(function(callback) {
-            spClients.learning.initialize(learningSpParams.getParams(), callback);
+            spClients.learning.initialize(spParams.getParams(), callback);
         });
         async.parallel(inits, function(err) {
             if (err) throw err;
@@ -248,7 +246,7 @@ $(function() {
     }
 
     function runOnePointThroughSp(mainCallback) {
-        var chart = learningChart;
+        var chart = inputChart;
         var cursor = chart.dataCursor;
         var data = chart.data;
         var point = data[cursor];
@@ -292,7 +290,7 @@ $(function() {
                 return SDR.tools.getOverlapScore(learningAc, hist);
             });
 
-            learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
+            inputChart.renderOverlapHistory(date, learningAcOverlaps, data);
 
             renderSdrs(encoding, learningAc, activeDutyCycles, boostFactors);
 
@@ -303,12 +301,12 @@ $(function() {
     }
 
     function stepThroughData(callback) {
-        if (!playing || learningChart.dataCursor == learningChart.data.length - 1) {
+        if (!playing || inputChart.dataCursor == inputChart.data.length - 1) {
             if (callback) callback();
             return;
         }
         runOnePointThroughSp(stepThroughData);
-        learningChart.dataCursor++;
+        inputChart.dataCursor++;
     }
 
     function addDataControlHandlers() {
@@ -325,7 +323,7 @@ $(function() {
                 $btn.toggleClass('btn-success');
             } else if (this.id == 'next') {
                 runOnePointThroughSp();
-                learningChart.dataCursor++;
+                inputChart.dataCursor++;
             }
         });
     }
@@ -341,14 +339,25 @@ $(function() {
         playing = false;
     }
 
-    initSp(function() {
-        learningChart.render(function() {
-            learningChart.render(function() {
-                addDataControlHandlers();
+    function setup() {
+        initSp(function() {
+            learningHistory = {
+                inputEncoding: [],
+                activeColumns: []
+            };
+            inputChart.render(function() {
                 runOnePointThroughSp();
-                learningChart.dataCursor++;
+                inputChart.dataCursor++;
             });
         });
+    }
+
+    addDataControlHandlers();
+
+    spParams.render(function() {
+        setup();
+    }, function() {
+        setup();
     });
 
 });

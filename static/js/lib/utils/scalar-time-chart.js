@@ -22,8 +22,8 @@ $(function() {
     }
 
 
-    function InputChart(elId, csv, w, h) {
-        this.elId = elId;
+    function InputChart(selector, csv, w, h) {
+        this.selector = selector;
         this.csv = csv;
         this.data = undefined;
         this.dataCursor = undefined;
@@ -60,6 +60,10 @@ $(function() {
         var me = this;
         var width = this.width;
         var height = this.height;
+
+        this.svg = undefined;
+        $(this.selector).html('');
+        this.dataCursor = 0;
 
         this.transformDateIntoXValue = d3.time.scale()
             .range([0, width]);
@@ -262,7 +266,7 @@ $(function() {
 
     InputChart.prototype._lazyCreateSVG = function() {
         if (! this.svg) {
-            this.svg = d3.select(this.elId).append("svg")
+            this.svg = d3.select(this.selector).append("svg")
         } else {
             this.svg.html('');
         }
