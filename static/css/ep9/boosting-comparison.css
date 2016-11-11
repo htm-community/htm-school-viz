@@ -68,6 +68,16 @@ body {
     margin: 0;
 }
 
+#boosting-off-label {
+    position: absolute;
+    top: 74px;
+    left: 700px;
+}
+#boosting-on-label {
+    position: absolute;
+    top: 220px;
+    left: 700px;
+}
 code {
     font-size: 24pt;
 }

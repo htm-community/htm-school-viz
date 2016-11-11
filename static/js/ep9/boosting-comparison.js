@@ -2,8 +2,6 @@ $(function() {
 
     var scalarN = 400;
     var inputW = 21;
-    //var minInput = 1769;
-    //var maxInput = 29985;
     var minInput = 0;
     var maxInput = 55;
     var scalarEncoder = new HTM.encoders.ScalarEncoder(
@@ -14,35 +12,56 @@ $(function() {
     var playing = false;
     var save = false;
 
-    var learningHistory = {
+    var boostOffHistory = {
         inputEncoding: [],
         activeColumns: []
     };
+    var boostOnHistory = {
+        activeColumns: []
+    };
+
+    // Object keyed by SP type / column index / snapshot type. Contains an array
+    // at this point with iteration data.
+    var connectionCache = {
+        boostOff: {},
+        boostOn: {}
+    };
     var inputCache = [];
+    var selectedColumn = undefined;
+    var selectedColumnType = undefined;
+    var lastShownConnections = [];
+    var lastShownIteration = undefined;
 
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
     var $weekendDisplay = $('#weekend-display');
-    var $adcMin = $('#adc-min');
-    var $adcMax = $('#adc-max');
-    var $boostMin = $('#boost-min');
-    var $boostMax = $('#boost-max');
+    var $boostOffMin = $('#off-min');
+    var $boostOffMax = $('#off-max');
+    var $boostOnMin = $('#on-min');
+    var $boostOnMax = $('#on-max');
 
     var spClients = {
-        learning: undefined
+        boostOff: undefined,
+        boostOn: undefined
     };
 
     var inputDimensions = getInputDimension();
     var columnDimensions = [2048];
-    var learningSpParams = new HTM.utils.sp.Params(
+    var boostOffParams = new HTM.utils.sp.Params(
+        '', inputDimensions, columnDimensions
+    );
+    var boostOnParams = new HTM.utils.sp.Params(
         '', inputDimensions, columnDimensions
     );
 
     var chartWidth = 1900;
     var chartHeight = 120;
-    var learningChart = new HTM.utils.chart.InputChart(
-        //'#boost-on-chart', '/static/data/nyc_taxi_treated.csv',
-        '#boost-on-chart', '/static/data/hotgym-short.csv',
+    var boostOffChart = new HTM.utils.chart.InputChart(
+        '#boostOff-chart', '/static/data/hotgym-short.csv',
+        chartWidth, chartHeight
+    );
+    var boostOnChart = new HTM.utils.chart.InputChart(
+        '#boostOn-chart', '/static/data/hotgym-short.csv',
         chartWidth, chartHeight
     );
 
@@ -50,13 +69,9 @@ $(function() {
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
 
-    // SP params we are not allowing user to change
-    function getInputDimension() {
-        var numBits = scalarN
-            + dateEncoder.timeOfDayEncoder.getWidth()
-            + dateEncoder.weekendEncoder.getWidth();
-        return [numBits];
-    }
+    var $colHistSlider = $('#column-history-slider');
+    var $jumpPrevAc = $('#jumpto-prev-ac');
+    var $jumpNextAc = $('#jumpto-next-ac');
 
     /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
     function getGreenToRed(percent){
@@ -71,6 +86,15 @@ $(function() {
     function rgbToHex(r, g, b) {
         return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     }
+
+    // SP params we are not allowing user to change
+    function getInputDimension() {
+        var numBits = scalarN
+            + dateEncoder.timeOfDayEncoder.getWidth()
+            + dateEncoder.weekendEncoder.getWidth();
+        return [numBits];
+    }
+
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -92,11 +116,15 @@ $(function() {
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
-        // This might be an interested view to show boosting in action.
-        learningSpParams.setParam("maxBoost", 2);
-        spClients.learning = new HTM.SpatialPoolerClient(save);
+        boostOffParams.setParam("maxBoost", 1);
+        boostOnParams.setParam("maxBoost", 2);
+        spClients.boostOff = new HTM.SpatialPoolerClient();
+        spClients.boostOn = new HTM.SpatialPoolerClient(save);
         inits.push(function(callback) {
-            spClients.learning.initialize(learningSpParams.getParams(), callback);
+            spClients.boostOff.initialize(boostOffParams.getParams(), callback);
+        });
+        inits.push(function(callback) {
+            spClients.boostOn.initialize(boostOnParams.getParams(), callback);
         });
         async.parallel(inits, function(err) {
             if (err) throw err;
@@ -200,9 +228,12 @@ $(function() {
     }
 
     function renderSdrs(inputEncoding,
-                        activeColumns,
-                        activeDutyCycles,
-                        boostFactors) {
+                        boostOff,
+                        boostOn) {
+        var boostOffAc = boostOff.activeColumns;
+        var boostOnAc = boostOn.activeColumns;
+        var boostOffDutyCycles = boostOff.activeDutyCycles;
+        var boostOnDutyCycles = boostOn.activeDutyCycles;
 
         var dim = 800;
         var $input = d3.select('#input-encoding');
@@ -210,45 +241,43 @@ $(function() {
             inputEncoding, $input,
             0, 0, dim, dim, 'green'
         );
-        var $activeDutyCycles = d3.select('#active-duty-cycles');
-        var minActiveDutyCycle = _.min(activeDutyCycles);
-        var maxActiveDutyCycle = _.max(activeDutyCycles);
-        var normalizedActiveDutyCycles = _.map(activeDutyCycles, function(value) {
-            return translate(value, minActiveDutyCycle, maxActiveDutyCycle);
+
+        var $boostOff = d3.select('#boostOff-columns');
+        var boostOffMinAdc = _.min(boostOffDutyCycles);
+        var boostOffMaxAdc = _.max(boostOffDutyCycles);
+        var normalizedBoostOffAdcs = _.map(boostOffDutyCycles, function(value) {
+            return translate(value, boostOffMinAdc, boostOffMaxAdc);
         });
         drawSdr(
-            normalizedActiveDutyCycles, $activeDutyCycles, 840, 0, dim, dim,
+            normalizedBoostOffAdcs, $boostOff, 840, 0, dim, dim,
             function(d, i) {
                 return 'fill: #' + getGreenToRed(d * 100);
-            }, activeColumns
+            }, boostOffAc
         );
 
-        $adcMin.html(minActiveDutyCycle.toFixed(2));
-        $adcMax.html(maxActiveDutyCycle.toFixed(2));
+        $boostOffMin.html(boostOffMinAdc.toFixed(2));
+        $boostOffMax.html(boostOffMaxAdc.toFixed(2));
 
-        var $boostFactors = d3.select('#boost-factors');
-        var minBoostFactor = _.min(boostFactors);
-        var maxBoostFactor = _.max(boostFactors);
-        var normalizedBoostFactors = boostFactors;
-        if (minBoostFactor != maxBoostFactor) {
-            normalizedBoostFactors = _.map(boostFactors, function(value) {
-                return translate(value, minBoostFactor, maxBoostFactor);
-            });
-        }
+        var $boostOn = d3.select('#boostOn-columns');
+        var boostOnMinAdc = _.min(boostOnDutyCycles);
+        var boostOnMaxAdc = _.max(boostOnDutyCycles);
+        var normalizedBoostOnAdcs = _.map(boostOnDutyCycles, function(value) {
+            return translate(value, boostOnMinAdc, boostOnMaxAdc);
+        });
         drawSdr(
-            normalizedBoostFactors, $boostFactors, 1700, 0, dim, dim,
+            normalizedBoostOnAdcs, $boostOn, 1700, 0, dim, dim,
             function(d, i) {
                 return 'fill: #' + getGreenToRed(d * 100);
-            }, activeColumns
+            }, boostOnAc
         );
 
-        $boostMin.html(minBoostFactor.toFixed(2));
-        $boostMax.html(maxBoostFactor.toFixed(2));
+        $boostOnMin.html(boostOnMinAdc.toFixed(2));
+        $boostOnMax.html(boostOnMaxAdc.toFixed(2));
 
     }
 
     function runOnePointThroughSp(mainCallback) {
-        var chart = learningChart;
+        var chart = boostOffChart;
         var cursor = chart.dataCursor;
         var data = chart.data;
         var point = data[cursor];
@@ -274,9 +303,8 @@ $(function() {
         _.each(spClients, function(client, name) {
             computes[name] = function(callback) {
                 spClients[name].compute(encoding, {
-                    learn: (name == 'learning'),
-                    getActiveDutyCycles: true,
-                    getBoostFactors: true
+                    learn: true,
+                    getActiveDutyCycles: true
                 }, callback)
             };
         });
@@ -284,35 +312,44 @@ $(function() {
         async.parallel(computes, function(error, response) {
             if (error) throw error;
 
-            var learningAc = response.learning.activeColumns;
-            var activeDutyCycles = response.learning.activeDutyCycles;
-            var boostFactors = response.learning.boostFactors;
+            var boostOffAc = response.boostOff.activeColumns;
+            var boostOnAc = response.boostOn.activeColumns;
 
-            var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
-                return SDR.tools.getOverlapScore(learningAc, hist);
+            var boostOffAcOverlaps = _.map(boostOffHistory.activeColumns, function(hist) {
+                return SDR.tools.getOverlapScore(boostOffAc, hist);
+            });
+            var boostOnAcOverlaps = _.map(boostOnHistory.activeColumns, function(hist) {
+                return SDR.tools.getOverlapScore(boostOnAc, hist);
             });
 
-            learningChart.renderOverlapHistory(date, learningAcOverlaps, data);
+            boostOffChart.renderOverlapHistory(date, boostOffAcOverlaps, data);
+            boostOnChart.renderOverlapHistory(date, boostOnAcOverlaps, data);
 
-            renderSdrs(encoding, learningAc, activeDutyCycles, boostFactors);
+            renderSdrs(
+                encoding,
+                response.boostOff,
+                response.boostOn
+            );
 
-            learningHistory.inputEncoding[cursor] = encoding;
-            learningHistory.activeColumns[cursor] = learningAc;
+            boostOffHistory.inputEncoding[cursor] = encoding;
+            boostOffHistory.activeColumns[cursor] = boostOffAc;
+            boostOnHistory.activeColumns[cursor] = boostOnAc;
             if (mainCallback) mainCallback();
         });
     }
 
     function stepThroughData(callback) {
-        if (!playing || learningChart.dataCursor == learningChart.data.length - 1) {
+        if (!playing || boostOffChart.dataCursor == boostOffChart.data.length - 1) {
             if (callback) callback();
             return;
         }
         runOnePointThroughSp(stepThroughData);
-        learningChart.dataCursor++;
+        boostOffChart.dataCursor++;
+        boostOnChart.dataCursor++;
     }
 
     function addDataControlHandlers() {
-        $('.player button').click(function() {
+        $('.player button').click(function(evt) {
             var $btn = $(this);
             if (this.id == 'play') {
                 if ($btn.hasClass('btn-success')) {
@@ -325,7 +362,8 @@ $(function() {
                 $btn.toggleClass('btn-success');
             } else if (this.id == 'next') {
                 runOnePointThroughSp();
-                learningChart.dataCursor++;
+                boostOffChart.dataCursor++;
+                boostOnChart.dataCursor++;
             }
         });
     }
@@ -342,11 +380,12 @@ $(function() {
     }
 
     initSp(function() {
-        learningChart.render(function() {
-            learningChart.render(function() {
+        boostOffChart.render(function() {
+            boostOnChart.render(function() {
                 addDataControlHandlers();
                 runOnePointThroughSp();
-                learningChart.dataCursor++;
+                boostOffChart.dataCursor++;
+                boostOnChart.dataCursor++;
             });
         });
     });
