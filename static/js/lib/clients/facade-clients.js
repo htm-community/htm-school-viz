@@ -26,6 +26,22 @@ $(function() {
         return out;
     }
 
+    function shouldCleanSlate() {
+        if (window.HTM_SCHOOL && window.HTM_SCHOOL._slateIsCleaned) {
+            return false;
+        } else {
+            markSlateClean();
+            return true;
+        }
+    }
+
+    function markSlateClean() {
+        if (! window.HTM_SCHOOL) {
+            window.HTM_SCHOOL = {};
+        }
+        window.HTM_SCHOOL._slateIsCleaned = true;
+    }
+
     // TODO: Create an abstract base class for these two clients.
 
     ////////////////////////////////////////////////////////
@@ -47,6 +63,7 @@ $(function() {
 
     function SpatialPoolerClient(save) {
         this._id = undefined;
+        this._cleanSlate = shouldCleanSlate();
         if (save != undefined) {
             this.save = save;
         } else {
@@ -65,18 +82,38 @@ $(function() {
         if (this.save) {
             opts.save = this.save.join(',');
         }
-        url += '?' + $.param(opts);
 
-        this.params = params;
+        function doInit() {
+            url += '?' + $.param(opts);
+
+            me.params = params;
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: JSON.stringify(params),
+                success: function(response) {
+                    me._id = response.meta.id;
+                    callback(null, response);
+                },
+                dataType: 'JSON'
+            });
+        }
+
+        if (this._cleanSlate) {
+            this._flush(doInit);
+        } else {
+            doInit();
+        }
+
+    };
+
+    SpatialPoolerClient.prototype._flush = function(callback) {
+        var url = host + '/_flush/';
+        console.log('flushing');
         $.ajax({
-            type: 'POST',
+            type: 'DELETE',
             url: url,
-            data: JSON.stringify(params),
-            success: function(response) {
-                me._id = response.meta.id;
-                callback(null, response);
-            },
-            dataType: 'JSON'
+            success: callback
         });
     };
 
