@@ -68,7 +68,7 @@ $(function() {
         dutyCyclePeriod: {
             val: 1000,
             min: 0,
-            max: 10000,
+            max: 1000,
             name: 'duty cycle period'
         },
         maxBoost: {
@@ -191,7 +191,6 @@ $(function() {
                             } else {
                                 val.val = ui.value;
                                 me._updateUi();
-                                valuesChanged();
                             }
                         },
                         slide: function(event, ui) {
@@ -205,14 +204,15 @@ $(function() {
             $globalInhibitionSwitch.on('switchChange.bootstrapSwitch', function(event, state) {
                 me.params.globalInhibition.val = state;
                 me._updateUi();
-                valuesChanged();
             });
             $wrapAroundSwitch.on('switchChange.bootstrapSwitch', function(event, state) {
                 me.params.wrapAround.val = state;
                 me._updateUi();
-                valuesChanged();
             });
             me._updateUi();
+            $('#' + me.el + ' #update-params').click(function() {
+                valuesChanged();
+            });
             if (renderDone) renderDone();
         });
     };

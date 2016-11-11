@@ -1,3 +1,10 @@
+<div class="modal fade" id="sp-params-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="sp-params" class="modal-body"></div>
+        </div>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-md-3">
@@ -19,7 +26,11 @@
         <div class="row">
             <div class="col-sm-4 data-label">time</div>
             <div class="col-sm-5 data" id="tod-display"></div>
-            <div class="col-sm-3"></div>
+            <div class="col-sm-3">
+                <button type="button" id="show-sp-params" class="btn btn-primary btn-md" data-toggle="modal" data-target="#sp-params-modal">
+                    Show SP Params
+                </button>
+            </div>
         </div>
         <div class="row">
             <div class="col-sm-4 data-label">weekend</div>
@@ -28,14 +39,9 @@
         </div>
     </div>
     <div class="col-md-9">
-
-        <div class="row">
-            <div class="col-md-12" id="random-chart"></div>
-        </div>
         <div class="row">
             <div class="col-md-12" id="boost-on-chart"></div>
         </div>
-
     </div>
 </div>
 

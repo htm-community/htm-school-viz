@@ -239,31 +239,7 @@ $(function() {
                 runOnePointThroughSp(inputChart.dataCursor--);
             }
         });
-        //$('#learn').bootstrapSwitch({
-        //    size: 'small',
-        //    state: learn
-        //}).on('switchChange.bootstrapSwitch', function(event, state) {
-        //    learn = state;
-        //});
     }
-
-    //function addSlider() {
-    //    var $noiseDisplay = $('#noise-display');
-    //    $('#noise').slider({
-    //        min: 0.0,
-    //        max: 1.0,
-    //        value: noise,
-    //        step: 0.05,
-    //        change: function(evt, ui) {
-    //            noise = ui.value;
-    //            $noiseDisplay.html(noise);
-    //        },
-    //        slide: function(evt, ui) {
-    //            $noiseDisplay.html(ui.value);
-    //        }
-    //    });
-    //    $noiseDisplay.html(noise);
-    //}
 
     function play() {
         playing = true;
@@ -287,16 +263,12 @@ $(function() {
         runOnePointThroughSp();
     }
 
-    spParams.render(function() {
-        initSp(function() {
-            inputChart.render(function() {
-                //addSlider();
-                addDataControlHandlers();
-                runOnePointThroughSp(inputChart.dataCursor++);
-            });
+    initSp(function() {
+        inputChart.render(function() {
+            //addSlider();
+            addDataControlHandlers();
+            runOnePointThroughSp(inputChart.dataCursor++);
         });
-    }, function() {
-        initSp();
     });
 
 });

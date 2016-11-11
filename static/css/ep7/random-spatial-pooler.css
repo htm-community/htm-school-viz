@@ -51,11 +51,6 @@ svg#visualization {
     border: solid 1px slategrey;
     background-color: white;
 }
-button#show-sp-params {
-    position: absolute;
-    left: 807px;
-    top: 30px;
-}
 .sdrs div {
     text-align: center;
 }
