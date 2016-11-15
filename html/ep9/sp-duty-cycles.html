@@ -54,10 +54,10 @@
         </div>
         <div class="col-md-4">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <h2>Active Duty Cycles</h2>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-2">
                     <table id="cell-legend">
                         <tbody>
                         <tr>
@@ -71,6 +71,20 @@
                             <td class="max key">
                                 <span id="adc-max">loading...</span>
                             </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-5">
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td>overlap:&nbsp;</td>
+                            <td id="overlap-display"></td>
+                        </tr>
+                        <tr>
+                            <td>boosted overlap:&nbsp;</td>
+                            <td id="boosted-overlap-display"></td>
                         </tr>
                         </tbody>
                     </table>
@@ -105,14 +119,84 @@
     </div>
 
     <svg width="2500" height="1050">
-        <g id="input-encoding"></g>
+        <g id="input"></g>
         <g id="active-duty-cycles"></g>
         <g id="boost-factors"></g>
         <g id="connections"></g>
+        <g id="potential-pool"></g>
+        <g id="input-connections"></g>
     </svg>
 
 </div>
 
 <div id="loading" style="display:none">
     <img src="/static/img/ajax-loader.gif"/>
+</div>
+
+<div class="modal fade" id="column-history" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">SP Column Connection History</h4>
+            </div>
+            <div id="column-connection-history" class="modal-body">
+                <div class="slider" id="column-history-slider"></div>
+                <hr/>
+                <div class="row">
+                    <div class="col-md-7">
+                        <svg id="col-connections-svg"></svg>
+                    </div>
+                    <div class="col-md-5 legend">
+
+                        <h2>Column <code id="selected-column-display"></code> Connection History</h2>
+                        <h2>Time Step: <code id="selected-column-iteration"></code></h2>
+
+                        <div class="btn-group" role="group" id="ac-jump">
+                            <a type="button" class="btn btn-warning btn-lg" href="#" id="jumpto-prev-ac">&lt;</a>
+                            <a type="button" class="btn btn-primary btn-lg" href="#" disabled="disabled">jump to active timestep</a>
+                            <a type="button" class="btn btn-warning btn-lg" href="#" id="jumpto-next-ac">&gt;</a>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                                <img src="/static/img/input-bit.png">
+                            </div>
+                            <div class="col-md-11">
+                                <h2>Input Encoding</h2>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                                <img src="/static/img/newly-connected.png">
+                            </div>
+                            <div class="col-md-11">
+                                <h2>Newly Connected Synapses: <code id="new-connected"></code></h2>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                                <img src="/static/img/disconnected.png">
+                            </div>
+                            <div class="col-md-11">
+                                <h2>Newly Disconnected Synapses: <code id="disconnected"></code></h2>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                                <div id="selected-column-rect"></div>
+                            </div>
+                            <div class="col-md-11">
+                                <h2>Overlap: <code id="selected-column-overlap"></code></h2>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

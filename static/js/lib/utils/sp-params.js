@@ -72,9 +72,9 @@ $(function() {
             name: 'duty cycle period'
         },
         maxBoost: {
-            val: 1.0,
-            min: 0.0,
-            max: 10.0,
+            val: 1,
+            min: 0,
+            max: 100,
             name: 'max boost'
         }
     };

@@ -2,8 +2,8 @@ $(function() {
 
     var scalarN = 400;
     var inputW = 21;
-    var minInput = 0;
-    var maxInput = 55;
+    var minInput = 1769;
+    var maxInput = 29985;
     var scalarEncoder = new HTM.encoders.ScalarEncoder(
         scalarN, inputW, minInput, maxInput
     );
@@ -19,18 +19,6 @@ $(function() {
     var boostOnHistory = {
         activeColumns: []
     };
-
-    // Object keyed by SP type / column index / snapshot type. Contains an array
-    // at this point with iteration data.
-    var connectionCache = {
-        boostOff: {},
-        boostOn: {}
-    };
-    var inputCache = [];
-    var selectedColumn = undefined;
-    var selectedColumnType = undefined;
-    var lastShownConnections = [];
-    var lastShownIteration = undefined;
 
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
@@ -57,21 +45,17 @@ $(function() {
     var chartWidth = 1900;
     var chartHeight = 120;
     var boostOffChart = new HTM.utils.chart.InputChart(
-        '#boostOff-chart', '/static/data/hotgym-short.csv',
+        '#boostOff-chart', '/static/data/nyc_taxi_treated.csv',
         chartWidth, chartHeight
     );
     var boostOnChart = new HTM.utils.chart.InputChart(
-        '#boostOn-chart', '/static/data/hotgym-short.csv',
+        '#boostOn-chart', '/static/data/nyc_taxi_treated.csv',
         chartWidth, chartHeight
     );
 
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
-
-    var $colHistSlider = $('#column-history-slider');
-    var $jumpPrevAc = $('#jumpto-prev-ac');
-    var $jumpNextAc = $('#jumpto-next-ac');
 
     /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
     function getGreenToRed(percent){
@@ -297,8 +281,6 @@ $(function() {
         encoding = encoding.concat(scalarEncoder.encode(power));
         encoding = encoding.concat(dateEncoder.encodeTimeOfDay(date));
         encoding = encoding.concat(dateEncoder.encodeWeekend(date));
-
-        inputCache.push(encoding);
 
         _.each(spClients, function(client, name) {
             computes[name] = function(callback) {

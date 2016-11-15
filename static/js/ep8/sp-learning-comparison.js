@@ -24,6 +24,7 @@ $(function() {
     var learningHistory = {
         activeColumns: []
     };
+    var inputCache = [];
 
     // Object keyed by SP type / column index / snapshot type. Contains an array
     // at this point with iteration data.
@@ -31,7 +32,6 @@ $(function() {
         random: {},
         learning: {}
     };
-    var inputCache = [];
     var selectedColumn = undefined;
     var selectedColumnType = undefined;
     var lastShownConnections = [];

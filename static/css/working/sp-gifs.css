@@ -95,3 +95,23 @@ li .btn {
   margin: 6px 0;
   padding: 2px 8px;
 }
+
+#cell-legend td {
+  margin: 30px;
+}
+
+#cell-legend .key {
+  border: solid black 2px;
+  width: 50px;
+  height: 50px;
+  padding: 2px;
+}
+
+#cell-legend .min {
+  background-color: #00ff00;
+}
+
+#cell-legend .max {
+  background-color: #ff0000;
+  color: white;
+}

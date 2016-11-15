@@ -5,13 +5,12 @@ $(function() {
     var currentFrame = 0;
     var framesSeen = 0;
 
-    var snapsToSave = [
+    var save = [
         HTM.SpSnapshots.ACT_COL,
         HTM.SpSnapshots.POT_POOLS,
         HTM.SpSnapshots.INH_MASKS,
-        HTM.SpSnapshots.CON_SYN,
+        HTM.SpSnapshots.CON_SYN
     ];
-    var save = snapsToSave;
     var history = {
         input: [],
         activeColumns: []
@@ -49,7 +48,10 @@ $(function() {
     var $colHistSlider = $('#column-history-slider');
     var $jumpPrevAc = $('#jumpto-prev-ac');
     var $jumpNextAc = $('#jumpto-next-ac');
-
+    var $adcMin = $('#adc-min');
+    var $adcMax = $('#adc-max');
+    var $boostMin = $('#boost-min');
+    var $boostMax = $('#boost-max');
 
     function getUrlParameter(sParam) {
         var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -83,6 +85,25 @@ $(function() {
         }
     }
 
+    /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
+    function getGreenToRed(percent){
+        var r, g;
+        percent = 100 - percent;
+        r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
+        g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
+        return rgbToHex(r, g, 0);
+    }
+
+    /* From http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
+    function rgbToHex(r, g, b) {
+        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    function translate(x, min, max) {
+        var range = max - min;
+        return (x - min) / range;
+    }
+
     function renderColumnState(iteration) {
         var width = 1000,
             height = 1000;
@@ -98,7 +119,7 @@ $(function() {
         var rowLength = bitsWide;
         var circleColor = '#6762ff';
         var columnHist = connectionCache[selectedColumn];
-        var permanences = columnHist.permanences[iteration];
+        var perms = columnHist.permanences[iteration];
         var activeColumns = columnHist.activeColumns;
         var threshold = spParams.getParams().synPermConnected;
         var connections = [];
@@ -124,7 +145,7 @@ $(function() {
         }
 
         // Computes connections based on the permanences.
-        _.each(permanences, function(perm, index) {
+        _.each(perms, function(perm, index) {
             if (perm >= threshold) {
                 connections.push(index);
             }
@@ -249,7 +270,7 @@ $(function() {
         lastShownIteration = iteration;
     }
 
-    function drawSdr(sdr, $el, x, y, width, height, style, rowLength) {
+    function drawSdr(sdr, $el, x, y, width, height, style, rowLength, circles) {
         var bits = sdr.length;
         var area = width * height;
         var squareArea = area / bits;
@@ -258,6 +279,8 @@ $(function() {
         var rowLength = rowLength || Math.floor(width / fullRectSize);
         var idPrefix = $el.attr('id');
         var onColor = 'steelblue';
+        var circleColor = '#fff';
+        var circleStrokeColor = '#000';
 
         $el.html('');
 
@@ -297,6 +320,43 @@ $(function() {
             .attr('id', function(d, i) { return idPrefix + '-' + i; })
             .attr('style', styleFunction)
         ;
+
+        if (circles) {
+            $el
+                .selectAll('circle')
+                .data(circles)
+                .enter()
+                .append('circle')
+                .attr('r', rectSize / 3)
+                .attr('cx', function (d, i) {
+                    var offset = i % rowLength;
+                    var left = offset * fullRectSize + x;
+                    return left + fullRectSize / 2 - 1; // -1 for the border
+                })
+                .attr('cy', function (d, i) {
+                    var offset = Math.floor(i / rowLength);
+                    var top = offset * fullRectSize + y;
+                    return top + fullRectSize / 2 - 1; // -1 for the border
+                })
+                .attr('index', function (d, i) {
+                    return i;
+                })
+                .attr('style', function(d, i) {
+                    var color = circleColor;
+                    var strokeColor = circleStrokeColor;
+                    var opacity = '1.0';
+                    if (d == 0) {
+                        opacity = '0.0';
+                        strokeColor = 'rgba(0,0,0,0.0)';
+                    }
+                    return 'fill:' + color + ';' +
+                        'stroke:' + strokeColor + ';' +
+                        'stroke-width:1;' +
+                        'fill-opacity:' + opacity + ';';
+                })
+            ;
+
+        }
     }
 
     // SP params we are not allowing user to change
@@ -326,7 +386,10 @@ $(function() {
         });
     }
 
-    function renderSdrs(inputEncoding, columns) {
+    function renderSdrs(inputEncoding,
+                        activeColumns,
+                        activeDutyCycles,
+                        boostFactors) {
         var potentialPools = spData.potentialPools;
         var connectedSynapses = spData.connectedSynapses;
         var $input = d3.select('#input-encoding');
@@ -339,10 +402,41 @@ $(function() {
             inputEncoding, $input,
             0, 0, dim, dim, 'green', inputDimensions[0]
         );
+
+        var $activeDutyCycles = $columns;
+        var minActiveDutyCycle = _.min(activeDutyCycles);
+        var maxActiveDutyCycle = _.max(activeDutyCycles);
+        var normalizedActiveDutyCycles = _.map(activeDutyCycles, function(value) {
+            return translate(value, minActiveDutyCycle, maxActiveDutyCycle);
+        });
         drawSdr(
-            columns, $columns,
-            1000, 0, dim, dim, 'orange', columnDimensions[0]
+            normalizedActiveDutyCycles, $activeDutyCycles,
+            820, 0, dim, dim, function(d, i) {
+                return 'fill: #' + getGreenToRed(d * 100);
+            }, columnDimensions[0], activeColumns
         );
+
+        $adcMin.html(minActiveDutyCycle.toFixed(2));
+        $adcMax.html(maxActiveDutyCycle.toFixed(2));
+
+        var $boostFactors = d3.select('#boost-factors');
+        var minBoostFactor = _.min(boostFactors);
+        var maxBoostFactor = _.max(boostFactors);
+        var normalizedBoostFactors = boostFactors;
+        if (minBoostFactor != maxBoostFactor) {
+            normalizedBoostFactors = _.map(boostFactors, function(value) {
+                return translate(value, minBoostFactor, maxBoostFactor);
+            });
+        }
+        drawSdr(
+            normalizedBoostFactors, $boostFactors, 1700, 0, dim, dim,
+            function(d, i) {
+                return 'fill: #' + getGreenToRed(d * 100);
+            }, columnDimensions[0], activeColumns
+        );
+
+        $boostMin.html(minBoostFactor.toFixed(2));
+        $boostMax.html(maxBoostFactor.toFixed(2));
 
         var columnRects = $columns.selectAll('rect');
 
@@ -448,12 +542,21 @@ $(function() {
         if (SDR.tools.population(data) > data.length *.9) {
             encoding = SDR.tools.invert(data);
         }
-        spClient.compute(encoding, {learn: true}, function(err, response) {
+        spClient.compute(encoding, {
+            learn: true,
+            getActiveDutyCycles: true,
+            getBoostFactors: true
+        }, function(err, response) {
             if (err) throw err;
             framesSeen++;
             var activeColumns = response.activeColumns;
             $('#num-active-columns').html(SDR.tools.population(activeColumns));
-            renderSdrs(encoding, activeColumns);
+            renderSdrs(
+                encoding,
+                activeColumns,
+                response.activeDutyCycles,
+                response.boostFactors
+            );
             history.input.push(encoding);
             history.activeColumns.push(activeColumns);
             if (mainCallback) mainCallback();
@@ -563,7 +666,7 @@ $(function() {
         spParams.setParam('localAreaDensity', 0.1);
         spParams.setParam('numActiveColumnsPerInhArea', 1);
         spParams.setParam('wrapAround', wrapAround);
-        spParams.setParam('maxBoost', 2.0);
+        spParams.setParam('maxBoost', 2);
         //spParams.setParam('stimulusThreshold', 10.0);
 
         spClient.initialize(spParams.getParams(), function(err, resp) {
