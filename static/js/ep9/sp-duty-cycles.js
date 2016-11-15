@@ -26,17 +26,6 @@ $(function() {
     var potentialPools = undefined;
     var boostFactors = undefined;
 
-    // Object keyed by SP type / column index / snapshot type. Contains an array
-    // at this point with iteration data.
-    var connectionCache = {
-        random: {},
-        learning: {}
-    };
-    var selectedColumn = undefined;
-    var selectedColumnType = undefined;
-    var lastShownConnections = [];
-    var lastShownIteration = undefined;
-
     var $powerDisplay = $('#power-display');
     var $todDisplay = $('#tod-display');
     var $weekendDisplay = $('#weekend-display');
@@ -65,10 +54,6 @@ $(function() {
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
-
-    var $colHistSlider = $('#column-history-slider');
-    var $jumpPrevAc = $('#jumpto-prev-ac');
-    var $jumpNextAc = $('#jumpto-next-ac');
 
     var $connections = d3.select('#connections');
     var $potentialPool = d3.select('#potential-pool');
@@ -205,170 +190,6 @@ $(function() {
         $activeColumns.find('.highlighted').attr('class', '');
         $('#active-duty-cycles-' + columnIndex).attr('class', 'highlighted');
 
-    }
-
-    function renderColumnState(iteration) {
-        var width = 1000,
-            height = 1000;
-        var inputEncoding = inputCache[iteration];
-        var bits = inputEncoding.length;
-        var area = width * height;
-        var squareArea = area / bits;
-        var fullRectSize = Math.floor(Math.sqrt(squareArea));
-        var strokeWidth = 1;
-        var rectSize = fullRectSize - strokeWidth;
-        var rowLength = Math.floor(width / fullRectSize);
-        var circleColor = '#6762ff';
-        var columnHist = connectionCache[selectedColumnType][selectedColumn];
-        var permanences = columnHist.permanences[iteration];
-        var activeColumns = columnHist.activeColumns;
-        var threshold = spParams.getParams().synPermConnected;
-        var connections = [];
-        var newlyConnectedCount = 0;
-        var disconnectedCount = 0;
-        var annotatedConnections = [];
-        var overlap = 0;
-        var $selectedColumnDisplay = $('#selected-column-display');
-        var $selectedColumnRect = $('#selected-column-rect');
-        var $selectedColumnIter = $('#selected-column-iteration');
-        var $selectedColumnOverlap = $('#selected-column-overlap');
-        var $newlyConnectedCount = $('#new-connected');
-        var $disconnectedCount = $('#disconnected');
-
-        $selectedColumnDisplay.html(selectedColumn);
-        $selectedColumnIter.html(iteration);
-        var selectedColumnActive = activeColumns[iteration] == 1;
-
-        if (selectedColumnActive) {
-            $selectedColumnRect.addClass('on');
-        } else {
-            $selectedColumnRect.removeClass('on');
-        }
-
-        // Computes connections based on the permanences.
-        _.each(permanences, function(perm, index) {
-            if (perm >= threshold) {
-                connections.push(index);
-            }
-        });
-
-        // Calculate overlap of connections and input encoding bits
-        _.each(connections, function(connectionIndex) {
-            if (inputEncoding[connectionIndex] == 1) {
-                overlap++;
-            }
-        });
-
-        $selectedColumnOverlap.html(overlap);
-
-        // This prevents the "new" and "gone" connections from displaying when
-        // moving backwards in time, which is confusing on the UI.
-        if (lastShownIteration && lastShownIteration > iteration) {
-            lastShownConnections = [];
-        }
-        // Add info about new and gone connections.
-        _.each(connections, function(con) {
-            var isNew = lastShownConnections.length > 0
-                && lastShownConnections.indexOf(con) == -1;
-            annotatedConnections.push({
-                index: con, isNew: isNew
-            });
-            if (isNew) newlyConnectedCount++;
-        });
-        _.each(lastShownConnections, function(con) {
-            var isGone = connections.indexOf(con) == -1;
-            if (isGone) {
-                disconnectedCount++;
-                annotatedConnections.push({
-                    index: con, isGone: true
-                });
-            }
-        });
-
-        $newlyConnectedCount.html(newlyConnectedCount);
-        $disconnectedCount.html(disconnectedCount);
-
-        d3.select('#col-connections-svg')
-            .attr('width', width)
-            .attr('height', height)
-            .append('g')
-            .selectAll('rect')
-            .data(inputEncoding)
-            .enter()
-            .append('rect')
-            .attr('width', rectSize)
-            .attr('height', rectSize)
-            .attr('x', function (d, i) {
-                var offset = i % rowLength;
-                return offset * fullRectSize;
-            })
-            .attr('y', function (d, i) {
-                var offset = Math.floor(i / rowLength);
-                return offset * fullRectSize;
-            })
-            .attr('index', function (d, i) {
-                return i;
-            })
-            .attr('style', function (d, i) {
-                var fill = ( d == 1 ? '#CCC' : 'white');
-                return 'fill:' + fill + ';'
-                    + 'stroke: #AAA;'
-                    + 'stroke-width:' + strokeWidth + ';';
-            })
-        ;
-
-        d3.select('#col-connections-svg')
-            .attr('width', width)
-            .attr('height', height)
-            .append('g')
-            .selectAll('circle')
-            .data(annotatedConnections)
-            .enter()
-            .append('circle')
-            .attr('r', rectSize / 3)
-            .attr('cx', function (d) {
-                var offset = d.index % rowLength;
-                return offset * fullRectSize + rectSize / 2;
-            })
-            .attr('cy', function (d) {
-                var offset = Math.floor(d.index / rowLength);
-                return offset * fullRectSize + rectSize / 2;
-            })
-            .attr('index', function (d) {
-                return d.index;
-            })
-            .attr('style', function(d) {
-                var color = circleColor;
-                var strokeColor = circleColor;
-                var opacity = '1.0';
-                if (d.isNew) {
-                    color = 'cyan';
-                } else if (d.isGone) {
-                    strokeColor = 'red';
-                    opacity = '0.0';
-                }
-                return 'fill:' + color + ';' +
-                    'stroke:' + strokeColor + ';' +
-                    'stroke-width:3;' +
-                    'fill-opacity:' + opacity + ';';
-            })
-        ;
-
-        // Adjust the jump to buttons to be disabled if can't navigate further
-        if (iteration == 0 ||
-            activeColumns.slice(0, iteration).indexOf(1) == -1) {
-            $jumpPrevAc.attr('disabled', 'disabled');
-        } else {
-            $jumpPrevAc.removeAttr('disabled');
-        }
-        if (activeColumns.slice(iteration + 1).indexOf(1) == -1) {
-            $jumpNextAc.attr('disabled', 'disabled');
-        } else {
-            $jumpNextAc.removeAttr('disabled');
-        }
-
-        lastShownConnections = connections;
-        lastShownIteration = iteration;
     }
 
     function drawSdr(sdr, $el, x, y, width, height, style, circles) {
@@ -508,38 +329,6 @@ $(function() {
         $boostMin.html(minBoostFactor.toFixed(2));
         $boostMax.html(maxBoostFactor.toFixed(2));
 
-        function drawConnectionsToInputSpace(columnIndex, type) {
-            var spClient = spClients[type];
-            var $connections = d3.select('#connections');
-            selectedColumn = columnIndex;
-            selectedColumnType = type;
-
-            // Resets any cached connections remaining from previous displays.
-            lastShownConnections = [];
-            function renderConnections() {
-                $connections.html('');
-                renderColumnState(0);
-                createColumnSlider();
-                $('#column-history').modal({show: true});
-            }
-
-            if (connectionCache[type][columnIndex] != undefined) {
-                renderConnections();
-            } else {
-                loading(true);
-                spClient.getColumnHistory(columnIndex, function(err, history) {
-                    connectionCache[type][columnIndex] = history;
-                    renderConnections(0);
-                    loading(false);
-                });
-            }
-
-        }
-
-        $activeDutyCycles.selectAll('rect').on('click', function(noop, columnIndex) {
-            drawConnectionsToInputSpace(columnIndex, 'learning');
-        });
-
         var $adcRects = $activeDutyCycles.selectAll('rect');
         $adcRects.on('mouseover', function(noop, columnIndex) {
             columnHighlighted(columnIndex);
@@ -653,18 +442,6 @@ $(function() {
         playing = false;
     }
 
-    function createColumnSlider() {
-        $colHistSlider.slider({
-            min: 0,
-            max: inputChart.dataCursor - 1,
-            value: 0,
-            step: 1,
-            slide: function(event, ui) {
-                renderColumnState(ui.value);
-            }
-        });
-    }
-
     function decideWhetherToSave() {
         var isTransient = getUrlParameter('transient') == 'true';
         if (isTransient) {
@@ -672,27 +449,9 @@ $(function() {
         }
     }
 
-    function addColumnHistoryJumpButtonHandlers() {
-        $('#ac-jump').click(function(event) {
-            var id = event.target.getAttribute('id');
-            var columnHist = connectionCache[selectedColumnType][selectedColumn];
-            var activeColumns = columnHist.activeColumns;
-            var jumpTo = undefined;
-            var historySlice = undefined;
-            if (id == 'jumpto-prev-ac') {
-                historySlice = activeColumns.slice(0, lastShownIteration);
-                jumpTo = historySlice.lastIndexOf(1);
-
-            } else {
-                historySlice = activeColumns.slice(lastShownIteration + 1);
-                jumpTo = lastShownIteration + historySlice.indexOf(1) + 1;
-            }
-            console.log('jumping from %s to %s', lastShownIteration, jumpTo);
-            $colHistSlider.slider('value', jumpTo);
-            if (activeColumns[jumpTo] != 1) {
-                throw new Error("why you jumping there bro?");
-            }
-            renderColumnState(jumpTo);
+    function addBoostFactorButtonHandler() {
+        $('.show-boost-factors').on('click', function() {
+            $('#boost-factors').show();
         });
     }
 
@@ -709,9 +468,9 @@ $(function() {
         });
     }
 
-    addColumnHistoryJumpButtonHandlers();
     decideWhetherToSave();
     addDataControlHandlers();
+    addBoostFactorButtonHandler();
 
     spParams.render(function() {
         setup();
