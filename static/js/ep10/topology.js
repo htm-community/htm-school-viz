@@ -1,6 +1,5 @@
 $(function() {
 
-    var gifPath = undefined;
     var gifData = undefined;
     var currentFrame = 0;
     var framesSeen = 0;
@@ -303,8 +302,7 @@ $(function() {
         spColumns = new HtmCells(columnDimensions[0], columnDimensions[1], cellsPerColumn);
         cellviz = new SpToInputVisualization(
             inputCells, spColumns, {
-                colors: colors,
-                elementId: 'viz'
+                colors: colors
             }
         );
         clearAllCells();
@@ -385,67 +383,41 @@ $(function() {
         document.addEventListener( 'mousedown', onDocumentMouseDown, false );
     }
 
-    function loadGifList(callback) {
-        $.getJSON("/_giflist", function(resp) {
-            $giflist = $('#choose-gif');
-            _.each(resp.gifs, function(gifdata) {
-                var path = gifdata.path;
-                var dimensions = gifdata.dimensions;
-                var name = path.split('/').pop().split('.').shift();
-                var $li = $('<li>');
-                var $btn = $('<button>');
-                var $dim = $('<code>');
-                $btn.html(name);
-                $btn.addClass('btn btn-default btn-primary');
-                $btn.data('gif', path);
-                $dim.addClass('dim');
-                $dim.html('(' + dimensions.join(' x ') + ')');
-                $li.append($btn);
-                $li.append($dim);
-                $giflist.append($li);
-                $btn.click(function() {
-                    var chosen = $(this).data('gif');
-                    gifPath = chosen;
-                    $giflist.remove();
-                    gifChosen();
-                });
-            });
-            if (callback) callback();
-        });
-    }
-
-    function gifChosen() {
-        loadGifJson(gifPath, function() {
-            initSp(function(err, r) {
-                if (err) throw err;
-                spData = r;
-                addDataControlHandlers();
-                setupCellViz();
-                setupDatGui();
-                addClickHandling();
-            });
+    function loadGifJson(callback) {
+        var path = '/static/data/gifData/' + getUrlParameter('load') + '.json';
+        $.getJSON(path, function(data) {
+            gifData = data;
+            inputDimensions = getInputDimension();
+            columnDimensions = getColumnDimensions();
+            spParams = new HTM.utils.sp.Params(
+                'sp-params', inputDimensions, columnDimensions
+            );
+            callback();
         });
     }
 
     function setupDatGui() {
-        var gui = new dat.GUI();
-        gui.add(text, 'message');
-        gui.add(text, 'speed', -5, 5);
-        gui.add(text, 'displayOutline');
-        gui.add(text, 'explode');
+        // var gui = new dat.GUI();
+        // gui.add(text, 'message');
+        // gui.add(text, 'speed', -5, 5);
+        // gui.add(text, 'displayOutline');
+        // gui.add(text, 'explode');
     }
-
-    decideWhetherToSave();
 
     $('h1').remove();
 
-    loadGifList(function() {
-        var load = getUrlParameter('load');
-        if (load) {
-            gifPath = '/static/data/gifData/' + load + '.json';
-            $giflist.remove();
-            gifChosen();
-        }
+    loading(true, true);
+    loadGifJson(function() {
+        initSp(function(err, r) {
+            if (err) throw err;
+            spData = r;
+            addDataControlHandlers();
+            setupCellViz();
+            setupDatGui();
+            addClickHandling();
+            loading(false);
+        });
     });
+
 
 });

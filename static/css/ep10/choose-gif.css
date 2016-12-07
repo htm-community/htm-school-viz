@@ -1,0 +1,9 @@
+ul {
+    column-count: 3;
+    column-gap: 20px;
+}
+
+ul li {
+    list-style: none;
+    height: 100px;
+}
