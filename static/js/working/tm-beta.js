@@ -51,7 +51,7 @@ $(function() {
         return {
             columnDimensions: columnDimensions,
             cellsPerColumn: cellsPerColumn,
-            activationThreshold: 8,
+            activationThreshold: 10,
             initialPermanence: 0.21,
             connectedPermanence: 0.50,
             minThreshold: 10,

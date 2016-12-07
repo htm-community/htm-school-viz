@@ -1,0 +1,31 @@
+<!-- <script src="/static/js/third/dyson-bundle.js"></script> -->
+<script src="https://ci.numenta.com/browse/RES-NCV-47/artifact/shared/Webpacked-dyson-bundle.js/dyson-bundle.js"></script>
+<script src="/static/js/third/dat.gui.min.js"></script>
+
+
+<div id="viz"></div>
+
+<div class="player text-center">
+    <button type="button" id="play" class="btn btn-success">
+        <span class="glyphicon glyphicon-play"
+              aria-hidden="true"></span>
+    </button>
+    <button type="button" id="next" class="btn">
+        <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+    </button>
+</div>
+
+<ul id="choose-gif">
+
+</ul>
+
+<div class="row">
+    <div class="col-md-8"></div>
+    <div class="col-md-4">
+        Active columns: <code id="num-active-columns"></code>
+    </div>
+</div>
+
+<div id="loading" style="display:none">
+    <img src="/static/img/ajax-loader.gif"/>
+</div>
