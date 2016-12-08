@@ -96,6 +96,15 @@ $(function() {
         return (x - min) / range;
     }
 
+    function xyzToOneDimIndex(x, y, z, xMax, yMax, zMax) {
+        // var result = ((y+1) * (z+1) * (x+1)) + ((y+1) * (z+1)) + x+1;
+        // var result = (x+1) * (y+0) + z;
+        // var result = (((x.length * x) * y.length) * z) + () + ();
+        var result = (x * yMax * zMax) + (y * zMax) + z;
+        console.log('%s, %s, %s : %s', x, y, z, result);
+        return result;
+    }
+
     function oneDimIndexToXyz(i, xMax, yMax) {
         var out = {};
         var a = xMax * yMax;
@@ -122,37 +131,105 @@ $(function() {
         //  return dim;
     }
 
-    function renderSdrs() {
+    function updateCellRepresentations() {
         var inputEncoding = spData.inputEncoding;
         var activeColumns = spData.activeColumns;
         var activeDutyCycles = spData.activeDutyCycles;
+        var potentialPools  = spData.potentialPools;
+        var inhibitionMasks  = spData.inhibitionMasks;
         var minAdc, maxAdc;
+        var cx, cy, cz, cellIndex;
+        var maxX, maxY, maxZ;
+        var color = undefined;
 
-        _.each(inputEncoding, function(bit, i) {
-            var pos = oneDimIndexToXyz(i, inputDimensions[0], inputDimensions[1]);
-            var color = colors.inactive;
-            if (bit == 1) color = colors.input;
-            inputCells.update(pos.x, pos.y, pos.z, {color: color});
-        });
-
-        if (activeDutyCycles) {
-            minAdc = _.min(activeDutyCycles);
-            maxAdc = _.max(activeDutyCycles);
-        }
-        _.each(activeColumns, function(bit, i) {
-            var pos = oneDimIndexToXyz(i, columnDimensions[0], columnDimensions[1]);
-            var color = colors.inactive;
-            var translatedAdc;
-            if (bit == 1) color = colors.active;
-            if (spData.activeDutyCycles) {
-                translatedAdc = translate(spData.activeDutyCycles[i], minAdc, maxAdc);
-                color = getGreenToRed(translatedAdc);
-                console.log('%s ==> %s', translatedAdc, color.getHex());
+        maxX = inputCells.getX();
+        maxY = inputCells.getY();
+        maxZ = inputCells.getZ();
+        for (cx = 0; cx < maxX; cx++) {
+            for (cy = 0; cy < maxY; cy++) {
+                for (cz = 0; cz < maxZ; cz++) {
+                    color = colors.inactive;
+                    cellIndex = xyzToOneDimIndex(cx, cy, cz, maxX, maxY, maxZ);
+                    if (spData.inputEncoding[cellIndex] == 1) {
+                        color = colors.input;
+                    }
+                    inputCells.update(cx, cy, cz, {color: color});
+                }
             }
-            _.times(cellsPerColumn, function(count) {
-                spColumns.update(pos.x, pos.y, count, {color: color});
-            });
-        });
+        }
+
+        maxX = spColumns.getX();
+        maxY = spColumns.getY();
+        maxZ = spColumns.getZ();
+        for (cx = 0; cx < maxX; cx++) {
+            for (cy = 0; cy < maxY; cy++) {
+                for (cz = 0; cz < maxZ; cz++) {
+                    // color = colors.inactive;
+                    // cellIndex = xyzToOneDimIndex(cx, cy, cz);
+                    // if (spData.activeColumns[cellIndex].indexOf(cellIndex)) {
+                    //     colors.input;
+                    // }
+                }
+            }
+        }
+
+        // var columnIndex = cellData.x * spColumns.getX() + cellData.y;
+        // var inhibitionMask  = spData.inhibitionMasks[columnIndex];
+        // var potentialPool  = spData.potentialPools[columnIndex];
+        // _.each(inhibitionMask, function(maskIndex) {
+        //     updateColumn(maskIndex, colors.neighbors, colors.activeInNeighbors);
+        // });
+        // updateColumn(columnIndex, colors.selected);
+        // _.each(potentialPool, function(poolIndex) {
+        //     var xMax = inputCells.getY();
+        //     var x = Math.floor(poolIndex / xMax);
+        //     var y = poolIndex - (x * xMax);
+        //     // inputCells.update(x, y, 0, {color: colors.field}, {exclude: {color: colors.input}});
+        //     inputCells.peekUpdate(x, y, 0, function(value, update) {
+        //         if (value.color == colors.input) {
+        //             update({color: colors.inputInField});
+        //         } else {
+        //             update({color: colors.field});
+        //         }
+        //     });
+        // });
+
+        // _.each(inputEncoding, function(bit, i) {
+        //     var pos = oneDimIndexToXyz(i, inputDimensions[0], inputDimensions[1]);
+        //     var color = colors.inactive;
+        //     if (bit == 1) {
+        //         color = colors.input;
+        //         if (selectedColumn != undefined && potentialPools[selectedColumn].indexOf(i) > -1) {
+        //             color = colors.inputInField;
+        //         }
+        //     } else if (selectedColumn != undefined && potentialPools[selectedColumn].indexOf(i) > -1) {
+        //         color = colors.field;
+        //     }
+        //     inputCells.update(pos.x, pos.y, pos.z, {color: color});
+        // });
+        //
+        // if (activeDutyCycles) {
+        //     minAdc = _.min(activeDutyCycles);
+        //     maxAdc = _.max(activeDutyCycles);
+        // }
+        // _.each(activeColumns, function(bit, i) {
+        //     var pos = oneDimIndexToXyz(i, columnDimensions[0], columnDimensions[1]);
+        //     var color = colors.inactive;
+        //     var translatedAdc;
+        //     if (bit == 1) color = colors.active;
+        //     if (selectedColumn && inhibitionMasks[selectedColumn].indexOf(i) > -1) {
+        //         if (color == colors.active) color = colors.activeInNeighbors;
+        //         else color = colors.neighbors;
+        //     }
+        //     if (spData.activeDutyCycles) {
+        //         translatedAdc = translate(spData.activeDutyCycles[i], minAdc, maxAdc);
+        //         color = getGreenToRed(translatedAdc);
+        //         console.log('%s ==> %s', translatedAdc, color.getHex());
+        //     }
+        //     _.times(cellsPerColumn, function(count) {
+        //         spColumns.update(pos.x, pos.y, count, {color: color});
+        //     });
+        // });
 
         cellviz.redraw();
     }
@@ -174,7 +251,7 @@ $(function() {
             spData.inputEncoding = encoding;
             framesSeen++;
             $('#num-active-columns').html(SDR.tools.population(activeColumns));
-            renderSdrs();
+            updateCellRepresentations();
             history.input.push(encoding);
             history.activeColumns.push(activeColumns);
             if (mainCallback) mainCallback();
@@ -242,16 +319,7 @@ $(function() {
         spColumns = new HtmCells(columnDimensions[0], columnDimensions[1], cellsPerColumn);
         cellviz = new SpToInputVisualization(inputCells, spColumns);
         clearAllCells();
-        cellviz.render({
-            rotation: {
-                // x: - 75 * Math.PI / 180,
-                // y: 45 * Math.PI / 180,
-                // z: 45 * Math.PI / 180
-            },
-            camera: {
-                z: 45
-            }
-        });
+        cellviz.render();
     }
 
     function addClickHandling() {
@@ -276,28 +344,8 @@ $(function() {
         }
 
         function spClicked(cellData) {
-            var columnIndex = cellData.x * spColumns.getX() + cellData.y;
-            var inhibitionMask  = spData.inhibitionMasks[columnIndex];
-            var potentialPool  = spData.potentialPools[columnIndex];
-            renderSdrs();
-            _.each(inhibitionMask, function(maskIndex) {
-                updateColumn(maskIndex, colors.neighbors, colors.activeInNeighbors);
-            });
-            updateColumn(columnIndex, colors.selected);
-            _.each(potentialPool, function(poolIndex) {
-                var xMax = inputCells.getY();
-                var x = Math.floor(poolIndex / xMax);
-                var y = poolIndex - (x * xMax);
-                // inputCells.update(x, y, 0, {color: colors.field}, {exclude: {color: colors.input}});
-                inputCells.peekUpdate(x, y, 0, function(value, update) {
-                    if (value.color == colors.input) {
-                        update({color: colors.inputInField});
-                    } else {
-                        update({color: colors.field});
-                    }
-                });
-            });
-            cellviz.redraw();
+            selectedColumn = cellData.x * spColumns.getX() + cellData.y;
+            updateCellRepresentations();
         }
 
         function cellClicked(cellData) {
@@ -372,6 +420,7 @@ $(function() {
         initSp(function(err, r) {
             if (err) throw err;
             spData = r;
+            spData.inputEncoding = gifData.data[currentFrame];
             setupCellViz();
             addClickHandling();
             setupDatGui();
