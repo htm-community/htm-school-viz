@@ -11,3 +11,5 @@ deploy.sh
 # Redis
 dump.rdb
 
+# local soft links for development convenience
+static/js/third/dyson-bundle.js
