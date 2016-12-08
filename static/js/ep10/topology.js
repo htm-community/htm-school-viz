@@ -16,12 +16,14 @@ $(function() {
     };
 
     var colors = {
-        0: 0xFFFFFF, // white for inactive cells
-        1: 0xFFFF00, // yellow for active cells
-        2: 0xFF0000, // red for predictive cells
-        3: 0xFFAC33, // orange for active & predictive cells
-        4: 0x6699FF, // cyan for correctly predicted cells from last step
-        5: 0x00FF00  // green for input bits
+        inactive: 0xFFFFFF, // white for inactive cells
+        active: 0xFFFF00, // yellow for active cells
+        selected: 0xFF0000, // red for predictive cells
+        field: 0xFFAC33, // orange for active & predictive cells
+        neighbors: 0x6699FF, // cyan for correctly predicted cells from last step
+        input: 0x00FF00, // green for input bits
+        inputInField: 0x80D61A, // orange-green for input bits in potential pool
+        activeInNeighbors: 0xB3CC80 // yellow-blue for active in neighborhood
     };
 
     // The HtmCells objects that contains cell state.
@@ -29,45 +31,24 @@ $(function() {
     // The Viz object.
     var cellviz;
 
-    // Object keyed by SP type / column index / snapshot type. Contains an array
-    // at this point with iteration data.
-    var connectionCache = {};
     var selectedColumn = undefined;
-    var lastShownConnections = [];
-    var lastShownIteration = undefined;
 
     var spClient;
 
     var inputDimensions = undefined;
     var columnDimensions = undefined;
     var cellsPerColumn = 4;
-    var lengthLargestSide = 32;
     var spParams;
 
-    var paused = false;
+    var paused = true;
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
-    var showLines = false;
 
     var wrapAround = false;
     var restrictColumnDimensions = true;
 
     var spData;
-
-    // Colors
-    var colToInputLineColor = '#6762ff';
-    var connectionCircleColor = '#1f04ff';
-
-
-    var $colHistSlider = $('#column-history-slider');
-    var $jumpPrevAc = $('#jumpto-prev-ac');
-    var $jumpNextAc = $('#jumpto-next-ac');
-    var $adcMin = $('#adc-min');
-    var $adcMax = $('#adc-max');
-    var $boostMin = $('#boost-min');
-    var $boostMax = $('#boost-max');
-    var $giflist;
 
     function getUrlParameter(sParam) {
         var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -107,21 +88,12 @@ $(function() {
         percent = 100 - percent;
         r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
         g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
-        return rgbToHex(r, g, 0);
-    }
-
-    /* From http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
-    function rgbToHex(r, g, b) {
-        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        return new THREE.Color(r, g, 0);
     }
 
     function translate(x, min, max) {
         var range = max - min;
         return (x - min) / range;
-    }
-
-    function xyzTo1dIndex(cx, cy, cz, xMax, yMax) {
-        return cz * xMax * yMax + cy * xMax + cx;
     }
 
     function oneDimIndexToXyz(i, xMax, yMax) {
@@ -143,45 +115,42 @@ $(function() {
 
     function getColumnDimensions() {
         return [24, 24];
-        // var dim = [inputDimensions[0], inputDimensions[1]];
-        // if (restrictColumnDimensions && _.max(inputDimensions) > 32) {
-        //     dim = [inputDimensions[0] / 2, inputDimensions[1] / 2];
-        // }
-        // return dim;
+        //  var dim = [inputDimensions[0], inputDimensions[1]];
+        //  if (restrictColumnDimensions && _.max(inputDimensions) > 32) {
+        //      dim = [inputDimensions[0] / 2, inputDimensions[1] / 2];
+        //  }
+        //  return dim;
     }
 
-    function loadGifJson(path, callback) {
-        $.getJSON(path, function(data) {
-            gifData = data;
-            inputDimensions = getInputDimension();
-            columnDimensions = getColumnDimensions();
-            spParams = new HTM.utils.sp.Params(
-                'sp-params', inputDimensions, columnDimensions
-            );
-            callback();
-        });
-    }
-
-    function renderSdrs(inputEncoding,
-                        activeColumns,
-                        inhibitionMasks,
-                        potentialPools) {
+    function renderSdrs() {
+        var inputEncoding = spData.inputEncoding;
+        var activeColumns = spData.activeColumns;
+        var activeDutyCycles = spData.activeDutyCycles;
+        var minAdc, maxAdc;
 
         _.each(inputEncoding, function(bit, i) {
-            var x, y, z;
             var pos = oneDimIndexToXyz(i, inputDimensions[0], inputDimensions[1]);
-            var state = 0;
-            if (bit == 1) state = 5;
-            inputCells.update(pos.x, pos.y, pos.z, {color: state});
+            var color = colors.inactive;
+            if (bit == 1) color = colors.input;
+            inputCells.update(pos.x, pos.y, pos.z, {color: color});
         });
 
+        if (activeDutyCycles) {
+            minAdc = _.min(activeDutyCycles);
+            maxAdc = _.max(activeDutyCycles);
+        }
         _.each(activeColumns, function(bit, i) {
-            var x, y, z;
             var pos = oneDimIndexToXyz(i, columnDimensions[0], columnDimensions[1]);
-            var state = 0;
-            if (bit == 1) state = 1;
+            var color = colors.inactive;
+            var translatedAdc;
+            if (bit == 1) color = colors.active;
+            if (spData.activeDutyCycles) {
+                translatedAdc = translate(spData.activeDutyCycles[i], minAdc, maxAdc);
+                color = getGreenToRed(translatedAdc);
+                console.log('%s ==> %s', translatedAdc, color.getHex());
+            }
             _.times(cellsPerColumn, function(count) {
-                spColumns.update(pos.x, pos.y, count, {color: state});
+                spColumns.update(pos.x, pos.y, count, {color: color});
             });
         });
 
@@ -196,48 +165,19 @@ $(function() {
         spClient.compute(encoding, {
             learn: true,
             getInhibitionMasks: true,
-            getPotentialPools: true
+            getPotentialPools: true,
+            //getActiveDutyCycles: true
         }, function(err, response) {
             if (err) throw err;
-            framesSeen++;
             var activeColumns = response.activeColumns;
+            spData = response;
+            spData.inputEncoding = encoding;
+            framesSeen++;
             $('#num-active-columns').html(SDR.tools.population(activeColumns));
-            renderSdrs(
-                encoding,
-                activeColumns,
-                response.inhibitionMasks,
-                response.potentialPools
-            );
+            renderSdrs();
             history.input.push(encoding);
             history.activeColumns.push(activeColumns);
-            spData = response;
             if (mainCallback) mainCallback();
-        });
-    }
-
-    function decideWhetherToSave() {
-        var isTransient = getUrlParameter('transient') == 'true';
-        if (isTransient) {
-            save = false;
-        }
-    }
-
-    function addDataControlHandlers() {
-        $('.player button').click(function(evt) {
-            var $btn = $(this);
-            if (this.id == 'play') {
-                if ($btn.hasClass('btn-success')) {
-                    play();
-                    $btn.find('span').attr('class', 'glyphicon glyphicon-pause');
-                } else {
-                    pause();
-                    $btn.find('span').attr('class', 'glyphicon glyphicon-play');
-                }
-                $btn.toggleClass('btn-success');
-            } else if (this.id == 'next') {
-                runCurrentFrame();
-                paused = true;
-            }
         });
     }
 
@@ -271,8 +211,8 @@ $(function() {
     }
 
     function clearAllCells() {
-        spColumns.updateAll({color: 0}, {exclude: {color: 1}});
-        inputCells.updateAll({color: 0}, {exclude: {color: 5}});
+        spColumns.updateAll({color: colors.inactive});
+        inputCells.updateAll({color: colors.inactive});
     }
 
     function initSp(mainCallback) {
@@ -287,7 +227,7 @@ $(function() {
         spParams.setParam('localAreaDensity', 0.1);
         spParams.setParam('numActiveColumnsPerInhArea', 1);
         spParams.setParam('wrapAround', wrapAround);
-        spParams.setParam('maxBoost', 2);
+        spParams.setParam('maxBoost', 10);
         //spParams.setParam('stimulusThreshold', 10.0);
 
         spClient.initialize(spParams.getParams(), function(err, resp) {
@@ -300,11 +240,7 @@ $(function() {
         var inputDimensions = getInputDimension();
         inputCells = new HtmCells(inputDimensions[0], inputDimensions[1], 1);
         spColumns = new HtmCells(columnDimensions[0], columnDimensions[1], cellsPerColumn);
-        cellviz = new SpToInputVisualization(
-            inputCells, spColumns, {
-                colors: colors
-            }
-        );
+        cellviz = new SpToInputVisualization(inputCells, spColumns);
         clearAllCells();
         cellviz.render({
             rotation: {
@@ -324,12 +260,18 @@ $(function() {
 
         }
 
-        function updateColumn(index, value) {
+        function updateColumn(index, color, collisionColor) {
             var xMax = columnDimensions[0];
             var x = Math.floor(index / xMax);
             var y = index - (x * xMax);
             _.times(cellsPerColumn, function(count) {
-                spColumns.update(x, y, count, value, {exclude: {color: 1}});
+                spColumns.peekUpdate(x, y, count, function(value, update) {
+                    if (collisionColor && value.color != colors.inactive) {
+                        update({color: collisionColor});
+                    } else {
+                        update({color: color});
+                    }
+                });
             });
         }
 
@@ -337,16 +279,23 @@ $(function() {
             var columnIndex = cellData.x * spColumns.getX() + cellData.y;
             var inhibitionMask  = spData.inhibitionMasks[columnIndex];
             var potentialPool  = spData.potentialPools[columnIndex];
-            clearAllCells();
+            renderSdrs();
             _.each(inhibitionMask, function(maskIndex) {
-                updateColumn(maskIndex, {color: 4});
+                updateColumn(maskIndex, colors.neighbors, colors.activeInNeighbors);
             });
-            updateColumn(columnIndex, {color: 2});
+            updateColumn(columnIndex, colors.selected);
             _.each(potentialPool, function(poolIndex) {
                 var xMax = inputCells.getY();
                 var x = Math.floor(poolIndex / xMax);
                 var y = poolIndex - (x * xMax);
-                inputCells.update(x, y, 0, {color: 3}, {exclude: {color: 5}});
+                // inputCells.update(x, y, 0, {color: colors.field}, {exclude: {color: colors.input}});
+                inputCells.peekUpdate(x, y, 0, function(value, update) {
+                    if (value.color == colors.input) {
+                        update({color: colors.inputInField});
+                    } else {
+                        update({color: colors.field});
+                    }
+                });
             });
             cellviz.redraw();
         }
@@ -395,6 +344,7 @@ $(function() {
 
     function setupDatGui() {
         var params = {
+            run: false,
             spacing: 1.4,
             layerSpacing: 15
         };
@@ -407,7 +357,13 @@ $(function() {
             cellviz.spacing = spacing;
             cellviz.redraw();
         });
+        gui.add(params, 'run').onChange(function(run) {
+            cellviz.run = run;
+            if (paused) play();
+            else pause();
+        });
     }
+
 
     $('h1').remove();
 
@@ -416,7 +372,6 @@ $(function() {
         initSp(function(err, r) {
             if (err) throw err;
             spData = r;
-            addDataControlHandlers();
             setupCellViz();
             addClickHandling();
             setupDatGui();
