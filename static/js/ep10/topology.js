@@ -319,7 +319,6 @@ $(function() {
     }
 
     function addClickHandling() {
-        var $viz = $('#viz');
 
         function inputClicked(cellData) {
 
@@ -358,9 +357,7 @@ $(function() {
         }
 
         function onDocumentMouseDown( event ) {
-            // the following line would stop any other event handler from firing
-            // (such as the mouse's TrackballControls)
-            // event.preventDefault();
+            event.preventDefault();
 
             // update the mouse variable
             var x = ( event.clientX / cellviz.renderer.domElement.clientWidth ) * 2 - 1;
@@ -380,7 +377,7 @@ $(function() {
                 cellClicked(intersects[0].object._cellData);
             }
         }
-        document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+        $('canvas').click(onDocumentMouseDown);
     }
 
     function loadGifJson(callback) {
@@ -397,11 +394,19 @@ $(function() {
     }
 
     function setupDatGui() {
-        // var gui = new dat.GUI();
-        // gui.add(text, 'message');
-        // gui.add(text, 'speed', -5, 5);
-        // gui.add(text, 'displayOutline');
-        // gui.add(text, 'explode');
+        var params = {
+            spacing: 1.4,
+            layerSpacing: 15
+        };
+        var gui = new dat.GUI();
+        gui.add(params, 'layerSpacing').min(-10).max(100).onChange(function(layerSpacing) {
+            cellviz.layerSpacing = layerSpacing;
+            cellviz.redraw();
+        });
+        gui.add(params, 'spacing').min(1.1).max(10).onChange(function(spacing) {
+            cellviz.spacing = spacing;
+            cellviz.redraw();
+        });
     }
 
     $('h1').remove();
@@ -413,11 +418,10 @@ $(function() {
             spData = r;
             addDataControlHandlers();
             setupCellViz();
-            setupDatGui();
             addClickHandling();
+            setupDatGui();
             loading(false);
         });
     });
-
 
 });
