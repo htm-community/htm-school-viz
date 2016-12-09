@@ -16,12 +16,13 @@ $(function() {
     };
 
     var colors = {
-        inactive: new THREE.Color('white'),
-        active: new THREE.Color('yellow'),
+        inactive: new THREE.Color('#FFFEEE'),
+        active: new THREE.Color('#FFF000'),
         selected: new THREE.Color('red'),
         field: new THREE.Color('orange'),
-        neighbors: new THREE.Color('blue'),
+        neighbors: new THREE.Color('#1E90FF'),
         input: new THREE.Color('green'),
+        emptyInput: new THREE.Color('#F0FCEF')
     };
 
     // The HtmCells objects that contains cell state.
@@ -131,12 +132,11 @@ $(function() {
     }
 
     function getColumnDimensions() {
-        return [12, 12];
-        //  var dim = [inputDimensions[0], inputDimensions[1]];
-        //  if (restrictColumnDimensions && _.max(inputDimensions) > 32) {
-        //      dim = [inputDimensions[0] / 2, inputDimensions[1] / 2];
-        //  }
-        //  return dim;
+        var dim = [inputDimensions[0], inputDimensions[1]];
+        if (restrictColumnDimensions && _.max(inputDimensions) >= 32) {
+            dim = [Math.floor(inputDimensions[0] / 3), Math.floor(inputDimensions[1] / 3)];
+        }
+        return dim;
     }
 
     function updateCellRepresentations() {
@@ -157,7 +157,7 @@ $(function() {
         for (cx = 0; cx < maxX; cx++) {
             for (cy = 0; cy < maxY; cy++) {
                 for (cz = 0; cz < maxZ; cz++) {
-                    color = colors.inactive;
+                    color = colors.emptyInput;
                     cellIndex = xyzToOneDimIndex(cx, cy, cz, maxX, maxY, maxZ);
                     if (spData.inputEncoding[cellIndex] == 1) {
                         color = colors.input;
@@ -256,7 +256,7 @@ $(function() {
 
     function clearAllCells() {
         spColumns.updateAll({color: colors.inactive});
-        inputCells.updateAll({color: colors.inactive});
+        inputCells.updateAll({color: colors.emptyInput});
     }
 
     function initSp(mainCallback) {
@@ -301,7 +301,7 @@ $(function() {
             var y = index - (x * xMax);
             _.times(cellsPerColumn, function(count) {
                 spColumns.peekUpdate(x, y, count, function(value, update) {
-                    if (collisionColor && value.color != colors.inactive) {
+                    if (collisionColor) {
                         update({color: collisionColor});
                     } else {
                         update({color: color});
@@ -364,10 +364,12 @@ $(function() {
     }
 
     function setupDatGui() {
+        var next;
         var params = {
             run: false,
             spacing: 1.4,
-            layerSpacing: 15
+            layerSpacing: 15,
+            next: runCurrentFrame
         };
         var gui = new dat.GUI();
         gui.add(params, 'layerSpacing').min(-10).max(100).onChange(function(layerSpacing) {
@@ -383,6 +385,7 @@ $(function() {
             if (paused) play();
             else pause();
         });
+        gui.add(params, 'next');
     }
 
 
