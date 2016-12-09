@@ -16,14 +16,12 @@ $(function() {
     };
 
     var colors = {
-        inactive: 0xFFFFFF, // white for inactive cells
-        active: 0xFFFF00, // yellow for active cells
-        selected: 0xFF0000, // red for predictive cells
-        field: 0xFFAC33, // orange for active & predictive cells
-        neighbors: 0x6699FF, // cyan for correctly predicted cells from last step
-        input: 0x00FF00, // green for input bits
-        inputInField: 0x80D61A, // orange-green for input bits in potential pool
-        activeInNeighbors: 0xB3CC80 // yellow-blue for active in neighborhood
+        inactive: new THREE.Color('white'),
+        active: new THREE.Color('yellow'),
+        selected: new THREE.Color('red'),
+        field: new THREE.Color('orange'),
+        neighbors: new THREE.Color('blue'),
+        input: new THREE.Color('green'),
     };
 
     // The HtmCells objects that contains cell state.
@@ -31,7 +29,7 @@ $(function() {
     // The Viz object.
     var cellviz;
 
-    var selectedColumn = undefined;
+    var selectedCell = undefined;
 
     var spClient;
 
@@ -91,29 +89,39 @@ $(function() {
         return new THREE.Color(r, g, 0);
     }
 
+    function averageRGB(c1, c2) {
+        return c1.clone().lerp(c2, 0.5);
+        // return new THREE.Color(
+        //     (c1.r + c2.r / 2) * 255,
+        //     (c1.g + c2.g / 2) * 255,
+        //     (c1.b + c2.b / 2) * 255
+        // );
+    }
+
     function translate(x, min, max) {
         var range = max - min;
         return (x - min) / range;
     }
 
     function xyzToOneDimIndex(x, y, z, xMax, yMax, zMax) {
-        // var result = ((y+1) * (z+1) * (x+1)) + ((y+1) * (z+1)) + x+1;
-        // var result = (x+1) * (y+0) + z;
-        // var result = (((x.length * x) * y.length) * z) + () + ();
-        var result = (x * yMax * zMax) + (y * zMax) + z;
-        console.log('%s, %s, %s : %s', x, y, z, result);
+        var result = (z * xMax * yMax) + (y * xMax) + x;
+        // console.log('%s, %s, %s : %s', x, y, z, result);
         return result;
     }
 
-    function oneDimIndexToXyz(i, xMax, yMax) {
-        var out = {};
-        var a = xMax * yMax;
-        out.z = Math.floor(i / a);
-        var b = i - a * out.z;
-        out.y = Math.floor(b / xMax);
-        out.x = b % xMax;
-        return out;
+    function cellXyToColumnIndex(x, y, yMax) {
+        return y * yMax + x;
     }
+
+    // function oneDimIndexToXyz(i, xMax, yMax, zMax) {
+    //     var out = {};
+    //     var a = xMax * yMax;
+    //     out.z = Math.floor(i / a);
+    //     var b = i - a * out.z;
+    //     out.y = Math.floor(b / xMax);
+    //     out.x = b % xMax;
+    //     return out;
+    // }
 
     // SP params we are not allowing user to change
     function getInputDimension() {
@@ -123,7 +131,7 @@ $(function() {
     }
 
     function getColumnDimensions() {
-        return [24, 24];
+        return [12, 12];
         //  var dim = [inputDimensions[0], inputDimensions[1]];
         //  if (restrictColumnDimensions && _.max(inputDimensions) > 32) {
         //      dim = [inputDimensions[0] / 2, inputDimensions[1] / 2];
@@ -138,7 +146,8 @@ $(function() {
         var potentialPools  = spData.potentialPools;
         var inhibitionMasks  = spData.inhibitionMasks;
         var minAdc, maxAdc;
-        var cx, cy, cz, cellIndex;
+        var cx, cy, cz, cc;
+        var cellIndex, columnIndex;
         var maxX, maxY, maxZ;
         var color = undefined;
 
@@ -152,6 +161,11 @@ $(function() {
                     cellIndex = xyzToOneDimIndex(cx, cy, cz, maxX, maxY, maxZ);
                     if (spData.inputEncoding[cellIndex] == 1) {
                         color = colors.input;
+                        if (selectedCell && potentialPools[selectedCell.columnIndex].indexOf(cellIndex) > -1) {
+                            color = averageRGB(colors.input, colors.field);
+                        }
+                    } else if (selectedCell && potentialPools[selectedCell.columnIndex].indexOf(cellIndex) > -1) {
+                        color = colors.field;
                     }
                     inputCells.update(cx, cy, cz, {color: color});
                 }
@@ -164,72 +178,25 @@ $(function() {
         for (cx = 0; cx < maxX; cx++) {
             for (cy = 0; cy < maxY; cy++) {
                 for (cz = 0; cz < maxZ; cz++) {
-                    // color = colors.inactive;
-                    // cellIndex = xyzToOneDimIndex(cx, cy, cz);
-                    // if (spData.activeColumns[cellIndex].indexOf(cellIndex)) {
-                    //     colors.input;
-                    // }
+                    color = colors.inactive;
+                    cellIndex = xyzToOneDimIndex(cx, cy, cz, maxX, maxY, maxZ);
+                    columnIndex = cellXyToColumnIndex(cx, cy, maxY);
+                    if (selectedCell && selectedCell.x == cx && selectedCell.y == cy) {
+                        color = colors.selected;
+                    } else if (spData.activeColumns[columnIndex] == 1) {
+                        color = colors.active;
+                        if (selectedCell && inhibitionMasks[selectedCell.columnIndex].indexOf(cellIndex) > -1) {
+                            color = averageRGB(colors.active, colors.neighbors);
+                        }
+                    } else {
+                        if (selectedCell && inhibitionMasks[selectedCell.columnIndex].indexOf(columnIndex) > -1) {
+                            color = colors.neighbors;
+                        }
+                    }
+                    spColumns.update(cx, cy, cz, {color: color});
                 }
             }
         }
-
-        // var columnIndex = cellData.x * spColumns.getX() + cellData.y;
-        // var inhibitionMask  = spData.inhibitionMasks[columnIndex];
-        // var potentialPool  = spData.potentialPools[columnIndex];
-        // _.each(inhibitionMask, function(maskIndex) {
-        //     updateColumn(maskIndex, colors.neighbors, colors.activeInNeighbors);
-        // });
-        // updateColumn(columnIndex, colors.selected);
-        // _.each(potentialPool, function(poolIndex) {
-        //     var xMax = inputCells.getY();
-        //     var x = Math.floor(poolIndex / xMax);
-        //     var y = poolIndex - (x * xMax);
-        //     // inputCells.update(x, y, 0, {color: colors.field}, {exclude: {color: colors.input}});
-        //     inputCells.peekUpdate(x, y, 0, function(value, update) {
-        //         if (value.color == colors.input) {
-        //             update({color: colors.inputInField});
-        //         } else {
-        //             update({color: colors.field});
-        //         }
-        //     });
-        // });
-
-        // _.each(inputEncoding, function(bit, i) {
-        //     var pos = oneDimIndexToXyz(i, inputDimensions[0], inputDimensions[1]);
-        //     var color = colors.inactive;
-        //     if (bit == 1) {
-        //         color = colors.input;
-        //         if (selectedColumn != undefined && potentialPools[selectedColumn].indexOf(i) > -1) {
-        //             color = colors.inputInField;
-        //         }
-        //     } else if (selectedColumn != undefined && potentialPools[selectedColumn].indexOf(i) > -1) {
-        //         color = colors.field;
-        //     }
-        //     inputCells.update(pos.x, pos.y, pos.z, {color: color});
-        // });
-        //
-        // if (activeDutyCycles) {
-        //     minAdc = _.min(activeDutyCycles);
-        //     maxAdc = _.max(activeDutyCycles);
-        // }
-        // _.each(activeColumns, function(bit, i) {
-        //     var pos = oneDimIndexToXyz(i, columnDimensions[0], columnDimensions[1]);
-        //     var color = colors.inactive;
-        //     var translatedAdc;
-        //     if (bit == 1) color = colors.active;
-        //     if (selectedColumn && inhibitionMasks[selectedColumn].indexOf(i) > -1) {
-        //         if (color == colors.active) color = colors.activeInNeighbors;
-        //         else color = colors.neighbors;
-        //     }
-        //     if (spData.activeDutyCycles) {
-        //         translatedAdc = translate(spData.activeDutyCycles[i], minAdc, maxAdc);
-        //         color = getGreenToRed(translatedAdc);
-        //         console.log('%s ==> %s', translatedAdc, color.getHex());
-        //     }
-        //     _.times(cellsPerColumn, function(count) {
-        //         spColumns.update(pos.x, pos.y, count, {color: color});
-        //     });
-        // });
 
         cellviz.redraw();
     }
@@ -344,7 +311,13 @@ $(function() {
         }
 
         function spClicked(cellData) {
-            selectedColumn = cellData.x * spColumns.getX() + cellData.y;
+            cellData.cellIndex = xyzToOneDimIndex(
+                cellData.x, cellData.y, cellData.z,
+                columnDimensions[0], columnDimensions[1], cellsPerColumn
+            );
+            cellData.columnIndex = cellXyToColumnIndex(cellData.x, cellData.y, columnDimensions[1]);
+            selectedCell = cellData;
+            // console.log("clicked: %s, %s, %s == column %s", cellData.x, cellData.y, cellData.z, cellData.columnIndex);
             updateCellRepresentations();
         }
 
@@ -414,6 +387,13 @@ $(function() {
 
 
     $('h1').remove();
+
+    window.addEventListener( 'keyup', function(event) {
+        if (event.keyCode == 27) {
+            selectedCell = undefined;
+            updateCellRepresentations();
+        }
+    }, false );
 
     loading(true, true);
     loadGifJson(function() {
