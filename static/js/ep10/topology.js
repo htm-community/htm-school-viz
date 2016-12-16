@@ -38,6 +38,7 @@ $(function() {
     var columnDimensions = undefined;
     var cellsPerColumn = 4;
     var spParams;
+    var useTopology = true;
 
     var paused = true;
     var $loading = $('#loading');
@@ -47,6 +48,8 @@ $(function() {
     var wrapAround = false;
     var restrictColumnDimensions = true;
     var showActiveDutyCycles = false;
+    var showOverlapDutyCycles = false;
+    var showNeighborhoods = false;
 
     var spData;
 
@@ -106,27 +109,6 @@ $(function() {
         return result;
     }
 
-    //function oneDimIndexToTwo(index, max) {
-    //    var x, y;
-    //    x = Math.floor(index / max);
-    //    y = index - (x * max)
-    //    return [x, y];
-    //}
-    //
-    //function xyToOneDimIndex(x, y, xMax) {
-    //    return (y * xMax) + x;
-    //}
-    //
-    //function swapDimensions(indices, d1, d2) {
-    //    var out = [];
-    //    _.each(indices, function(indexValue, i) {
-    //        var xy = oneDimIndexToTwo(indexValue, d2);
-    //        var x = xy[0], y = xy[1];
-    //        out.push(xyToOneDimIndex(x, y, d1));
-    //    });
-    //    return out;
-    //}
-
     function cellXyToColumnIndex(x, y, xMax) {
         return y * xMax + x;
     }
@@ -167,11 +149,12 @@ $(function() {
         var inputEncoding = spData.inputEncoding;
         var activeColumns = spData.activeColumns;
         var activeDutyCycles = spData.activeDutyCycles;
+        var overlapDutyCycles = spData.overlapDutyCycles;
         var potentialPools  = spData.potentialPools;
         var receptiveField;
         var inhibitionMasks  = spData.inhibitionMasks;
         var neighbors;
-        var adc, minAdc, maxAdc, percent;
+            var dutyCycle, minDutyCycle, maxDutyCycle, percent;
         var cx, cy, cz;
         var thisCellIndex, thisColumnIndex;
         var xMax, yMax, zMax;
@@ -219,13 +202,55 @@ $(function() {
                     thisColumnIndex = cellXyToColumnIndex(cx, cy, xMax);
 
                     if (spData.activeDutyCycles !== undefined) {
-                        adc = activeDutyCycles[thisColumnIndex];
-                        minAdc = _.min(activeDutyCycles);
-                        maxAdc = _.max(activeDutyCycles);
-                        percent = translate(adc, minAdc, maxAdc) * 100;
-                        color = getGreenToRed(percent);
-                        if (activeColumnIndices.indexOf(thisColumnIndex) > -1) {
-                            color = color.lerp(new THREE.Color('#FFFFFF'), 0.75);
+                        if (selectedCell !== undefined) {
+                            neighbors = inhibitionMasks[selectedCell.columnIndex];
+                            if (selectedCell.columnIndex == thisColumnIndex) {
+                                color = colors.selected;
+                            } else if (showNeighborhoods && selectedCell != undefined && neighbors.indexOf(thisColumnIndex) > -1) {
+                                dutyCycle = activeDutyCycles[thisColumnIndex];
+                                minDutyCycle = _.min(activeDutyCycles);
+                                maxDutyCycle = _.max(activeDutyCycles);
+                                percent = translate(dutyCycle, minDutyCycle, maxDutyCycle) * 100;
+                                color = getGreenToRed(percent);
+                                if (activeColumnIndices.indexOf(thisColumnIndex) > -1) {
+                                    color = color.lerp(new THREE.Color('#FFFFFF'), 0.75);
+                                }
+                            }
+                        } else {
+                            dutyCycle = activeDutyCycles[thisColumnIndex];
+                            minDutyCycle = _.min(activeDutyCycles);
+                            maxDutyCycle = _.max(activeDutyCycles);
+                            percent = translate(dutyCycle, minDutyCycle, maxDutyCycle) * 100;
+                            color = getGreenToRed(percent);
+                            if (activeColumnIndices.indexOf(thisColumnIndex) > -1) {
+                                color = color.lerp(new THREE.Color('#FFFFFF'), 0.75);
+                            }
+                        }
+                    } else if (spData.overlapDutyCycles !== undefined) {
+                        if (selectedCell !== undefined) {
+                            neighbors = inhibitionMasks[selectedCell.columnIndex];
+                            if (selectedCell.columnIndex == thisColumnIndex) {
+                                color = colors.selected;
+                            } else if (showNeighborhoods && selectedCell != undefined && neighbors.indexOf(thisColumnIndex) > -1) {
+                                dutyCycle = overlapDutyCycles[thisColumnIndex];
+                                minDutyCycle = _.min(overlapDutyCycles);
+                                maxDutyCycle = _.max(overlapDutyCycles);
+                                percent = translate(dutyCycle, minDutyCycle, maxDutyCycle) * 100;
+                                color = getGreenToRed(percent);
+                                if (activeColumnIndices.indexOf(thisColumnIndex) > -1) {
+                                    color = color.lerp(new THREE.Color('#FFFFFF'), 0.75);
+                                }
+                            }
+                        } else {
+                            dutyCycle = overlapDutyCycles[thisColumnIndex];
+                            minDutyCycle = _.min(overlapDutyCycles);
+                            maxDutyCycle = _.max(overlapDutyCycles);
+                            percent = translate(dutyCycle, minDutyCycle, maxDutyCycle) * 100;
+                            color = getGreenToRed(percent);
+                            if (activeColumnIndices.indexOf(thisColumnIndex) > -1) {
+                                color = color.lerp(new THREE.Color('#FFFFFF'), 0.75);
+                            }
+
                         }
                     } else {
                         if (activeColumnIndices.indexOf(thisColumnIndex) > -1) {
@@ -236,7 +261,7 @@ $(function() {
                             //neighbors = flip2dIndexList(neighbors, columnDimensions);
                             if (selectedCell.columnIndex == thisColumnIndex) {
                                 color = colors.selected;
-                            } else if (selectedCell != undefined && neighbors.indexOf(thisColumnIndex) > -1) {
+                            } else if (showNeighborhoods && neighbors.indexOf(thisColumnIndex) > -1) {
                                 if (color == colors.active) {
                                     color = averageRGB(color, colors.neighbors);
                                 } else {
@@ -266,6 +291,9 @@ $(function() {
         };
         if (showActiveDutyCycles) {
             computeConfig.getActiveDutyCycles = true;
+        }
+        if (showOverlapDutyCycles) {
+            computeConfig.getOverlapDutyCycles = true;
         }
         spClient.compute(encoding, computeConfig, function(err, response) {
             if (err) throw err;
@@ -321,19 +349,25 @@ $(function() {
         //learnSpParams.setParam("maxBoost", 2);
         spClient = new HTM.SpatialPoolerClient(save);
 
-        // Custom stuff for topology
-        spParams.setParam('globalInhibition', false);
-        spParams.setParam('potentialRadius', Math.floor(inputDimensions[0] / 4));
+        spClient.initialize(spParams.getParams(), function(err, resp) {
+            loading(false);
+            if (mainCallback) mainCallback(err, resp);
+        });
+    }
+
+    function configureTopology() {
+        var potentialRadius = inputDimensions[0];
+        if (useTopology) {
+            potentialRadius = Math.floor(inputDimensions[0] / 4);
+        }
+        spParams.setParam('globalInhibition', ! useTopology);
+        spParams.setParam('potentialRadius', potentialRadius);
+
         spParams.setParam('localAreaDensity', 0.1);
         spParams.setParam('numActiveColumnsPerInhArea', 1);
         spParams.setParam('wrapAround', wrapAround);
         spParams.setParam('maxBoost', 10);
         //spParams.setParam('stimulusThreshold', 10.0);
-
-        spClient.initialize(spParams.getParams(), function(err, resp) {
-            loading(false);
-            if (mainCallback) mainCallback(err, resp);
-        });
     }
 
     function setupCellViz() {
@@ -343,8 +377,20 @@ $(function() {
         cellviz = new SpToInputVisualization(inputCells, spColumns);
         cellviz.layerSpacing = 60;
         clearAllCells();
+
         cellviz.render();
     }
+
+    // function resetVisualizationLocation() {
+    //     cellviz.controls.moveVector.x = 0;
+    //     cellviz.controls.moveVector.y = 0;
+    //     cellviz.controls.moveVector.z = 0;
+    //     cellviz.redraw();
+    //     // cellviz.controls.object.translateX(0);
+    //     // cellviz.controls.object.translateY(0);
+    //     // cellviz.controls.object.translateZ(0);
+    //     // updateCellRepresentations();
+    // }
 
     function addClickHandling() {
 
@@ -408,33 +454,67 @@ $(function() {
     function setupDatGui() {
         var next;
         var params = {
+            // 'reset view': resetVisualizationLocation,
+            topology: useTopology,
             run: false,
             spacing: 1.4,
             layerSpacing: cellviz.layerSpacing,
             next: runCurrentFrame,
-            'show ADCs': showActiveDutyCycles
+            'show ADCs': showActiveDutyCycles,
+            'show neighbors': showNeighborhoods,
+            'show ODCs': showOverlapDutyCycles
         };
         var gui = new dat.GUI();
-        gui.add(params, 'layerSpacing').min(-10).max(100).onChange(function(layerSpacing) {
+        // gui.add(params, 'reset view');
+        gui.add(params, 'layerSpacing').min(-10).max(160).onChange(function(layerSpacing) {
             cellviz.layerSpacing = layerSpacing;
             cellviz.redraw();
         });
-        gui.add(params, 'spacing').min(1.1).max(10).onChange(function(spacing) {
-            cellviz.spacing = spacing;
-            cellviz.redraw();
-        });
+        // gui.add(params, 'spacing').min(1.1).max(10).onChange(function(spacing) {
+        //     cellviz.spacing = spacing;
+        //     cellviz.redraw();
+        // });
         gui.add(params, 'show ADCs').onChange(function(showAdc) {
+            if (showOverlapDutyCycles && showAdc) showOverlapDutyCycles = 0;
             showActiveDutyCycles = showAdc;
-            cellviz.redraw();
+            params['show ODCs'] = showOverlapDutyCycles;
+            updateCellRepresentations();
+        }).listen();
+        gui.add(params, 'show neighbors').onChange(function(showNeighbors) {
+            showNeighborhoods = showNeighbors;
+            updateCellRepresentations();
+        }).listen();
+        // gui.add(params, 'show ODCs').onChange(function(showOdc) {
+        //     if (showActiveDutyCycles && showOdc) showActiveDutyCycles = 0;
+        //     showOverlapDutyCycles = showOdc;
+        //     params['show ADCs'] = showActiveDutyCycles;
+        //     updateCellRepresentations();
+        // }).listen();
+        gui.add(params, 'topology').onChange(function(choice) {
+            useTopology = choice;
+            configureTopology();
+            clearAllCells();
+            loading(true);
+            initSp(function(err, r) {
+                if (err) throw err;
+                pause();
+                params.run = false;
+                spData = r;
+                spData.inputEncoding = gifData.data[currentFrame];
+                // setupCellViz();
+                // addClickHandling();
+                // setupDatGui();
+                loading(false);
+            });
+
         });
         gui.add(params, 'run').onChange(function(run) {
-            cellviz.run = run;
+            params.run = run;
             if (paused) play();
             else pause();
-        });
+        }).listen();
         gui.add(params, 'next');
     }
-
 
     $('h1').remove();
 
@@ -447,6 +527,7 @@ $(function() {
 
     loading(true, true);
     loadGifJson(function() {
+        configureTopology();
         initSp(function(err, r) {
             if (err) throw err;
             spData = r;
