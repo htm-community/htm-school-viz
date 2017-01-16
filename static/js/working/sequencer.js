@@ -30,12 +30,16 @@ $(function() {
     var padCount = 4;
     var loop;
     var lastBeat = beats - 1;
-    var bpm = 50;
+    var bpm = 80;
 
     // Set up an empty sequence
     var sequence = [];
     _.times(beats, function() {
-        sequence.push([0, 0, 0, 0]);
+        // Random initial beats
+        var pads = [0, 0, 0, 0];
+        var turnOn = getRandomInt(0, 5);
+        if (pads[turnOn] !== undefined) pads[turnOn] = 1;
+        sequence.push(pads);
     });
     //setup a polyphonic sampler
     var keys = new Tone.MultiPlayer({
@@ -49,7 +53,7 @@ $(function() {
         fadeOut : 0.1,
     }).toMaster();
     //the notes
-    var noteNames = ["F#", "E", "C#", "A"];
+    var noteNames = ["F#", "E", "C#", "A", "rest"];
 
 
     function loading(isLoading, isModal) {
@@ -253,32 +257,70 @@ $(function() {
         lastPredictiveCells = predictiveCells;
     }
 
-    function getEncoding(pads) {
+    function updatePredictions(predictions, beat) {
+        // Display predictions on next beat.
+        var predictedValue = predictions[0][1];
+        var predictedPadIdx = noteNames.indexOf(predictedValue);
+        var isCorrect = '✘';
+        var nextBeat = beat + 1;
+        if (nextBeat >= beats) {
+            nextBeat = 0;
+        }
+        grid.find('td.note').removeClass('prediction');
+        grid.find('.beat-' + nextBeat + '.pad-' + predictedPadIdx).addClass('prediction');
+
+        // Display last beat prediction result.
+        var nextChosenPadIdx = noteNames.indexOf(grid.find('.beat-' + nextBeat + '.on').html());
+        if (nextChosenPadIdx == predictedPadIdx) {
+            isCorrect = '✔︎';
+        }
+        grid.find('tr.info td.beat-' + nextBeat).html(isCorrect);
+    }
+
+    function encode(pads) {
         var n = inputDimensions[0];
         var buckets = 5;
         var bucketWidth = Math.floor(n / buckets);
         var out = SDR.tools.getEmpty(n);
+        var encoding;
+        var bucketIdx;
+        var actValue;
         _.each(pads, function(value, padIndex) {
             var start = padIndex * bucketWidth;
             if (value == 1) {
                 _.times(bucketWidth, function(cnt) {
                     out[start + cnt] = 1;
                 });
+                bucketIdx = padIndex
+                actValue = noteNames[padIndex];
+                if (actValue == undefined) {
+                    actValue = 'rest';
+                }
             }
         });
-        return SDR.tools.addNoise(out, noise);
+        encoding = SDR.tools.addNoise(out, noise);
+        return {
+            encoding: encoding,
+            bucketIdx: bucketIdx,
+            actValue: actValue
+        };
     }
 
     function runOnePointThroughSp(pads, beat) {
         // Encode data point into SDR.
-        var encoding = getEncoding(pads);
+        var raw = encode(pads);
         // Reset on last beat.
         var reset = beat == beats - 1;
+        var encoding = raw.encoding;
+        var bucketIdx = raw.bucketIdx;
+        var actValue = raw.actValue;
 
         counter++;
 
         // Run encoding through SP/TM.
         computeClient.compute(encoding, {
+            bucketIdx: bucketIdx,
+            actValue: actValue,
             learn: learn
         }, function(err, response) {
             if (err) throw err;
@@ -294,7 +336,14 @@ $(function() {
                 activeColumns
             );
             renderTmViz(activeCells, predictiveCells);
+            updatePredictions(response.inference, beat);
         });
+    }
+
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
     }
 
     function processOneBeat(time, beat) {
@@ -368,7 +417,7 @@ $(function() {
             var $row = $('<tr>');
             _.times(beats, function(beat) {
                 var on = '';
-                var $cell = $('<td>');
+                var $cell = $('<td class="note">');
                 if (sequence[beat][pad] == 1) {
                     $cell.addClass('on');
                 }
@@ -376,10 +425,19 @@ $(function() {
                 $cell.data('pad', pad);
                 $cell.addClass('beat-' + beat);
                 $cell.addClass('pad-' + pad);
+                $cell.html(noteNames[pad]);
                 $row.append($cell);
             });
             $table.append($row);
         });
+        // Add one more row for additional info about the beat.
+        var $infoTr = $('<tr class="info">');
+        _.times(beats, function(beat) {
+            var $cell = $('<td>');
+            $cell.addClass('beat-' + beat);
+            $infoTr.append($cell);
+        });
+        $table.append($infoTr);
         $table.click(function(event) {
             event.preventDefault();
             event.stopPropagation();

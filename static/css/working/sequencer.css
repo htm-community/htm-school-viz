@@ -1,7 +1,6 @@
 body {
     margin: 0;
 }
-
 rect {
     stroke: #CACACA;
 }
@@ -29,7 +28,6 @@ rect {
 .modal-content .row {
     margin: 0;
 }
-
 svg#visualization {
     border: solid 1px slategrey;
     background-color: white;
@@ -42,78 +40,70 @@ button#show-sp-params {
 .sdrs div {
     text-align: center;
 }
-
 #tm {
     width: 1200px;
     height: 940px;
 }
-
 #tm canvas {
     border: 3px solid rgb(24, 93, 139);
 }
-
 #cell-legend .key {
     border: solid black 2px;
     width: 50px;
     height: 50px;
 }
-
 #cell-legend .inactive {
     background-color: #FFFFFF;
 }
-
 #cell-legend .active {
     background-color: #FFFF00;
 }
-
 #cell-legend .predictive {
     background-color: #FF0000;
 }
-
 #cell-legend .active.predictive {
     background-color: #FFAC33;
 }
-
 #cell-legend .correct {
     background-color: #6699FF;
 }
-
 #cell-legend .desc {
     padding-left: 30px;
     padding-right: 30px;
 }
-
-
-
-
 body {
     background-color: #e0e0e0;
 }
-
 #sequencer-grid table td.on {
     background-color: #fdffa1;
-    box-shadow:
-        0 0 10px 4px #79fcff
+    box-shadow: 0 0 10px 4px #79fcff
 }
-
-table {
+#sequencer-grid table {
     border-collapse: inherit;
     border-spacing: 10px;
 }
-
 #sequencer-grid table td {
+    border-radius: 14px;
+    text-align: center;
+    color: grey;
+    font-size: smaller;
+}
+#sequencer-grid table td.note {
     background-color: white;
     width: 60px;
     height: 60px;
     border: solid #485048 3px;
-    border-radius: 14px;
 }
-
 #sequencer-grid table td.on-beat {
-    box-shadow:
-        0 0 10px 4px #ff4845
+    box-shadow: 0 0 10px 4px #ff4845
 }
-
+#sequencer-grid table td.info {
+    box-shadow: none !important;
+}
+#sequencer-grid table td.prediction {
+    border-color: blue;
+    box-shadow: 0 0 10px 4px yellow
+}
 .sequencer-container {
     padding: 20px;
     background-color: #89b4dd;
