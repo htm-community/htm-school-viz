@@ -24,6 +24,7 @@ app.set('views', 'html/');
 
 //paths
 app.use('/static', serveStatic(__dirname + '/static'));
+app.use('/client/working/audio/casio', serveStatic(__dirname + '/static/js/working/audio/casio'));
 app.get('/', index);
 app.get('/client/:ep/:file', client);
 app.use('/_proxy', proxy(NUPIC_SERVER));

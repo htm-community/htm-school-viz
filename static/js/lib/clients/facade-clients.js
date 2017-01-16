@@ -219,8 +219,49 @@ $(function() {
     };
 
 
+    ////////////////////////////////////////////////////////
+    // Compute Client
+    ////////////////////////////////////////////////////////
+
+    function ComputeClient(modelId, save) {
+        if (modelId == undefined) {
+            throw new Error(
+                'Cannot create ComputeClient without an existing model id.');
+        }
+        this._id = modelId;
+        if (save != undefined) {
+            this.save = save;
+        } else {
+            this.save = undefined;
+        }
+    }
+
+    ComputeClient.prototype.compute = function(encoding, opts, callback) {
+        var url = host + '/_compute/';
+
+        if (typeof(opts) == 'function') {
+            callback = opts;
+            opts = {};
+        }
+        opts = _.merge(opts, {id: this._id});
+        url += '?' + $.param(opts);
+
+        $.ajax({
+            type: 'PUT',
+            url: url,
+            data: encoding.join(','),
+            success: function(response) {
+                response.activeColumns = uncompressSdr(response.activeColumns);
+                callback(null, response);
+            },
+            dataType: 'JSON'
+        });
+    };
+
+
     window.HTM.SpatialPoolerClient = SpatialPoolerClient;
     window.HTM.SpSnapshots = SpSnapshots;
     window.HTM.TemporalMemoryClient = TemporalMemoryClient;
     window.HTM.TmSnapshots = TmSnapshots;
+    window.HTM.ComputeClient = ComputeClient;
 });

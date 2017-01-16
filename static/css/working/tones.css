@@ -1,0 +1,23 @@
+body {
+    background-color: #e0e0e0;
+}
+.on {
+    background-color: yellow;
+}
+
+table {
+    border-collapse: inherit;
+    border-spacing: 30px;
+}
+
+table td {
+    background-color: white;
+    width: 100px;
+    height: 100px;
+    border: solid black 5px;
+    border-radius: 20px;
+}
+
+table td.on-beat {
+    border: dotted 5px;
+}

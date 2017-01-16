@@ -154,7 +154,7 @@ $(function() {
         var receptiveField;
         var inhibitionMasks  = spData.inhibitionMasks;
         var neighbors;
-            var dutyCycle, minDutyCycle, maxDutyCycle, percent;
+        var dutyCycle, minDutyCycle, maxDutyCycle, percent;
         var cx, cy, cz;
         var thisCellIndex, thisColumnIndex;
         var xMax, yMax, zMax;
