@@ -75,7 +75,7 @@ body {
     background-color: #e0e0e0;
 }
 #sequencer-grid table td.on {
-    background-color: #fdffa1;
+    background-color: #fdffa1 !important;
     box-shadow: 0 0 10px 4px #79fcff
 }
 #sequencer-grid table {
@@ -97,12 +97,16 @@ body {
 #sequencer-grid table td.on-beat {
     box-shadow: 0 0 10px 4px #ff4845
 }
-#sequencer-grid table td.info {
-    box-shadow: none !important;
-}
 #sequencer-grid table td.prediction {
-    border-color: blue;
-    box-shadow: 0 0 10px 4px yellow
+    border: blue dotted 5px;
+    /*box-shadow: 0 0 10px 4px yellow*/
+}
+#sequencer-grid table tr.info td {
+    box-shadow: none;
+    color: darkred;
+}
+#sequencer-grid table tr.info td.correct {
+    color: green;
 }
 .sequencer-container {
     padding: 20px;

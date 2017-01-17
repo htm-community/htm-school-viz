@@ -2,7 +2,7 @@ $(function() {
 
     var learn = true;
     var playing = false;
-    var noise = 0.10;
+    var noise = 0.00;
 
     var spClient;
     var tmClient;
@@ -21,6 +21,7 @@ $(function() {
 
     var counter = 0;
     var lastPredictiveCells = [];
+    var bucketLabels = [];
 
     var $loading = $('#loading');
     // Indicates we are still waiting for a response from the server SP.
@@ -54,7 +55,6 @@ $(function() {
     }).toMaster();
     //the notes
     var noteNames = ["F#", "E", "C#", "A", "rest"];
-
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -260,21 +260,59 @@ $(function() {
     function updatePredictions(predictions, beat) {
         // Display predictions on next beat.
         var predictedValue = predictions[0][1];
-        var predictedPadIdx = noteNames.indexOf(predictedValue);
-        var isCorrect = '✘';
+
+        console.log('predicted notes: %s', predictedValue);
+
+        var mark = '✘';
         var nextBeat = beat + 1;
         if (nextBeat >= beats) {
             nextBeat = 0;
         }
-        grid.find('td.note').removeClass('prediction');
-        grid.find('.beat-' + nextBeat + '.pad-' + predictedPadIdx).addClass('prediction');
 
-        // Display last beat prediction result.
-        var nextChosenPadIdx = noteNames.indexOf(grid.find('.beat-' + nextBeat + '.on').html());
-        if (nextChosenPadIdx == predictedPadIdx) {
-            isCorrect = '✔︎';
+        var $nextInfoCell = grid.find('tr.info td.beat-' + nextBeat);
+        $nextInfoCell.removeClass('correct');
+
+        grid.find('td.note').removeClass('prediction');
+
+        var $nextBeatCells = grid.find('.beat-' + nextBeat + '.on');
+        var nextBeatNoteNames = [];
+        _.each($nextBeatCells, function(cell) {
+            nextBeatNoteNames.push(cell.innerHTML);
+        });
+        if (nextBeatNoteNames.join('-') == predictedValue
+        || nextBeatNoteNames.length == 0 && predictedValue == 'rest') {
+            mark = '✔';
+            $nextInfoCell.addClass('correct');
         }
-        grid.find('tr.info td.beat-' + nextBeat).html(isCorrect);
+
+        _.each(predictedValue.split('-'), function(note) {
+            var predictedPadIdx = noteNames.indexOf(note);
+            grid.find('.beat-' + nextBeat + '.pad-' + predictedPadIdx)
+                .addClass('prediction');
+        });
+
+        $nextInfoCell.html(mark);
+    }
+
+    function getEncodingDetails(pads) {
+        var on = [];
+        var bucketIdx = bucketLabels.length;
+        var actValue;
+        _.each(pads, function(padOn, padIndex) {
+            if (padOn) {
+                on.push(noteNames[padIndex]);
+            }
+        });
+        actValue = on.join('-');
+        if (bucketLabels.indexOf(actValue) == -1) {
+            bucketLabels.push(actValue);
+        } else {
+            bucketIdx = bucketLabels.indexOf(actValue);
+        }
+        return {
+            bucketIdx: bucketIdx,
+            actValue: actValue
+        };
     }
 
     function encode(pads) {
@@ -283,26 +321,22 @@ $(function() {
         var bucketWidth = Math.floor(n / buckets);
         var out = SDR.tools.getEmpty(n);
         var encoding;
-        var bucketIdx;
-        var actValue;
-        _.each(pads, function(value, padIndex) {
+        var encodingDetails;
+        _.each(pads, function(padOn, padIndex) {
             var start = padIndex * bucketWidth;
-            if (value == 1) {
+            if (padOn) {
                 _.times(bucketWidth, function(cnt) {
                     out[start + cnt] = 1;
                 });
-                bucketIdx = padIndex
-                actValue = noteNames[padIndex];
-                if (actValue == undefined) {
-                    actValue = 'rest';
-                }
             }
         });
+        encodingDetails = getEncodingDetails(pads);
         encoding = SDR.tools.addNoise(out, noise);
+        //console.log('%s in bucket %s', encodingDetails.actValue, encodingDetails.bucketIdx);
         return {
             encoding: encoding,
-            bucketIdx: bucketIdx,
-            actValue: actValue
+            bucketIdx: encodingDetails.bucketIdx,
+            actValue: encodingDetails.actValue
         };
     }
 
@@ -321,7 +355,8 @@ $(function() {
         computeClient.compute(encoding, {
             bucketIdx: bucketIdx,
             actValue: actValue,
-            learn: learn
+            spLearn: false,
+            tmLearn: learn
         }, function(err, response) {
             if (err) throw err;
             var activeColumns = response.activeColumns;
@@ -329,13 +364,13 @@ $(function() {
             if (reset) {
                 console.log('TM Reset after this row of data.');
             }
-            var activeCells = response.activeCells;
-            var predictiveCells = response.predictiveCells;
             renderSdrs(
                 encoding,
                 activeColumns
             );
-            renderTmViz(activeCells, predictiveCells);
+            //var activeCells = response.activeCells;
+            //var predictiveCells = response.predictiveCells;
+            //renderTmViz(activeCells, predictiveCells);
             updatePredictions(response.inference, beat);
         });
     }
@@ -464,11 +499,11 @@ $(function() {
     Tone.Transport.bpm.value = bpm;
     Tone.Transport.start();
 
-    keys.connect(new Tone.Delay (0.9));
+    keys.connect(new Tone.Delay (0.75));
 
     spParams.render(function() {
         initModel(function() {
-            setupTmViz();
+            //setupTmViz();
             addDataControlHandlers();
             //runOnePointThroughSp();
         });
