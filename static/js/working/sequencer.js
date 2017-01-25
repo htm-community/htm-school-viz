@@ -23,34 +23,38 @@ $(function() {
     // Indicates we are still waiting for a response from the server SP.
     var waitingForServer = false;
 
+    // Set up an globals for sound sequencer settings.
+    var sequence = [];
+    var keys = undefined;
+    var noteNames = undefined;
+    var grid = undefined;
     var beats = 8;
     var padCount = 4;
     var loop;
     var lastBeat = beats - 1;
     var bpm = 60;
 
-    // Set up an empty sequence
-    var sequence = [];
-    _.times(beats, function() {
-        // Random initial beats
-        var pads = [0, 0, 0, 0];
-        var turnOn = getRandomInt(0, 5);
-        if (pads[turnOn] !== undefined) pads[turnOn] = 1;
-        sequence.push(pads);
-    });
-    //setup a polyphonic sampler
-    var keys = new Tone.MultiPlayer({
-        urls : {
-            "A" : "./audio/casio/A1.mp3",
-            "C#" : "./audio/casio/Cs2.mp3",
-            "E" : "./audio/casio/E2.mp3",
-            "F#" : "./audio/casio/Fs2.mp3",
-        },
-        volume : -10,
-        fadeOut : 0.1,
-    }).toMaster();
-    //the notes
-    var noteNames = ["F#", "E", "C#", "A", "rest"];
+    ////////////////////////////////////////
+    // Utility functions
+    ////////////////////////////////////////
+
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    function countIntsIntoArray(size) {
+        var out = [];
+        _.times(size, function(count) {
+            out.push(count);
+        });
+        return out;
+    }
+
+    ////////////////////////////////////////
+    // UI functions
+    ////////////////////////////////////////
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -67,41 +71,6 @@ $(function() {
             $loading.hide();
             $loading.removeClass('little');
         }
-    }
-
-    function getTmParams() {
-        // TODO: Provide a UI to change TM Params.
-        return {
-            columnDimensions: columnDimensions,
-            cellsPerColumn: cellsPerColumn,
-            activationThreshold: 10,
-            initialPermanence: 0.21,
-            connectedPermanence: 0.50,
-            minThreshold: 10,
-            maxNewSynapseCount: 20,
-            permanenceIncrement: 0.10,
-            permanenceDecrement: 0.10,
-            predictedSegmentDecrement: 0.0,
-            maxSegmentsPerCell: 255,
-            maxSynapsesPerSegment: 255
-        };
-    }
-
-    function initModel(callback) {
-        spClient = new HTM.SpatialPoolerClient();
-        tmClient = new HTM.TemporalMemoryClient();
-        loading(true);
-        spClient.initialize(spParams.getParams(), function() {
-            console.log('SP initialized.');
-            var tmParams = getTmParams();
-            tmClient.initialize(tmParams, {id: spClient._id}, function() {
-                console.log('TM initialized.');
-                computeClient = new HTM.ComputeClient(tmClient._id);
-                console.log('Compute client initialized.');
-                loading(false);
-                if (callback) callback();
-            });
-        });
     }
 
     function updatePredictions(predictions, beat) {
@@ -139,6 +108,112 @@ $(function() {
         });
 
         $nextInfoCell.html(mark);
+    }
+
+    function renderSequencerGrid(selector, beats, pads) {
+        var $grid = $(selector);
+        var $table = $('<table>');
+        _.times(pads, function(pad) {
+            var $row = $('<tr>');
+            _.times(beats, function(beat) {
+                var on = '';
+                var $cell = $('<td class="note">');
+                if (sequence[beat][pad] == 1) {
+                    $cell.addClass('on');
+                }
+                $cell.data('beat', beat);
+                $cell.data('pad', pad);
+                $cell.addClass('beat-' + beat);
+                $cell.addClass('pad-' + pad);
+                $cell.html(noteNames[pad]);
+                $row.append($cell);
+            });
+            $table.append($row);
+        });
+        // Add one more row for additional info about the beat.
+        var $infoTr = $('<tr class="info">');
+        _.times(beats, function(beat) {
+            var $cell = $('<td>');
+            $cell.addClass('beat-' + beat);
+            $infoTr.append($cell);
+        });
+        $table.append($infoTr);
+        $table.click(function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var $cell = $(event.target);
+            var beat = $cell.data('beat');
+            var pad = $cell.data('pad');
+            if (beat != undefined && pad != undefined) {
+                if (sequence[beat][pad] == 0) sequence[beat][pad] = 1;
+                else sequence[beat][pad] = 0;
+                $cell.toggleClass('on');
+            }
+        });
+        $grid.append($table);
+        return $grid;
+    }
+
+    function addDataControlHandlers() {
+        $('.player button').click(function(evt) {
+            var $btn = $(this);
+            var nextBeat;
+            if (this.id == 'play') {
+                if ($btn.hasClass('btn-success')) {
+                    pause();
+                    $btn.find('span').attr('class', 'glyphicon glyphicon-play');
+                } else {
+                    play();
+                    $btn.find('span').attr('class', 'glyphicon glyphicon-pause');
+                }
+                $btn.toggleClass('btn-success');
+            } else if (this.id == 'next') {
+                nextBeat = lastBeat + 1;
+                if (nextBeat >= beats) {
+                    nextBeat = 0;
+                }
+                processOneBeat(new Tone.Time().addNow(), nextBeat);
+            }
+        });
+    }
+
+    ////////////////////////////////////////
+    // HTM-related functions
+    ////////////////////////////////////////
+
+    function getTmParams() {
+        // TODO: Provide a UI to change TM Params.
+        return {
+            columnDimensions: columnDimensions,
+            cellsPerColumn: cellsPerColumn,
+            activationThreshold: 10,
+            initialPermanence: 0.21,
+            connectedPermanence: 0.50,
+            minThreshold: 10,
+            maxNewSynapseCount: 20,
+            permanenceIncrement: 0.10,
+            permanenceDecrement: 0.10,
+            predictedSegmentDecrement: 0.0,
+            maxSegmentsPerCell: 255,
+            maxSynapsesPerSegment: 255
+        };
+    }
+
+    function initModel(callback) {
+        spClient = new HTM.SpatialPoolerClient();
+        tmClient = new HTM.TemporalMemoryClient();
+        loading(true);
+        spClient.initialize(spParams.getParams(), function(spResp) {
+            console.log('SP initialized.');
+            var tmParams = getTmParams();
+            tmClient.initialize(tmParams, {id: spClient._id}, function(tmResp) {
+                console.log('TM initialized.');
+                computeClient = new HTM.ComputeClient(tmClient._id);
+                console.log('Compute client initialized.');
+                loading(false);
+                if (callback) callback(spResp, tmResp);
+            });
+        });
     }
 
     function getEncodingDetails(pads) {
@@ -187,86 +262,6 @@ $(function() {
         };
     }
 
-    function createNvizInputCells(encoding) {
-        return _.map(encoding, function(bit, index) {
-            return {
-                id: index,
-                activated: bit === 1 ? true : false
-            };
-        });
-    }
-
-    function createNvizSegments(cellId, cellIndex, activeSegments) {
-        var cellSegments = _.filter(activeSegments, function(activeSegment) {
-            return activeSegment.cell == cellIndex;
-        });
-        return _.map(cellSegments, function(segment) {
-            return {
-                "source": cellId,
-                "targets": _.map(segment.synapses, function(synapse) {
-                    return {
-                        id: synapse.presynapticCell
-                    };
-                })
-            };
-        });
-    }
-
-    function createNvizColumnSources(columnSynapses) {
-      return _.map(columnSynapses, function(inputCellId) {
-        return {
-          "id": inputCellId
-        };
-      });
-    }
-
-    function createNvizColumns(activeColumns,
-                               activeCells,
-                               predictiveCells,
-                               connectedSynapses,
-                               activeSegments) {
-        return _.map(activeColumns, function(columnIsActive, columnIndex) {
-            var columnOut = {};
-            columnOut.active = columnIsActive === 1 ? true : false;
-            columnOut.bursting = false; // TODO
-            columnOut.cells = [];
-            _.times(cellsPerColumn, function(columnCellIndex) {
-                var cellIndex = columnIndex * cellsPerColumn + columnCellIndex;
-                var cellId = "cell-" + cellIndex;
-                columnOut.cells.push({
-                    id: cellId,
-                    activated: activeColumns.indexOf(cellIndex) > -1,
-                    predicted: predictiveCells.indexOf(cellIndex) > -1,
-                    segments: createNvizSegments(cellId, cellIndex, activeSegments)
-                });
-            });
-            columnOut.sources = createNvizColumnSources(connectedSynapses[columnIndex]);
-            columnOut.permanences = [];
-            return columnOut;
-        });
-    }
-
-    function convertToNvizFormat(data, encoding) {
-        var inputCells = [];
-        var columns = [];
-        var out = {
-            inputCells: createNvizInputCells(encoding),
-            columns: createNvizColumns(
-                data.activeColumns,
-                data.activeCells,
-                data.predictiveCells,
-                data.connectedSynapses,
-                data.activeSegments
-            ),
-            columnCellSize: 8,
-            inputCellSize: 30,
-            cellSize: undefined,
-            inputCellColor: undefined,
-            cellMargin: undefined,
-        };
-        return out;
-    }
-
     function runOnePointThroughSp(pads, beat) {
         // Encode data point into SDR.
         var raw = encode(pads);
@@ -297,16 +292,22 @@ $(function() {
         // Run encoding through SP/TM.
         computeClient.compute(encoding, computeConfig, function(err, response) {
             if (err) throw err;
-            var nVizPayload = convertToNvizFormat(response, encoding);
-            nViz.render.spatialPooler(nVizPayload);
             updatePredictions(response.inference, beat);
         });
     }
 
-    function getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min)) + min;
+    ////////////////////////////////////////
+    // Sequence interface
+    ////////////////////////////////////////
+
+    function play() {
+        playing = true;
+        loop.start();
+    }
+
+    function pause() {
+        playing = false;
+        loop.stop();
     }
 
     function processOneBeat(time, beat) {
@@ -332,114 +333,53 @@ $(function() {
         lastBeat = beat;
     }
 
-    function addDataControlHandlers() {
-        $('.player button').click(function(evt) {
-            var $btn = $(this);
-            var nextBeat;
-            if (this.id == 'play') {
-                if ($btn.hasClass('btn-success')) {
-                    pause();
-                    $btn.find('span').attr('class', 'glyphicon glyphicon-play');
-                } else {
-                    play();
-                    $btn.find('span').attr('class', 'glyphicon glyphicon-pause');
-                }
-                $btn.toggleClass('btn-success');
-            } else if (this.id == 'next') {
-                nextBeat = lastBeat + 1;
-                if (nextBeat >= beats) {
-                    nextBeat = 0;
-                }
-                processOneBeat(new Tone.Time().addNow(), nextBeat);
-            }
+    ////////////////////////////////////////
+    // Global Program Start
+    ////////////////////////////////////////
+
+    function start() {
+        _.times(beats, function() {
+            // Random initial beats
+            var pads = [0, 0, 0, 0];
+            var turnOn = getRandomInt(0, 5);
+            if (pads[turnOn] !== undefined) pads[turnOn] = 1;
+            sequence.push(pads);
         });
-    }
+        // Setup a polyphonic sampler
+        keys = new Tone.MultiPlayer({
+            urls : {
+                "A" : "./audio/casio/A1.mp3",
+                "C#" : "./audio/casio/Cs2.mp3",
+                "E" : "./audio/casio/E2.mp3",
+                "F#" : "./audio/casio/Fs2.mp3",
+            },
+            volume : -10,
+            fadeOut : 0.1,
+        }).toMaster();
+        // the notes
+        noteNames = ["F#", "E", "C#", "A", "rest"];
+        // Set up the SequencerInterface.
+        grid = renderSequencerGrid('#sequencer-grid', beats, padCount);
 
-    function play() {
-        playing = true;
-        loop.start();
-    }
+        loop = new Tone.Sequence(
+            processOneBeat, countIntsIntoArray(beats), beats + "n"
+        );
 
-    function pause() {
-        playing = false;
-        loop.stop();
-    }
+        Tone.Transport.bpm.value = bpm;
+        Tone.Transport.start();
 
-    function countIntsIntoArray(size) {
-        var out = [];
-        _.times(size, function(count) {
-            out.push(count);
-        });
-        return out;
-    }
+        keys.connect(new Tone.Delay (0.75));
 
-    function renderSequencerGrid(selector, beats, pads) {
-        var $grid = $(selector);
-        var $table = $('<table>');
-        _.times(pads, function(pad) {
-            var $row = $('<tr>');
-            _.times(beats, function(beat) {
-                var on = '';
-                var $cell = $('<td class="note">');
-                if (sequence[beat][pad] == 1) {
-                    $cell.addClass('on');
-                }
-                $cell.data('beat', beat);
-                $cell.data('pad', pad);
-                $cell.addClass('beat-' + beat);
-                $cell.addClass('pad-' + pad);
-                $cell.html(noteNames[pad]);
-                $row.append($cell);
-            });
-            $table.append($row);
-        });
-        // Add one more row for additional info about the beat.
-        var $infoTr = $('<tr class="info">');
-        _.times(beats, function(beat) {
-            var $cell = $('<td>');
-            $cell.addClass('beat-' + beat);
-            $infoTr.append($cell);
-        });
-        $table.append($infoTr);
-        $table.click(function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            var $cell = $(event.target);
-            var beat = $cell.data('beat');
-            var pad = $cell.data('pad');
-            if (beat != undefined && pad != undefined) {
-                if (sequence[beat][pad] == 0) sequence[beat][pad] = 1;
-                else sequence[beat][pad] = 0;
-                $cell.toggleClass('on');
-            }
-        });
-        $grid.append($table);
-        return $grid;
-    }
-
-    // Set up the SequencerInterface.
-    var grid = renderSequencerGrid('#sequencer-grid', beats, padCount);
-
-    loop = new Tone.Sequence(
-        processOneBeat, countIntsIntoArray(beats), beats + "n"
-    );
-
-    Tone.Transport.bpm.value = bpm;
-    Tone.Transport.start();
-
-    keys.connect(new Tone.Delay (0.75));
-
-    nViz.settings({
-        canvas: document.getElementById('canvas')
-    });
-
-    spParams.render(function() {
-        initModel(function() {
+        initModel(function(err, spResp, tmResp) {
+            if (err) throw err;
+            // setupCellViz();
+            // addClickHandling();
+            // setupDatGui();
             addDataControlHandlers();
+            loading(false);
         });
-    }, function() {
-        initModel();
-    });
+    }
 
+    start();
 
 });
