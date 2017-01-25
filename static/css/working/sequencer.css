@@ -113,3 +113,7 @@ body {
     background-color: #89b4dd;
     width: 100%;
 }
+
+canvas {
+  background-color: white;
+}

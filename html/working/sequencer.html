@@ -1,4 +1,4 @@
-<script src="https://ci.numenta.com/browse/RES-NCV-31/artifact/shared/Webpacked-dyson-bundle.js/dyson-bundle.js"></script>
+<script src="/static/js/third/nViz.js"></script>
 
 <div class="modal fade" id="sp-params-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog">
@@ -16,47 +16,23 @@
     Show SP Params
 </button>
 
-<div class="row">
-    <div class="col-md-6">
-        <div id="sequencer-grid" class="sequencer-container"></div>
-    </div>
-    <div class="col-md-3">
-    </div>
-    <div class="col-md-3">
-        <div class="player text-center">
-            <button type="button" id="play" class="btn">
-                        <span class="glyphicon glyphicon-play"
-                              aria-hidden="true"></span>
-            </button>
-            <button type="button" id="next" class="btn">
-                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
-            </button>
-        </div>
-    </div>
+<div class="player text-center">
+    <button type="button" id="play" class="btn">
+                <span class="glyphicon glyphicon-play"
+                      aria-hidden="true"></span>
+    </button>
+    <button type="button" id="next" class="btn">
+        <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+    </button>
 </div>
 
-<hr />
-
-<div class="sdrs">
-
-    <div class="row">
-        <div class="col-md-3">
-            <h2>Input Space <small>(encoding)</small></h2>
-        </div>
-        <div class="col-md-3">
-            <h2>Active SP Columns</h2>
-        </div>
-        <div class="col-md-6">
-            <h2>TM</h2>
-        </div>
+<div class="row">
+    <div class="col-md-3">
+        <div id="sequencer-grid" class="sequencer-container"></div>
     </div>
-
-    <div class="row">
-        <div class="col-md-3" id="input-encoding"></div>
-        <div class="col-md-3" id="active-columns"></div>
-        <div class="col-md-6" id="tm"></div>
+    <div class="col-md-9">
+      <canvas id="canvas" height="800" width="1800"></canvas>
     </div>
-
 </div>
 
 <div id="loading" style="display:none">

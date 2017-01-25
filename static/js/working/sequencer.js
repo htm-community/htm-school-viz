@@ -9,18 +9,14 @@ $(function() {
     var computeClient;
 
     // SP params we are not allowing user to change
-    var inputDimensions = [400];
-    var columnDimensions = [1024];
-    var cellsPerColumn = 4;
-    var lengthLargestSide = 32;
+    var inputDimensions = [100];
+    var columnDimensions = [256];
+    var cellsPerColumn = 2;
     var spParams = new HTM.utils.sp.Params(
         'sp-params', inputDimensions, columnDimensions
     );
 
-    var cells, cellviz;
-
     var counter = 0;
-    var lastPredictiveCells = [];
     var bucketLabels = [];
 
     var $loading = $('#loading');
@@ -31,7 +27,7 @@ $(function() {
     var padCount = 4;
     var loop;
     var lastBeat = beats - 1;
-    var bpm = 80;
+    var bpm = 60;
 
     // Set up an empty sequence
     var sequence = [];
@@ -106,155 +102,6 @@ $(function() {
                 if (callback) callback();
             });
         });
-    }
-
-    function drawSdr(id, sdr, w, h, style) {
-        var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = w - margin.left - margin.right,
-            height = h - margin.top - margin.bottom,
-            rowLength = Math.floor(Math.sqrt(sdr.length)),
-            fullRectSize = Math.floor(width / rowLength),
-            rectSize = fullRectSize - 1,
-            onColor = 'steelblue'
-            ;
-
-        $('#' + id).html('');
-
-        var svg = d3.select('#' + id).append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            ;
-
-        var styleFunction = function(d, i) {
-            var fill = 'white';
-            if (d == 1) {
-                fill = onColor;
-            }
-            return 'fill:' + fill;
-        };
-
-        if (style) {
-            if (typeof(style) == 'string') {
-                onColor = style;
-            } else if (typeof(style) == 'function') {
-                styleFunction = style;
-            } else {
-                throw new Error('style must be function or string');
-            }
-        }
-
-        svg.selectAll('rect')
-            .data(sdr)
-            .enter()
-            .append('rect')
-            .attr('x', function(d, i) {
-                var offset = i % rowLength;
-                return offset * fullRectSize;
-            })
-            .attr('y', function(d, i) {
-                var offset = Math.floor(i / rowLength);
-                return offset * fullRectSize;
-            })
-            .attr('index', function(d, i) { return i; })
-            .attr('width', rectSize)
-            .attr('height', rectSize)
-            .attr('style', styleFunction)
-        ;
-    }
-
-    function renderSdrs(inputEncoding,
-                        activeColumns) {
-        var dim = 600;
-        drawSdr(
-            'input-encoding', inputEncoding, dim, dim, 'green'
-        );
-        drawSdr(
-            'active-columns', activeColumns, dim, dim, 'orange'
-        );
-    }
-
-    function setupTmViz() {
-        // The problem space.
-        var numColumns = columnDimensions[0];
-
-        // Translate into cell dimensions.
-        // x = left->right
-        // y = down->up
-        // z = near->far
-        var x = numColumns / lengthLargestSide;
-        var y = cellsPerColumn;
-        var z = lengthLargestSide;
-
-        var colors = {
-            0: 0xFFFFFF, // white for inactive cells
-            1: 0xFFFF00, // yellow for active cells
-            2: 0xFF0000, // red for predictive cells
-            3: 0xFFAC33, // orange for active & predictive cells
-            4: 0x6699FF  // cyan for correctly predicted cells from last step
-        };
-
-        // The Cells interface is how to update the visualization inside the canvas.
-        cells = new HtmCells(x, y, z);
-
-        // The HtmCellVisualization object handles all interactions with the DOM.
-        cellviz = new HtmCellVisualization(
-            cells, {
-                elementId: 'tm',
-                colors: colors,
-                spacing: 1.4
-            }
-        );
-
-        // Renders the canvas with empty cells into the DOM and canvas.
-        cellviz.render({
-            position: {
-                //x: -40,
-                //y: 10
-            },
-            rotation: {
-                x: 90 * Math.PI / 180
-                //y: 45 * Math.PI / 180
-            },
-            camera: {
-                z: 45
-            }
-        });
-    }
-
-    function renderTmViz(activeCells, predictiveCells) {
-        cells.updateAll(0);
-
-        activeCells.forEach(function(activeIndex) {
-            var column = Math.floor(activeIndex / cellsPerColumn);
-            var celly = activeIndex % cellsPerColumn; // y
-            var cellz = Math.floor(column / lengthLargestSide); // z
-            var cellx = column % lengthLargestSide;
-            cells.update(cellx, celly, cellz, 1);
-        });
-
-        lastPredictiveCells.forEach(function(activeIndex) {
-            var column = Math.floor(activeIndex / cellsPerColumn);
-            var celly = activeIndex % cellsPerColumn; // y
-            var cellz = Math.floor(column / lengthLargestSide); // z
-            var cellx = column % lengthLargestSide;
-            cells.update(cellx, celly, cellz, 4);
-        });
-
-        predictiveCells.forEach(function(activeIndex) {
-            var column = Math.floor(activeIndex / cellsPerColumn);
-            var celly = activeIndex % cellsPerColumn; // y
-            var cellz = Math.floor(column / lengthLargestSide); // z
-            var cellx = column % lengthLargestSide;
-            var cellValue = 2;
-            if (cells.getCellValue(cellx, celly, cellz) == 1) {
-                cellValue = 3;
-            }
-            cells.update(cellx, celly, cellz, cellValue);
-        });
-
-        cellviz.redraw();
-
-        lastPredictiveCells = predictiveCells;
     }
 
     function updatePredictions(predictions, beat) {
@@ -340,6 +187,86 @@ $(function() {
         };
     }
 
+    function createNvizInputCells(encoding) {
+        return _.map(encoding, function(bit, index) {
+            return {
+                id: index,
+                activated: bit === 1 ? true : false
+            };
+        });
+    }
+
+    function createNvizSegments(cellId, cellIndex, activeSegments) {
+        var cellSegments = _.filter(activeSegments, function(activeSegment) {
+            return activeSegment.cell == cellIndex;
+        });
+        return _.map(cellSegments, function(segment) {
+            return {
+                "source": cellId,
+                "targets": _.map(segment.synapses, function(synapse) {
+                    return {
+                        id: synapse.presynapticCell
+                    };
+                })
+            };
+        });
+    }
+
+    function createNvizColumnSources(columnSynapses) {
+      return _.map(columnSynapses, function(inputCellId) {
+        return {
+          "id": inputCellId
+        };
+      });
+    }
+
+    function createNvizColumns(activeColumns,
+                               activeCells,
+                               predictiveCells,
+                               connectedSynapses,
+                               activeSegments) {
+        return _.map(activeColumns, function(columnIsActive, columnIndex) {
+            var columnOut = {};
+            columnOut.active = columnIsActive === 1 ? true : false;
+            columnOut.bursting = false; // TODO
+            columnOut.cells = [];
+            _.times(cellsPerColumn, function(columnCellIndex) {
+                var cellIndex = columnIndex * cellsPerColumn + columnCellIndex;
+                var cellId = "cell-" + cellIndex;
+                columnOut.cells.push({
+                    id: cellId,
+                    activated: activeColumns.indexOf(cellIndex) > -1,
+                    predicted: predictiveCells.indexOf(cellIndex) > -1,
+                    segments: createNvizSegments(cellId, cellIndex, activeSegments)
+                });
+            });
+            columnOut.sources = createNvizColumnSources(connectedSynapses[columnIndex]);
+            columnOut.permanences = [];
+            return columnOut;
+        });
+    }
+
+    function convertToNvizFormat(data, encoding) {
+        var inputCells = [];
+        var columns = [];
+        var out = {
+            inputCells: createNvizInputCells(encoding),
+            columns: createNvizColumns(
+                data.activeColumns,
+                data.activeCells,
+                data.predictiveCells,
+                data.connectedSynapses,
+                data.activeSegments
+            ),
+            columnCellSize: 8,
+            inputCellSize: 30,
+            cellSize: undefined,
+            inputCellColor: undefined,
+            cellMargin: undefined,
+        };
+        return out;
+    }
+
     function runOnePointThroughSp(pads, beat) {
         // Encode data point into SDR.
         var raw = encode(pads);
@@ -348,29 +275,30 @@ $(function() {
         var encoding = raw.encoding;
         var bucketIdx = raw.bucketIdx;
         var actValue = raw.actValue;
+        var computeConfig = {
+          bucketIdx: bucketIdx,
+          actValue: actValue,
+          spLearn: false,
+          tmLearn: learn,
+          reset: reset,
+          // getInhibitionMasks: true,
+          // getPotentialPools: true,
+          getPermanences: true,
+          getActiveSegments: true,
+          getConnectedSynapses: true,
+        };
 
         counter++;
 
-        // Run encoding through SP/TM.
-        computeClient.compute(encoding, {
-            bucketIdx: bucketIdx,
-            actValue: actValue,
-            spLearn: false,
-            tmLearn: learn
-        }, function(err, response) {
-            if (err) throw err;
-            var activeColumns = response.activeColumns;
+        if (reset) {
+            console.log('TM Reset after this row of data.');
+        }
 
-            if (reset) {
-                console.log('TM Reset after this row of data.');
-            }
-            renderSdrs(
-                encoding,
-                activeColumns
-            );
-            //var activeCells = response.activeCells;
-            //var predictiveCells = response.predictiveCells;
-            //renderTmViz(activeCells, predictiveCells);
+        // Run encoding through SP/TM.
+        computeClient.compute(encoding, computeConfig, function(err, response) {
+            if (err) throw err;
+            var nVizPayload = convertToNvizFormat(response, encoding);
+            nViz.render.spatialPooler(nVizPayload);
             updatePredictions(response.inference, beat);
         });
     }
@@ -501,11 +429,13 @@ $(function() {
 
     keys.connect(new Tone.Delay (0.75));
 
+    nViz.settings({
+        canvas: document.getElementById('canvas')
+    });
+
     spParams.render(function() {
         initModel(function() {
-            //setupTmViz();
             addDataControlHandlers();
-            //runOnePointThroughSp();
         });
     }, function() {
         initModel();
