@@ -114,6 +114,22 @@ body {
     width: 100%;
 }
 
-canvas {
-  background-color: white;
+
+#player, #sequencer-grid {
+    position: absolute;
+    top: 10px;
+}
+#player {
+    right: 10px;
+    top: 390px;
+}
+#sequencer-grid {
+    right: 10px;
+    width: 600px;
+    border: 1px solid black;
+    border-radius: 20px;
+}
+
+h1 {
+    display: none;
 }

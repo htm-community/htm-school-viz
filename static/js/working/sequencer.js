@@ -10,8 +10,8 @@ $(function() {
 
     // SP params we are not allowing user to change
     var inputDimensions = [100];
-    var columnDimensions = [256];
-    var cellsPerColumn = 2;
+    var columnDimensions = [1024];
+    var cellsPerColumn = 8;
     var spParams = new HTM.utils.sp.Params(
         'sp-params', inputDimensions, columnDimensions
     );
@@ -34,9 +34,36 @@ $(function() {
     var lastBeat = beats - 1;
     var bpm = 60;
 
-    ////////////////////////////////////////
+    // Cell-viz colors
+    var colors = {
+        inactive: new THREE.Color('#FFFEEE'),
+        active: new THREE.Color('#FFF000'),
+        selected: new THREE.Color('red'),
+        field: new THREE.Color('orange'),
+        neighbors: new THREE.Color('#1E90FF'),
+        input: new THREE.Color('green'),
+        emptyInput: new THREE.Color('#F0FCEF')
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+    // These globals contain the HTM state that gets displayed on the cell
+    // visualization. They get updated with every HTM cycle, and they are used
+    // by the rendered to paint the visualization.
+    ////////////////////////////////////////////////////////////////////////////
+
+    // The HtmCells objects that contains cell state. This is the inteface for
+    // making changes to cell-viz.
+    var inputCells, spColumns;
+    // The Viz object.
+    var cellviz;
+    // The raw HTM state being sent from the server.
+    var htmState;
+
+    var selectedCell = undefined;
+
+    ////////////////////////////////////////////////////////////////////////////
     // Utility functions
-    ////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     function getRandomInt(min, max) {
         min = Math.ceil(min);
@@ -52,9 +79,36 @@ $(function() {
         return out;
     }
 
-    ////////////////////////////////////////
+    /* From http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
+    function getGreenToRed(percent){
+        var r, g;
+        percent = 100 - percent;
+        r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
+        g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
+        return new THREE.Color(r, g, 0);
+    }
+
+    function averageRGB(c1, c2) {
+        return c1.clone().lerp(c2, 0.5);
+    }
+
+    function translate(x, min, max) {
+        var range = max - min;
+        return (x - min) / range;
+    }
+
+    function xyzToOneDimIndex(x, y, z, xMax, yMax, zMax) {
+        var result = (z * xMax * yMax) + (y * xMax) + x;
+        return result;
+    }
+
+    function cellXyToColumnIndex(x, y, xMax) {
+        return y * xMax + x;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // UI functions
-    ////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     function loading(isLoading, isModal) {
         if (isModal == undefined) {
@@ -73,9 +127,9 @@ $(function() {
         }
     }
 
-    function updatePredictions(predictions, beat) {
+    function updatePredictions(beat) {
         // Display predictions on next beat.
-        var predictedValue = predictions[0][1];
+        var predictedValue = htmState.inference[0][1];
 
         console.log('predicted notes: %s', predictedValue);
 
@@ -177,6 +231,121 @@ $(function() {
         });
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    // CellViz functions
+    ////////////////////////////////////////////////////////////////////////////
+
+    function setupCellViz() {
+        inputCells = new HtmCells(inputDimensions[0], 1, 1);
+        spColumns = new HtmMiniColumns(columnDimensions[0], cellsPerColumn, {
+            cellsPerRow: Math.floor(Math.sqrt(columnDimensions[0]))
+        });
+        cellviz = new CompleteHtmVisualization(inputCells, spColumns, {
+            camera: {
+                x: 300,
+                y: 2000,
+                z: 8000
+            }, spacing: {
+                x: 3.0, y: 1.1, z: 1.1
+            }
+        });
+        clearAllCells();
+        cellviz.render();
+    }
+
+    function clearAllCells() {
+        spColumns.updateAll({color: colors.inactive});
+        inputCells.updateAll({color: colors.emptyInput});
+    }
+
+    // Here be the logic that updates the cell-viz structures, thus enabling it
+    // to animate along with the changing HTM state and responding to user
+    // interaction. It be a long function.
+
+    function updateCellRepresentations() {
+        var inputEncoding = htmState.inputEncoding;
+        var activeColumns = htmState.activeColumns;
+        var activeDutyCycles = htmState.activeDutyCycles;
+        var overlapDutyCycles = htmState.overlapDutyCycles;
+        var potentialPools  = htmState.potentialPools;
+        var connectedSynapses = htmState.connectedSynapses;
+        var receptiveField;
+        var inhibitionMasks  = htmState.inhibitionMasks;
+        var neighbors;
+        var dutyCycle, minDutyCycle, maxDutyCycle, percent;
+        var columnIndex, cellIndex;
+        var globalColumnIndex;
+        var cx, cy, cz;
+        var thisCellIndex, thisColumnIndex;
+        var xMax, yMax, zMax;
+        var color;
+
+        var activeColumnIndices = SDR.tools.getActiveBits(activeColumns);
+        var activeCellIndices = htmState.activeCells;
+
+        xMax = inputCells.getX();
+        yMax = inputCells.getY();
+        zMax = inputCells.getZ();
+        for (cx = 0; cx < xMax; cx++) {
+            for (cy = 0; cy < yMax; cy++) {
+                for (cz = 0; cz < zMax; cz++) {
+                    color = colors.emptyInput;
+                    thisCellIndex = xyzToOneDimIndex(cx, cy, cz, xMax, yMax, zMax);
+                    thisColumnIndex = cellXyToColumnIndex(cx, cy, xMax);
+                    if (inputEncoding[thisCellIndex] == 1) {
+                        color = colors.input;
+                    }
+                    if (selectedCell !== undefined) {
+                        receptiveField = potentialPools[selectedCell.columnIndex];
+                        //receptiveField = flip2dIndexList(receptiveField , columnDimensions);
+                        if (selectedCell != undefined && receptiveField.indexOf(thisColumnIndex) > -1) {
+                            if (color == colors.input) {
+                                color = averageRGB(color, colors.field);
+                            } else {
+                                color = colors.field;
+                            }
+                        }
+                    }
+                    inputCells.update(cx, cy, cz, {color: color});
+                }
+            }
+        }
+
+        for (columnIndex = 0; columnIndex < columnDimensions[0]; columnIndex++) {
+            for (cellIndex = 0; cellIndex < cellsPerColumn; cellIndex++) {
+                color = colors.inactive;
+                if (activeColumnIndices.indexOf(columnIndex) > -1) {
+                    color = colors.active;
+                }
+                globalColumnIndex = columnIndex * cellsPerColumn + cellIndex;
+                // console.log('col-%s cell-%s : %s', columnIndex, cellIndex, globalColumnIndex);
+                if (activeCellIndices.indexOf(globalColumnIndex) > -1) {
+                    color = colors.field;
+                }
+                if (selectedCell !== undefined) {
+                    if (selectedCell.columnIndex == columnIndex) {
+                        color = colors.selected;
+                    }
+                }
+                spColumns.update(columnIndex, cellIndex, {color: color});
+            }
+        }
+
+        cellviz.proximalSegments = [];
+        // _.each(connectedSynapses, function(synapse, colIndex) {
+        //     _.each(synapse, function(inputIndex) {
+        //         // Want to draw from the first cell in the column.
+        //         var sourceIndex = colIndex * cellsPerColumn;
+        //         cellviz.proximalSegments.push({
+        //             source: sourceIndex,
+        //             target: inputIndex
+        //         });
+        //     });
+        // });
+
+        cellviz.redraw();
+    }
+
     ////////////////////////////////////////
     // HTM-related functions
     ////////////////////////////////////////
@@ -186,13 +355,13 @@ $(function() {
         return {
             columnDimensions: columnDimensions,
             cellsPerColumn: cellsPerColumn,
-            activationThreshold: 10,
+            activationThreshold: 2,
             initialPermanence: 0.21,
             connectedPermanence: 0.50,
-            minThreshold: 10,
+            minThreshold: 1,
             maxNewSynapseCount: 20,
             permanenceIncrement: 0.10,
-            permanenceDecrement: 0.10,
+            permanenceDecrement: 0.02,
             predictedSegmentDecrement: 0.0,
             maxSegmentsPerCell: 255,
             maxSynapsesPerSegment: 255
@@ -292,7 +461,16 @@ $(function() {
         // Run encoding through SP/TM.
         computeClient.compute(encoding, computeConfig, function(err, response) {
             if (err) throw err;
-            updatePredictions(response.inference, beat);
+
+            // Share the HTM state globally. Any renderers can inspect it
+            // anytime to get current state.
+            htmState = response;
+            // Add the encoding as well.
+            htmState.inputEncoding = encoding;
+
+            updateCellRepresentations();
+
+            updatePredictions(beat);
         });
     }
 
@@ -361,6 +539,7 @@ $(function() {
         // Set up the SequencerInterface.
         grid = renderSequencerGrid('#sequencer-grid', beats, padCount);
 
+        // Create a loop that runs through HTM on each beat.
         loop = new Tone.Sequence(
             processOneBeat, countIntsIntoArray(beats), beats + "n"
         );
@@ -370,9 +549,13 @@ $(function() {
 
         keys.connect(new Tone.Delay (0.75));
 
+        $('h1').remove();
+
         initModel(function(err, spResp, tmResp) {
             if (err) throw err;
-            // setupCellViz();
+            // Initial HTM state is not complete, but we'll show it anyway.
+            htmState = _.extend(spResp, tmResp);
+            setupCellViz();
             // addClickHandling();
             // setupDatGui();
             addDataControlHandlers();
