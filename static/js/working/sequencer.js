@@ -44,6 +44,11 @@ $(function() {
         input: new THREE.Color('green'),
         emptyInput: new THREE.Color('#F0FCEF')
     };
+    var defaultSpCellSpacing = {
+        x: 3.0, y: 1.1, z: 1.1
+    };
+    // var defaultCellsPerRow = Math.floor(Math.sqrt(columnDimensions[0]));
+    var defaultCellsPerRow = 30;
 
     ////////////////////////////////////////////////////////////////////////////
     // These globals contain the HTM state that gets displayed on the cell
@@ -231,6 +236,52 @@ $(function() {
         });
     }
 
+    function addClickHandling() {
+
+        function inputClicked(cellData) {
+
+        }
+
+        function spClicked(cellData) {
+            cellData.cellIndex = xyzToOneDimIndex(
+                cellData.z, cellData.x, cellData.y,
+                spColumns.getZ(), spColumns.getX(), spColumns.getY()
+            );
+            // cellData.columnIndex = cellXyToColumnIndex(cellData.x, cellData.y, cellData.z);
+            selectedCell = cellData;
+            console.log("clicked: cell %s", cellData.cellIndex);
+            updateCellRepresentations();
+        }
+
+        function cellClicked(cellData) {
+            if (cellData.type == 'inputCells') inputClicked(cellData);
+            else spClicked(cellData);
+        }
+
+        function onDocumentMouseDown( event ) {
+            event.preventDefault();
+
+            // update the mouse variable
+            var x = ( event.clientX / cellviz.renderer.domElement.clientWidth ) * 2 - 1;
+            var y = - ( event.clientY / cellviz.renderer.domElement.clientHeight ) * 2 + 1;
+
+            // find intersections
+            // create a Ray with origin at the mouse position
+            //   and direction into the scene (camera direction)
+            var vector = new THREE.Vector3( x, y, 1 );
+            vector.unproject(cellviz.camera);
+            var ray = new THREE.Raycaster( cellviz.camera.position, vector.sub( cellviz.camera.position ).normalize() );
+            // create an array containing all objects in the scene with which the ray intersects
+            var intersects = ray.intersectObjects(cellviz.getTargets());
+
+            // if there is one (or more) intersections
+            if ( intersects.length > 0 ) {
+                cellClicked(intersects[0].object._cellData);
+            }
+        }
+        $('canvas').click(onDocumentMouseDown);
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     // CellViz functions
     ////////////////////////////////////////////////////////////////////////////
@@ -238,16 +289,14 @@ $(function() {
     function setupCellViz() {
         inputCells = new HtmCells(inputDimensions[0], 1, 1);
         spColumns = new HtmMiniColumns(columnDimensions[0], cellsPerColumn, {
-            cellsPerRow: Math.floor(Math.sqrt(columnDimensions[0]))
+            cellsPerRow: defaultCellsPerRow
         });
         cellviz = new CompleteHtmVisualization(inputCells, spColumns, {
             camera: {
                 x: 300,
                 y: 2000,
                 z: 8000
-            }, spacing: {
-                x: 3.0, y: 1.1, z: 1.1
-            }
+            }, spacing: defaultSpCellSpacing
         });
         clearAllCells();
         cellviz.render();
@@ -274,7 +323,7 @@ $(function() {
         var neighbors;
         var dutyCycle, minDutyCycle, maxDutyCycle, percent;
         var columnIndex, cellIndex;
-        var globalColumnIndex;
+        var globalCellIndex;
         var cx, cy, cz;
         var thisCellIndex, thisColumnIndex;
         var xMax, yMax, zMax;
@@ -295,17 +344,6 @@ $(function() {
                     if (inputEncoding[thisCellIndex] == 1) {
                         color = colors.input;
                     }
-                    if (selectedCell !== undefined) {
-                        receptiveField = potentialPools[selectedCell.columnIndex];
-                        //receptiveField = flip2dIndexList(receptiveField , columnDimensions);
-                        if (selectedCell != undefined && receptiveField.indexOf(thisColumnIndex) > -1) {
-                            if (color == colors.input) {
-                                color = averageRGB(color, colors.field);
-                            } else {
-                                color = colors.field;
-                            }
-                        }
-                    }
                     inputCells.update(cx, cy, cz, {color: color});
                 }
             }
@@ -317,13 +355,13 @@ $(function() {
                 if (activeColumnIndices.indexOf(columnIndex) > -1) {
                     color = colors.active;
                 }
-                globalColumnIndex = columnIndex * cellsPerColumn + cellIndex;
-                // console.log('col-%s cell-%s : %s', columnIndex, cellIndex, globalColumnIndex);
-                if (activeCellIndices.indexOf(globalColumnIndex) > -1) {
+                globalCellIndex = columnIndex * cellsPerColumn + cellIndex;
+                // console.log('col-%s cell-%s : %s', columnIndex, cellIndex, globalCellIndex);
+                if (activeCellIndices.indexOf(globalCellIndex) > -1) {
                     color = colors.field;
                 }
                 if (selectedCell !== undefined) {
-                    if (selectedCell.columnIndex == columnIndex) {
+                    if (selectedCell.cellIndex == globalCellIndex) {
                         color = colors.selected;
                     }
                 }
@@ -346,6 +384,57 @@ $(function() {
         cellviz.redraw();
     }
 
+    function setupDatGui() {
+        var params = {
+            'input-x': 1.1,
+            'input-y': 1.1,
+            'input-z': 1.1,
+            'sp-x': defaultSpCellSpacing.x,
+            'sp-y': defaultSpCellSpacing.y,
+            'sp-z': defaultSpCellSpacing.z,
+            'cells per row': defaultCellsPerRow
+        };
+        var minSpacing = 1.0;
+        var maxSpacing = 10.0;
+        var gui = new dat.GUI();
+        var inputSpacing = gui.addFolder('Input Spacing');
+        inputSpacing.add(params, 'input-x', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.inputSpacing.x = spacing;
+            updateCellRepresentations();
+        });
+        inputSpacing.add(params, 'input-y', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.inputSpacing.y = spacing;
+            updateCellRepresentations();
+        });
+        inputSpacing.add(params, 'input-z', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.inputSpacing.z = spacing;
+            updateCellRepresentations();
+        });
+        var spSpacing = gui.addFolder('SP Spacing');
+        spSpacing.add(params, 'sp-x', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.spacing.x = spacing;
+            updateCellRepresentations();
+        });
+        spSpacing.add(params, 'sp-y', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.spacing.y = spacing;
+            updateCellRepresentations();
+        });
+        spSpacing.add(params, 'sp-z', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.spacing.z = spacing;
+            updateCellRepresentations();
+        });
+        gui.add(params, 'cells per row').onChange(function(cells) {
+            cellviz.redim(cells);
+            updateCellRepresentations();
+        });
+    }
+
     ////////////////////////////////////////
     // HTM-related functions
     ////////////////////////////////////////
@@ -355,10 +444,10 @@ $(function() {
         return {
             columnDimensions: columnDimensions,
             cellsPerColumn: cellsPerColumn,
-            activationThreshold: 2,
+            activationThreshold: 10,
             initialPermanence: 0.21,
             connectedPermanence: 0.50,
-            minThreshold: 1,
+            minThreshold: 10,
             maxNewSynapseCount: 20,
             permanenceIncrement: 0.10,
             permanenceDecrement: 0.02,
@@ -551,13 +640,20 @@ $(function() {
 
         $('h1').remove();
 
+        window.addEventListener( 'keyup', function(event) {
+            if (event.keyCode == 27) {
+                selectedCell = undefined;
+                updateCellRepresentations();
+            }
+        }, false );
+
         initModel(function(err, spResp, tmResp) {
             if (err) throw err;
             // Initial HTM state is not complete, but we'll show it anyway.
             htmState = _.extend(spResp, tmResp);
             setupCellViz();
-            // addClickHandling();
-            // setupDatGui();
+            addClickHandling();
+            setupDatGui();
             addDataControlHandlers();
             loading(false);
         });
