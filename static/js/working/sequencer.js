@@ -34,21 +34,61 @@ $(function() {
     var lastBeat = beats - 1;
     var bpm = 60;
 
-    // Cell-viz colors
-    var colors = {
-        inactive: new THREE.Color('#FFFEEE'),
-        active: new THREE.Color('#FFF000'),
-        selected: new THREE.Color('red'),
-        field: new THREE.Color('orange'),
-        neighbors: new THREE.Color('#1E90FF'),
-        input: new THREE.Color('green'),
-        emptyInput: new THREE.Color('#F0FCEF')
+    // Turns on/off column and cell selection modes.
+    var columnSelection = false;
+    // var cellSelection = true;
+
+    var cellStates = {
+        inactive: {
+            state: 'inactive',
+            color: new THREE.Color('#FFFEEE'),
+            description: 'cell is inactive'
+        },
+        withinActiveColumn: {
+            state: 'withinActiveColumn',
+            color: new THREE.Color('yellow'),
+            description: 'cell is inactive, but within a currently active column'
+        },
+        active: {
+            state: 'active',
+            color: new THREE.Color('orange'),
+            description: 'cell is active, but was not predicted last step'
+        },
+        correctlyPredicted: {
+            state: 'correctlyPredicted',
+            color: new THREE.Color('limegreen'),
+            description: 'cell is active and was correctly predicted last step'
+        },
+        predictiveActive: {
+            state: 'predictiveActive',
+            color: new THREE.Color('indigo'),
+            description: 'cell is active and predictive'
+        },
+        predictive: {
+            state: 'predictive',
+            color: new THREE.Color('blue'),
+            description: 'cell is predicted to be active on the next time step'
+        },
+        wronglyPredicted: {
+            state: 'wronglyPredicted',
+            color: new THREE.Color('red'),
+            description: 'cell was predicted to be active, but was not'
+        },
+        input: {
+            state: 'input',
+            color: new THREE.Color('green'),
+            description: 'input bit is on'
+        }
     };
+
     var defaultSpCellSpacing = {
-        x: 3.0, y: 1.1, z: 1.1
+        x: 10, y: 1.1, z: 1.1
     };
     // var defaultCellsPerRow = Math.floor(Math.sqrt(columnDimensions[0]));
     var defaultCellsPerRow = 30;
+
+    // One-step in the past.
+    var lastPredictedCells = [];
 
     ////////////////////////////////////////////////////////////////////////////
     // These globals contain the HTM state that gets displayed on the cell
@@ -63,8 +103,6 @@ $(function() {
     var cellviz;
     // The raw HTM state being sent from the server.
     var htmState;
-
-    var selectedCell = undefined;
 
     ////////////////////////////////////////////////////////////////////////////
     // Utility functions
@@ -247,9 +285,16 @@ $(function() {
                 cellData.z, cellData.x, cellData.y,
                 spColumns.getZ(), spColumns.getX(), spColumns.getY()
             );
-            // cellData.columnIndex = cellXyToColumnIndex(cellData.x, cellData.y, cellData.z);
-            selectedCell = cellData;
-            console.log("clicked: cell %s", cellData.cellIndex);
+            if (columnSelection) {
+                spColumns.selectedColumn = cellXyToColumnIndex(
+                    cellData.x, cellData.y, spColumns.getX()
+                );
+            } else {
+                spColumns.selectedColumn = undefined;
+            }
+            spColumns.selectedCell = cellData.cellIndex;
+            console.log( "clicked:  col %s cell %s",
+                spColumns.selectedColumn, spColumns.selectedCell);
             updateCellRepresentations();
         }
 
@@ -303,13 +348,57 @@ $(function() {
     }
 
     function clearAllCells() {
-        spColumns.updateAll({color: colors.inactive});
-        inputCells.updateAll({color: colors.emptyInput});
+        spColumns.updateAll({state: cellStates.inactive});
+        inputCells.updateAll({state: cellStates.inactive});
     }
 
     // Here be the logic that updates the cell-viz structures, thus enabling it
     // to animate along with the changing HTM state and responding to user
     // interaction. It be a long function.
+
+    function cellStateIsActive(state) {
+        return state == cellStates.active
+            || state == cellStates.correctlyPredicted
+            || state == cellStates.predictiveActive;
+    }
+
+    function cellStateIsPredictive(state) {
+        return state == cellStates.predictive
+            || state == cellStates.predictiveActive;
+    }
+
+    function selectCell(cellValue, activeSegments) {
+        _.each(activeSegments, function(segment) {
+            if (cellStateIsActive(cellValue.state)) {
+                // Cell is ACTIVE
+                _.each(segment.synapses, function(synapse) {
+                    if (synapse.presynapticCell == cellValue.cellIndex) {
+                        cellviz.distalSegments.push({
+                            source: cellValue.cellIndex,
+                            target: segment.cell
+                        });
+                    }
+                });
+            } else if (cellStateIsPredictive(cellValue.state)) {
+                // Cell is PREDICTIVE
+                _.each(segment.synapses, function(synapse) {
+                    if (segment.cell == cellValue.cellIndex) {
+                        cellviz.distalSegments.push({
+                            source: synapse.presynapticCell,
+                            target: segment.cell
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    function selectColumn(columnIndex, activeSegments) {
+        _.each(spColumns.getCellsInColumn(columnIndex), function(cellValue) {
+            selectCell(cellValue, activeSegments);
+        });
+
+    }
 
     function updateCellRepresentations() {
         var inputEncoding = htmState.inputEncoding;
@@ -318,6 +407,8 @@ $(function() {
         var overlapDutyCycles = htmState.overlapDutyCycles;
         var potentialPools  = htmState.potentialPools;
         var connectedSynapses = htmState.connectedSynapses;
+        var activeSegments = htmState.activeSegments;
+        var predictiveCellIndices = htmState.predictiveCells;
         var receptiveField;
         var inhibitionMasks  = htmState.inhibitionMasks;
         var neighbors;
@@ -327,7 +418,7 @@ $(function() {
         var cx, cy, cz;
         var thisCellIndex, thisColumnIndex;
         var xMax, yMax, zMax;
-        var color;
+        var color, state;
 
         var activeColumnIndices = SDR.tools.getActiveBits(activeColumns);
         var activeCellIndices = htmState.activeCells;
@@ -338,48 +429,62 @@ $(function() {
         for (cx = 0; cx < xMax; cx++) {
             for (cy = 0; cy < yMax; cy++) {
                 for (cz = 0; cz < zMax; cz++) {
-                    color = colors.emptyInput;
+                    color = cellStates.inactive.color;
                     thisCellIndex = xyzToOneDimIndex(cx, cy, cz, xMax, yMax, zMax);
                     thisColumnIndex = cellXyToColumnIndex(cx, cy, xMax);
                     if (inputEncoding[thisCellIndex] == 1) {
-                        color = colors.input;
+                        color = cellStates.input.color;
                     }
                     inputCells.update(cx, cy, cz, {color: color});
                 }
             }
         }
 
-        for (columnIndex = 0; columnIndex < columnDimensions[0]; columnIndex++) {
-            for (cellIndex = 0; cellIndex < cellsPerColumn; cellIndex++) {
-                color = colors.inactive;
-                if (activeColumnIndices.indexOf(columnIndex) > -1) {
-                    color = colors.active;
-                }
-                globalCellIndex = columnIndex * cellsPerColumn + cellIndex;
-                // console.log('col-%s cell-%s : %s', columnIndex, cellIndex, globalCellIndex);
-                if (activeCellIndices.indexOf(globalCellIndex) > -1) {
-                    color = colors.field;
-                }
-                if (selectedCell !== undefined) {
-                    if (selectedCell.cellIndex == globalCellIndex) {
-                        color = colors.selected;
-                    }
-                }
-                spColumns.update(columnIndex, cellIndex, {color: color});
-            }
-        }
+        _.times(spColumns.getNumberOfCells(), function(globalCellIndex) {
+            var columnIndex = Math.floor(globalCellIndex / cellsPerColumn);
 
-        cellviz.proximalSegments = [];
-        // _.each(connectedSynapses, function(synapse, colIndex) {
-        //     _.each(synapse, function(inputIndex) {
-        //         // Want to draw from the first cell in the column.
-        //         var sourceIndex = colIndex * cellsPerColumn;
-        //         cellviz.proximalSegments.push({
-        //             source: sourceIndex,
-        //             target: inputIndex
-        //         });
-        //     });
-        // });
+            if (activeColumnIndices.indexOf(columnIndex) > -1) {
+                // Column is active.
+                state = cellStates.withinActiveColumn;
+            } else {
+                state = cellStates.inactive;
+            }
+
+            if (activeCellIndices.indexOf(globalCellIndex) > -1) {
+                // Cell is active.
+                state = cellStates.active;
+                if (predictiveCellIndices.indexOf(globalCellIndex) > -1) {
+                    state = cellStates.predictiveActive;
+                }
+                if (lastPredictedCells.indexOf(globalCellIndex) > -1) {
+                    state = cellStates.correctlyPredicted;
+                }
+            } else if (predictiveCellIndices.indexOf(globalCellIndex) > -1) {
+                // Cell is predictive.
+                state = cellStates.predictive;
+            } else {
+                // Cell is not active.
+                if (predictiveCellIndices.indexOf(globalCellIndex) > -1) {
+                    // Cell was predicted last step, but not active.
+                    state = cellStates.wronglyPredicted;
+                }
+            }
+
+            spColumns.update(globalCellIndex, {
+                state: state,
+                cellIndex: globalCellIndex,
+                columnIndex: columnIndex
+            });
+
+        });
+
+        cellviz.distalSegments = [];
+        if (columnSelection && spColumns.selectedColumn) {
+            selectColumn(spColumns.selectedColumn, activeSegments);
+        } else if (spColumns.selectedCell){
+            var cellValue = spColumns.cells[spColumns.selectedCell];
+            selectCell(cellValue, activeSegments);
+        }
 
         cellviz.redraw();
     }
@@ -392,27 +497,31 @@ $(function() {
             'sp-x': defaultSpCellSpacing.x,
             'sp-y': defaultSpCellSpacing.y,
             'sp-z': defaultSpCellSpacing.z,
-            'cells per row': defaultCellsPerRow
+            'cells per row': defaultCellsPerRow,
+            // 'cell selection': cellSelection,
+            'column selection': columnSelection
         };
         var minSpacing = 1.0;
         var maxSpacing = 10.0;
         var gui = new dat.GUI();
-        var inputSpacing = gui.addFolder('Input Spacing');
-        inputSpacing.add(params, 'input-x', minSpacing, maxSpacing)
-        .onChange(function(spacing) {
-            cellviz.inputSpacing.x = spacing;
-            updateCellRepresentations();
-        });
-        inputSpacing.add(params, 'input-y', minSpacing, maxSpacing)
-        .onChange(function(spacing) {
-            cellviz.inputSpacing.y = spacing;
-            updateCellRepresentations();
-        });
-        inputSpacing.add(params, 'input-z', minSpacing, maxSpacing)
-        .onChange(function(spacing) {
-            cellviz.inputSpacing.z = spacing;
-            updateCellRepresentations();
-        });
+
+        // var inputSpacing = gui.addFolder('Input Spacing');
+        // inputSpacing.add(params, 'input-x', minSpacing, maxSpacing)
+        // .onChange(function(spacing) {
+        //     cellviz.inputSpacing.x = spacing;
+        //     updateCellRepresentations();
+        // });
+        // inputSpacing.add(params, 'input-y', minSpacing, maxSpacing)
+        // .onChange(function(spacing) {
+        //     cellviz.inputSpacing.y = spacing;
+        //     updateCellRepresentations();
+        // });
+        // inputSpacing.add(params, 'input-z', minSpacing, maxSpacing)
+        // .onChange(function(spacing) {
+        //     cellviz.inputSpacing.z = spacing;
+        //     updateCellRepresentations();
+        // });
+
         var spSpacing = gui.addFolder('SP Spacing');
         spSpacing.add(params, 'sp-x', minSpacing, maxSpacing)
         .onChange(function(spacing) {
@@ -429,10 +538,20 @@ $(function() {
             cellviz.spacing.z = spacing;
             updateCellRepresentations();
         });
-        gui.add(params, 'cells per row').onChange(function(cells) {
+        spSpacing.add(params, 'cells per row').onChange(function(cells) {
             cellviz.redim(cells);
             updateCellRepresentations();
         });
+        spSpacing.open();
+
+        var selectionModes = gui.addFolder('Selection Modes');
+        // selectionModes.add(params, 'cell selection').onChange(function(isOn) {
+        //     cellSelection = isOn;
+        // });
+        selectionModes.add(params, 'column selection').onChange(function(isOn) {
+            columnSelection = isOn;
+        });
+        selectionModes.open();
     }
 
     ////////////////////////////////////////
@@ -556,7 +675,8 @@ $(function() {
             htmState = response;
             // Add the encoding as well.
             htmState.inputEncoding = encoding;
-
+            // Stash current predictive cells to use for next render.
+            lastPredictedCells = htmState.predictiveCells;
             updateCellRepresentations();
 
             updatePredictions(beat);
@@ -641,8 +761,11 @@ $(function() {
         $('h1').remove();
 
         window.addEventListener( 'keyup', function(event) {
-            if (event.keyCode == 27) {
-                selectedCell = undefined;
+            // Dunno why but esc key is not firing, something must be swallowing
+            // it. Using ` key instead.
+            if (event.keyCode == 192) {
+                spColumns.selectedCell = undefined;
+                spColumns.selectedColumn = undefined;
                 updateCellRepresentations();
             }
         }, false );
