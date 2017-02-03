@@ -71,28 +71,27 @@ $(function() {
         }
     }
 
-    SpatialPoolerClient.prototype.initialize = function(params, opts, callback) {
+    SpatialPoolerClient.prototype.initialize = function(params, callback) {
         var me = this;
         var url = host + '/_sp/';
 
-        if (typeof(opts) == 'function') {
-            callback = opts;
-            opts = {};
-        }
-        if (this.save) {
-            opts.save = this.save.join(',');
-        }
-
         function doInit() {
-            url += '?' + $.param(opts);
-
             me.params = params;
+            var payload = {
+              params: params,
+              states: [
+                SpSnapshots.ACT_COL,
+                SpSnapshots.POT_POOLS,
+                SpSnapshots.CON_SYN,
+                SpSnapshots.PERMS
+              ]
+            };
             $.ajax({
                 type: 'POST',
                 url: url,
-                data: JSON.stringify(params),
+                data: JSON.stringify(payload),
                 success: function(response) {
-                    me._id = response.meta.id;
+                    me._id = response.id;
                     callback(null, response);
                 },
                 dataType: 'JSON'
@@ -117,22 +116,30 @@ $(function() {
         });
     };
 
-    SpatialPoolerClient.prototype.compute = function(encoding, opts, callback) {
+    SpatialPoolerClient.prototype.compute =
+    function(encoding, learn, states, callback) {
         var url = host + '/_sp/';
-
-        if (typeof(opts) == 'function') {
-            callback = opts;
-            opts = {};
+        if (learn) {
+            learn = 'true';
+        } else {
+            learn = 'false';
         }
-        opts = _.merge(opts, {id: this._id});
-        url += '?' + $.param(opts);
-
+        var data = {
+            id: this._id,
+            encoding: encoding,
+            learn: learn,
+            states: states
+        };
         $.ajax({
             type: 'PUT',
             url: url,
-            data: encoding.join(','),
+            data: JSON.stringify(data),
             success: function(response) {
-                response.activeColumns = uncompressSdr(response.activeColumns);
+                if (response.activeColumns) {
+                    response.activeColumns = uncompressSdr(
+                        response.activeColumns
+                    );
+                }
                 callback(null, response);
             },
             dataType: 'JSON'

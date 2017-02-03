@@ -59,19 +59,13 @@ $(function() {
             max: 1.0,
             name: 'minimum percent overlap duty cycle'
         },
-        minPctActiveDutyCycle: {
-            val: 0.001,
-            min: 0.0,
-            max: 1.0,
-            name: 'minimum percent active duty cycle'
-        },
         dutyCyclePeriod: {
             val: 1000,
             min: 0,
             max: 1000,
             name: 'duty cycle period'
         },
-        maxBoost: {
+        boostStrength: {
             val: 1,
             min: 0,
             max: 100,

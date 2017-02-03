@@ -76,7 +76,7 @@ $(function() {
         loading(true);
         spClient.initialize(spParams.getParams(), function(err, resp) {
             loading(false);
-            if (callback) callback(err, resp);
+            if (callback) callback(err, resp.state);
         });
     }
 
@@ -128,7 +128,7 @@ $(function() {
         var $connections = d3.select('#connections');
         var $inputConnections = d3.select('#input-connections');
         var inputSdr = SDR.tools.getRandom(inputSize, inputSize / 3);
-        var columnSdr = SDR.tools.getEmpty(permanences.length);
+        var columnSdr = SDR.tools.getEmpty(potentialPools.length);
         var $ppDisplay = $('#potential-pool-display');
         var $connectedDisplay = $('#connected-display');
         var $connectionThresholdDisplay = $('#connection-threshold-display');
@@ -382,7 +382,7 @@ $(function() {
     spParams.render(paramChange, paramChange);
 
     $(document).keyup(function(e) {
-        if (e.keyCode === 27) {
+        if (e.keyCode === 192) {
             unlockColumn();
         }
     });

@@ -173,9 +173,8 @@ $(function() {
         encoding = encoding.concat(dateEncoder.encodeWeekend(date));
 
         // Run encoding through SP.
-        spClient.compute(encoding, {
-            learn: learn
-        }, function(err, spBits) {
+        states = ['activeColumns', 'overlaps']
+        spClient.compute(encoding, learn, states, function(err, spBits) {
             if (err) throw err;
             var activeColumns = spBits.activeColumns;
             var overlaps = spBits.overlaps;
