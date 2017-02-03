@@ -69,7 +69,7 @@ $(function() {
             val: 1,
             min: 0,
             max: 100,
-            name: 'max boost'
+            name: 'boost strength'
         }
     };
 
