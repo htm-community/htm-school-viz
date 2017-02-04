@@ -133,3 +133,22 @@ body {
 h1 {
     display: none;
 }
+
+#legend {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 14pt;
+    width: 300px;
+}
+
+#legend li span {
+    float: left;
+    width: 20px;
+    height: 20px;
+    border: solid black 1px;
+    margin-right: 10px;
+}
+#legend li {
+    list-style: none;
+}

@@ -32,7 +32,7 @@ $(function() {
     var padCount = 4;
     var loop;
     var lastBeat = beats - 1;
-    var bpm = 60;
+    var bpm = 45;
 
     // Turns on/off column and cell selection modes.
     var columnSelection = false;
@@ -168,6 +168,19 @@ $(function() {
             $loading.hide();
             $loading.removeClass('little');
         }
+    }
+
+    function buildLegend() {
+        var $legend = $('#legend ul');
+        _.each(cellStates, function(state) {
+            var $item = $('<li>');
+            var $span = $('<span>');
+            var $name = $('<p>' + state.description + '</p>');
+            $span.css('background-color', '#' + state.color.getHexString());
+            $span.appendTo($item);
+            $name.appendTo($item);
+            $item.appendTo($legend);
+        });
     }
 
     function updatePredictions(beat) {
@@ -768,6 +781,7 @@ $(function() {
             setupCellViz();
             addClickHandling();
             setupDatGui();
+            buildLegend();
             addDataControlHandlers();
             loading(false);
         });
