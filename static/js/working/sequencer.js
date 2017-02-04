@@ -82,7 +82,7 @@ $(function() {
     };
 
     var defaultSpCellSpacing = {
-        x: 10, y: 1.1, z: 1.1
+        x: 1.1, y: 1.1, z: 1.1
     };
     // var defaultCellsPerRow = Math.floor(Math.sqrt(columnDimensions[0]));
     var defaultCellsPerRow = 30;
@@ -332,7 +332,7 @@ $(function() {
     ////////////////////////////////////////////////////////////////////////////
 
     function setupCellViz() {
-        inputCells = new HtmCells(inputDimensions[0], 1, 1);
+        inputCells = new InputCells(inputDimensions, true);
         spColumns = new HtmMiniColumns(columnDimensions[0], cellsPerColumn, {
             cellsPerRow: defaultCellsPerRow
         });
@@ -423,22 +423,13 @@ $(function() {
         var activeColumnIndices = SDR.tools.getActiveBits(activeColumns);
         var activeCellIndices = htmState.activeCells;
 
-        xMax = inputCells.getX();
-        yMax = inputCells.getY();
-        zMax = inputCells.getZ();
-        for (cx = 0; cx < xMax; cx++) {
-            for (cy = 0; cy < yMax; cy++) {
-                for (cz = 0; cz < zMax; cz++) {
-                    color = cellStates.inactive.color;
-                    thisCellIndex = xyzToOneDimIndex(cx, cy, cz, xMax, yMax, zMax);
-                    thisColumnIndex = cellXyToColumnIndex(cx, cy, xMax);
-                    if (inputEncoding[thisCellIndex] == 1) {
-                        color = cellStates.input.color;
-                    }
-                    inputCells.update(cx, cy, cz, {color: color});
-                }
+        _.each(inputEncoding, function(value, index) {
+            color = cellStates.inactive.color;
+            if (value == 1) {
+                color = cellStates.input.color;
             }
-        }
+            inputCells.update(index, {color: color});
+        });
 
         _.times(spColumns.getNumberOfCells(), function(globalCellIndex) {
             var columnIndex = Math.floor(globalCellIndex / cellsPerColumn);
@@ -505,22 +496,22 @@ $(function() {
         var maxSpacing = 10.0;
         var gui = new dat.GUI();
 
-        // var inputSpacing = gui.addFolder('Input Spacing');
-        // inputSpacing.add(params, 'input-x', minSpacing, maxSpacing)
-        // .onChange(function(spacing) {
-        //     cellviz.inputSpacing.x = spacing;
-        //     updateCellRepresentations();
-        // });
-        // inputSpacing.add(params, 'input-y', minSpacing, maxSpacing)
-        // .onChange(function(spacing) {
-        //     cellviz.inputSpacing.y = spacing;
-        //     updateCellRepresentations();
-        // });
-        // inputSpacing.add(params, 'input-z', minSpacing, maxSpacing)
-        // .onChange(function(spacing) {
-        //     cellviz.inputSpacing.z = spacing;
-        //     updateCellRepresentations();
-        // });
+        var inputSpacing = gui.addFolder('Input Spacing');
+        inputSpacing.add(params, 'input-x', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.inputSpacing.x = spacing;
+            updateCellRepresentations();
+        });
+        inputSpacing.add(params, 'input-y', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.inputSpacing.y = spacing;
+            updateCellRepresentations();
+        });
+        inputSpacing.add(params, 'input-z', minSpacing, maxSpacing)
+        .onChange(function(spacing) {
+            cellviz.inputSpacing.z = spacing;
+            updateCellRepresentations();
+        });
 
         var spSpacing = gui.addFolder('SP Spacing');
         spSpacing.add(params, 'sp-x', minSpacing, maxSpacing)
