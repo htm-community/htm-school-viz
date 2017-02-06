@@ -68,11 +68,7 @@ $(function() {
     }
 
     function initSp(callback) {
-        spClient = new HTM.SpatialPoolerClient([
-            HTM.SpSnapshots.POT_POOLS,
-            HTM.SpSnapshots.PERMS,
-            HTM.SpSnapshots.CON_SYN
-        ]);
+        spClient = new HTM.SpatialPoolerClient(false);
         loading(true);
         spClient.initialize(spParams.getParams(), function(err, resp) {
             loading(false);
@@ -382,7 +378,7 @@ $(function() {
     spParams.render(paramChange, paramChange);
 
     $(document).keyup(function(e) {
-        if (e.keyCode === 192) {
+        if (e.keyCode === 27) {
             unlockColumn();
         }
     });

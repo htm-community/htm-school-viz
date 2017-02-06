@@ -29,7 +29,7 @@ $(function() {
 
     var showInput = true;
 
-    var spData;
+    var spState;
     var locked = false;
     var clickedColumnIndex;
     var rankedColumns = [];
@@ -154,8 +154,8 @@ $(function() {
     }
 
     function columnHighlighted(columnIndex) {
-        var synapses = spData.connectedSynapses[columnIndex];
-        var potentialPool = spData.potentialPools[columnIndex];
+        var synapses = spState.connectedSynapses[columnIndex];
+        var potentialPool = spState.potentialPools[columnIndex];
         var $input = d3.select('#input');
         var $overlapDisplay = $('#overlap-display');
         var inputSdr = getInputSdr();
@@ -218,11 +218,11 @@ $(function() {
         var $columns = d3.select('#columns');
         var $connections = d3.select('#connections');
         var inputSdr = getInputSdr();
-        var columnSdr = SDR.tools.getEmpty(spData.permanences.length);
+        var columnSdr = SDR.tools.getEmpty(spState.permanences.length);
 
         // Stack rank each column based on overlap of connections with input
         // space.
-        _.each(spData.connectedSynapses, function(synapses, index) {
+        _.each(spState.connectedSynapses, function(synapses, index) {
             var overlapCount = 0;
             _.each(synapses, function(i) {
                 if (inputSdr[i] == 1) {
@@ -296,7 +296,7 @@ $(function() {
         maxActiveColumns = spParams.getParams()["numActiveColumnsPerInhArea"];
         initSp(function(err, r) {
             if (err) throw err;
-            spData = r;
+            spState = r.state;
             draw()
         });
     }

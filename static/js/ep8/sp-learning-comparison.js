@@ -11,11 +11,10 @@ $(function() {
 
     var playing = false;
     var noise = 0.0;
-    var snapsToSave = [
+    var requestedStates = [
         HTM.SpSnapshots.ACT_COL,
         HTM.SpSnapshots.PERMS
     ];
-    var save = snapsToSave;
 
     var randomHistory = {
         inputEncoding: [],
@@ -115,10 +114,8 @@ $(function() {
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
-        // This might be an interested view to show boosting in action.
-        //learnSpParams.setParam("maxBoost", 2);
-        spClients.random = new HTM.SpatialPoolerClient();
-        spClients.learning = new HTM.SpatialPoolerClient(save);
+        spClients.random = new HTM.SpatialPoolerClient(false);
+        spClients.learning = new HTM.SpatialPoolerClient(true);
         inits.push(function(callback) {
             spClients.random.initialize(randSpParams.getParams(), callback);
         });
@@ -133,6 +130,20 @@ $(function() {
     }
 
     function renderColumnState(iteration) {
+
+        // Lazy load column iteration data.
+        if (connectionCache[selectedColumnType][selectedColumn] == undefined) {
+            loading(true);
+            spClients[selectedColumnType].getColumnHistory(selectedColumn, requestedStates,
+                function(err, history) {
+                    connectionCache[selectedColumnType][selectedColumn] = history;
+                    loading(false);
+                    renderColumnState(iteration)
+                }
+            );
+            return;
+        }
+
         var width = 1000,
             height = 1000;
         var inputEncoding = inputCache[iteration];
@@ -381,18 +392,7 @@ $(function() {
                 createColumnSlider();
                 $('#column-history').modal({show: true});
             }
-
-            if (connectionCache[type][columnIndex] != undefined) {
-                renderConnections();
-            } else {
-                loading(true);
-                spClient.getColumnHistory(columnIndex, function(err, history) {
-                    connectionCache[type][columnIndex] = history;
-                    renderConnections(0);
-                    loading(false);
-                });
-            }
-
+            renderConnections();
         }
 
         $learning.selectAll('rect').on('click', function(noop, columnIndex) {
@@ -425,18 +425,19 @@ $(function() {
         inputCache.push(noisyEncoding);
 
         _.each(spClients, function(client, name) {
+            var learn = (name == 'learning');
             computes[name] = function(callback) {
-                spClients[name].compute(noisyEncoding, {
-                    learn: (name == 'learning')
-                }, callback)
+                spClients[name].compute(
+                    noisyEncoding, learn, requestedStates, callback
+                )
             };
         });
 
         async.parallel(computes, function(error, response) {
             if (error) throw error;
 
-            var randomAc = response.random.activeColumns;
-            var learningAc = response.learning.activeColumns;
+            var randomAc = response.random.state.activeColumns;
+            var learningAc = response.learning.state.activeColumns;
 
             var randomAcOverlaps = _.map(randomHistory.activeColumns, function(hist) {
                 return SDR.tools.getOverlapScore(randomAc, hist);
@@ -503,13 +504,6 @@ $(function() {
         });
     }
 
-    function decideWhetherToSave() {
-        var isTransient = getUrlParameter('transient') == 'true';
-        if (isTransient) {
-            save = false;
-        }
-    }
-
     function createNoiseSlider() {
         var $noiseSlider = $('#noise-slider');
         var $noiseDisplay = $('#noise-display');
@@ -563,7 +557,6 @@ $(function() {
 
     createNoiseSlider();
     addColumnHistoryJumpButtonHandlers();
-    decideWhetherToSave();
 
     initSp(function() {
         randomChart.render(function() {

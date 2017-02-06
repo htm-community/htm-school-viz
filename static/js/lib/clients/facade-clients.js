@@ -64,10 +64,9 @@ $(function() {
     function SpatialPoolerClient(save) {
         this._id = undefined;
         this._cleanSlate = shouldCleanSlate();
-        if (save != undefined) {
-            this.save = save;
-        } else {
-            this.save = undefined;
+        this._save = save;
+        if (this._save == undefined) {
+            this._save = false;
         }
     }
 
@@ -84,7 +83,8 @@ $(function() {
                 SpSnapshots.POT_POOLS,
                 SpSnapshots.CON_SYN,
                 SpSnapshots.PERMS
-              ]
+              ],
+              save: me._save
             };
             $.ajax({
                 type: 'POST',
@@ -135,9 +135,9 @@ $(function() {
             url: url,
             data: JSON.stringify(data),
             success: function(response) {
-                if (response.activeColumns) {
-                    response.activeColumns = uncompressSdr(
-                        response.activeColumns
+                if (response.state.activeColumns) {
+                    response.state.activeColumns = uncompressSdr(
+                        response.state.activeColumns
                     );
                 }
                 callback(null, response);
@@ -146,9 +146,9 @@ $(function() {
         });
     };
 
-    SpatialPoolerClient.prototype.getColumnHistory = function(columnIndex, callback) {
+    SpatialPoolerClient.prototype.getColumnHistory = function(columnIndex, states, callback) {
         var url = host + '/_sp/' + this._id + '/history/' + columnIndex;
-
+        url += '?states=' + states.join(',');
         $.ajax({
             type: 'GET',
             url: url,

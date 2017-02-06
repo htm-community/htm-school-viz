@@ -78,7 +78,7 @@ $(function() {
     }
 
     function initSp(callback) {
-        spClient = new HTM.SpatialPoolerClient();
+        spClient = new HTM.SpatialPoolerClient(false);
         loading(true);
         spClient.initialize(spParams.getParams(), function() {
             loading(false);
@@ -176,8 +176,8 @@ $(function() {
         states = ['activeColumns', 'overlaps']
         spClient.compute(encoding, learn, states, function(err, spBits) {
             if (err) throw err;
-            var activeColumns = spBits.activeColumns;
-            var overlaps = spBits.overlaps;
+            var activeColumns = spBits.state.activeColumns;
+            var overlaps = spBits.state.overlaps;
 
             var closeAc = _.map(getClosestSdrIndices(
                 activeColumns, history.activeColumns, Math.floor(cursor * 0.1)
