@@ -137,12 +137,13 @@ $(function() {
             spClients[selectedColumnType].getColumnHistory(selectedColumn, requestedStates,
                 function(err, history) {
                     connectionCache[selectedColumnType][selectedColumn] = history;
-                    loading(false);
                     renderColumnState(iteration)
                 }
             );
             return;
         }
+
+        loading(false);
 
         var width = 1000,
             height = 1000;

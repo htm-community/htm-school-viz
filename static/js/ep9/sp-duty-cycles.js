@@ -10,11 +10,11 @@ $(function() {
     var dateEncoder = new HTM.encoders.DateEncoder(41);
 
     var playing = false;
-    var save = [
+    var requestedStates = [
         HTM.SpSnapshots.ACT_COL,
-        HTM.SpSnapshots.POT_POOLS,
-        HTM.SpSnapshots.INH_MASKS,
-        HTM.SpSnapshots.CON_SYN
+        HTM.SpSnapshots.CON_SYN,
+        HTM.SpSnapshots.BST_FCTRS,
+        HTM.SpSnapshots.ACT_DC
     ];
 
     var learningHistory = {
@@ -24,6 +24,7 @@ $(function() {
     var inputCache = [];
     var connectedSynapses = undefined;
     var potentialPools = undefined;
+    var inhibitionMasks = undefined;
     var boostFactors = undefined;
 
     var $powerDisplay = $('#power-display');
@@ -117,7 +118,7 @@ $(function() {
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
-        spClients.learning = new HTM.SpatialPoolerClient(save);
+        spClients.learning = new HTM.SpatialPoolerClient(false);
         inits.push(function(callback) {
             spClients.learning.initialize(spParams.getParams(), callback);
         });
@@ -370,24 +371,26 @@ $(function() {
 
         _.each(spClients, function(client, name) {
             computes[name] = function(callback) {
-                spClients[name].compute(encoding, {
-                    learn: (name == 'learning'),
-                    getActiveDutyCycles: true,
-                    getBoostFactors: true,
-                    getConnectedSynapses: true,
-                    getPotentialPools: true
-                }, callback)
+                var learn = (name == 'learning');
+                // We only fetch pools and masks once.
+                var states = requestedStates.slice()
+                if (potentialPools == undefined) {
+                    states.push(HTM.SpSnapshots.POT_POOLS);
+                    states.push(HTM.SpSnapshots.INH_MASKS);
+                }
+                spClients[name].compute(encoding, learn, states, callback);
             };
         });
 
         async.parallel(computes, function(error, response) {
             if (error) throw error;
-
-            var learningAc = response.learning.activeColumns;
-            var activeDutyCycles = response.learning.activeDutyCycles;
-            boostFactors = response.learning.boostFactors;
-            connectedSynapses = response.learning.connectedSynapses;
-            potentialPools = response.learning.potentialPools;
+            var state = response.learning.state;
+            var learningAc = state.activeColumns;
+            var activeDutyCycles = state.activeDutyCycles;
+            boostFactors = state.boostFactors;
+            connectedSynapses = state.connectedSynapses;
+            potentialPools = state.potentialPools;
+            inhibitionMasks = state.inhibitionMasks;
 
             var learningAcOverlaps = _.map(learningHistory.activeColumns, function(hist) {
                 return SDR.tools.getOverlapScore(learningAc, hist);
@@ -442,13 +445,6 @@ $(function() {
         playing = false;
     }
 
-    function decideWhetherToSave() {
-        var isTransient = getUrlParameter('transient') == 'true';
-        if (isTransient) {
-            save = false;
-        }
-    }
-
     function addBoostFactorButtonHandler() {
         $('.show-boost-factors').on('click', function() {
             $('#boost-factors').show();
@@ -468,7 +464,6 @@ $(function() {
         });
     }
 
-    decideWhetherToSave();
     addDataControlHandlers();
     addBoostFactorButtonHandler();
 
