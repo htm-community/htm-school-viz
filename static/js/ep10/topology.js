@@ -4,12 +4,6 @@ $(function() {
     var currentFrame = 0;
     var framesSeen = 0;
 
-    var save = [
-        HTM.SpSnapshots.ACT_COL,
-        HTM.SpSnapshots.POT_POOLS,
-        HTM.SpSnapshots.INH_MASKS,
-        HTM.SpSnapshots.CON_SYN
-    ];
     var history = {
         input: [],
         activeColumns: []
@@ -280,25 +274,32 @@ $(function() {
 
     function sendSpData(data, mainCallback) {
         var encoding = data;
-        var computeConfig;
+        // var computeConfig;
+        // computeConfig = {
+        //     learn: true,
+        //     getInhibitionMasks: true,
+        //     getPotentialPools: true
+        // };
+        var requestedStates = [
+            HTM.SpSnapshots.ACT_COL,
+            HTM.SpSnapshots.POT_POOLS,
+            HTM.SpSnapshots.INH_MASKS,
+            HTM.SpSnapshots.CON_SYN
+        ];
+        if (showActiveDutyCycles) {
+            requestedStates.push(HTM.SpSnapshots.ACT_DC);
+        }
+        if (showOverlapDutyCycles) {
+            requestedStates.push(HTM.SpSnapshots.OVP_DC);
+        }
         if (SDR.tools.population(data) > data.length *.9) {
             encoding = SDR.tools.invert(data);
         }
-        computeConfig = {
-            learn: true,
-            getInhibitionMasks: true,
-            getPotentialPools: true
-        };
-        if (showActiveDutyCycles) {
-            computeConfig.getActiveDutyCycles = true;
-        }
-        if (showOverlapDutyCycles) {
-            computeConfig.getOverlapDutyCycles = true;
-        }
-        spClient.compute(encoding, computeConfig, function(err, response) {
+        spClient.compute(encoding, true, requestedStates, function(err, response) {
             if (err) throw err;
-            var activeColumns = response.activeColumns;
-            spData = response;
+            var state = response.state;
+            var activeColumns = state.activeColumns;
+            spData = state;
             spData.inputEncoding = encoding;
             framesSeen++;
             $('#num-active-columns').html(SDR.tools.population(activeColumns));
@@ -345,9 +346,7 @@ $(function() {
 
     function initSp(mainCallback) {
         loading(true);
-        // This might be an interested view to show boosting in action.
-        //learnSpParams.setParam("maxBoost", 2);
-        spClient = new HTM.SpatialPoolerClient(save);
+        spClient = new HTM.SpatialPoolerClient(false);
 
         spClient.initialize(spParams.getParams(), function(err, resp) {
             loading(false);
@@ -366,7 +365,7 @@ $(function() {
         spParams.setParam('localAreaDensity', 0.1);
         spParams.setParam('numActiveColumnsPerInhArea', 1);
         spParams.setParam('wrapAround', wrapAround);
-        spParams.setParam('maxBoost', 10);
+        spParams.setParam('boostStrength', 10);
         //spParams.setParam('stimulusThreshold', 10.0);
     }
 
@@ -499,7 +498,7 @@ $(function() {
                 if (err) throw err;
                 pause();
                 params.run = false;
-                spData = r;
+                spData = r.state;
                 spData.inputEncoding = gifData.data[currentFrame];
                 // setupCellViz();
                 // addClickHandling();
@@ -530,7 +529,7 @@ $(function() {
         configureTopology();
         initSp(function(err, r) {
             if (err) throw err;
-            spData = r;
+            spData = r.state;
             spData.inputEncoding = gifData.data[currentFrame];
             setupCellViz();
             addClickHandling();

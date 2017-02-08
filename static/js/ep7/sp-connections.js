@@ -68,15 +68,11 @@ $(function() {
     }
 
     function initSp(callback) {
-        spClient = new HTM.SpatialPoolerClient([
-            HTM.SpSnapshots.POT_POOLS,
-            HTM.SpSnapshots.PERMS,
-            HTM.SpSnapshots.CON_SYN
-        ]);
+        spClient = new HTM.SpatialPoolerClient(false);
         loading(true);
         spClient.initialize(spParams.getParams(), function(err, resp) {
             loading(false);
-            if (callback) callback(err, resp);
+            if (callback) callback(err, resp.state);
         });
     }
 
@@ -128,7 +124,7 @@ $(function() {
         var $connections = d3.select('#connections');
         var $inputConnections = d3.select('#input-connections');
         var inputSdr = SDR.tools.getRandom(inputSize, inputSize / 3);
-        var columnSdr = SDR.tools.getEmpty(permanences.length);
+        var columnSdr = SDR.tools.getEmpty(potentialPools.length);
         var $ppDisplay = $('#potential-pool-display');
         var $connectedDisplay = $('#connected-display');
         var $connectionThresholdDisplay = $('#connection-threshold-display');

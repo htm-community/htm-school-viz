@@ -33,6 +33,11 @@ $(function() {
         boostOn: undefined
     };
 
+    var requestedStates = [
+        HTM.SpSnapshots.ACT_COL,
+        HTM.SpSnapshots.ACT_DC
+    ];
+
     var inputDimensions = getInputDimension();
     var columnDimensions = [2048];
     var boostOffParams = new HTM.utils.sp.Params(
@@ -100,9 +105,9 @@ $(function() {
     function initSp(mainCallback) {
         var inits = [];
         loading(true);
-        boostOffParams.setParam("maxBoost", 1);
-        boostOnParams.setParam("maxBoost", 2);
-        spClients.boostOff = new HTM.SpatialPoolerClient();
+        boostOffParams.setParam("boostStrength", 1);
+        boostOnParams.setParam("boostStrength", 5);
+        spClients.boostOff = new HTM.SpatialPoolerClient(false);
         spClients.boostOn = new HTM.SpatialPoolerClient(save);
         inits.push(function(callback) {
             spClients.boostOff.initialize(boostOffParams.getParams(), callback);
@@ -284,18 +289,16 @@ $(function() {
 
         _.each(spClients, function(client, name) {
             computes[name] = function(callback) {
-                spClients[name].compute(encoding, {
-                    learn: true,
-                    getActiveDutyCycles: true
-                }, callback)
+                spClients[name].compute(
+                    encoding, true, requestedStates, callback
+                );
             };
         });
 
         async.parallel(computes, function(error, response) {
             if (error) throw error;
-
-            var boostOffAc = response.boostOff.activeColumns;
-            var boostOnAc = response.boostOn.activeColumns;
+            var boostOffAc = response.boostOff.state.activeColumns;
+            var boostOnAc = response.boostOn.state.activeColumns;
 
             var boostOffAcOverlaps = _.map(boostOffHistory.activeColumns, function(hist) {
                 return SDR.tools.getOverlapScore(boostOffAc, hist);
@@ -309,8 +312,8 @@ $(function() {
 
             renderSdrs(
                 encoding,
-                response.boostOff,
-                response.boostOn
+                response.boostOff.state,
+                response.boostOn.state
             );
 
             boostOffHistory.inputEncoding[cursor] = encoding;
