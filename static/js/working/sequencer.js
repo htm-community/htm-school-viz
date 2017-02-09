@@ -248,12 +248,6 @@ $(function() {
 
     function addClickHandling() {
 
-        function inputClicked(cellData) {
-            cellData.cellIndex = cellData.y * inputCells.getY() + cellData.x;
-            inputCells.selectedCell = cellData.cellIndex;
-            console.log( "clicked: input cell %s", inputCells.selectedCell);
-        }
-
         function spClicked(cellData) {
             cellData.cellIndex = xyzToOneDimIndex(
                 cellData.z, cellData.x, cellData.y,
@@ -275,7 +269,8 @@ $(function() {
             spColumns.selectedCell = undefined;
             spColumns.selectedColumn = undefined;
             inputCells.selectedCell = undefined;
-            if (cellData.type == 'inputCells') inputClicked(cellData);
+            // Not handling input space selections.
+            if (cellData.type == 'inputCells') return;
             else spClicked(cellData);
             updateCellRepresentations();
         }
@@ -344,7 +339,7 @@ $(function() {
             || state == cellStates.predictiveActive.state;
     }
 
-    function selectCell(cellValue, activeSegments) {
+    function selectHtmCell(cellValue, activeSegments) {
         _.each(activeSegments, function(segment) {
             if (cellStateIsActive(cellValue.state)) {
                 _.each(segment.synapses, function(synapse) {
@@ -372,7 +367,7 @@ $(function() {
         var cells = spColumns.getCellsInColumn(columnIndex);
         var firstCell = cells[0];
         _.each(cells, function(cellValue) {
-            selectCell(cellValue, activeSegments);
+            selectHtmCell(cellValue, activeSegments);
         });
         _.each(connectedSynapses, function(proximalSynapse) {
             cellviz.proximalSegments.push({
@@ -401,6 +396,7 @@ $(function() {
         var thisCellIndex, thisColumnIndex;
         var xMax, yMax, zMax;
         var color, state;
+        var cellValue;
 
         var activeColumnIndices = SDR.tools.getActiveBits(activeColumns);
         var activeCellIndices = htmState.activeCells;
@@ -461,10 +457,8 @@ $(function() {
                 connectedSynapses[spColumns.selectedColumn]
             );
         } else if (spColumns.selectedCell) {
-            var cellValue = spColumns.cells[spColumns.selectedCell];
-            selectCell(cellValue, activeSegments);
-        } else if (inputCells.selectedCell) {
-
+            cellValue = spColumns.cells[spColumns.selectedCell];
+            selectHtmCell(cellValue, activeSegments);
         }
 
         cellviz.redraw();
@@ -482,7 +476,7 @@ $(function() {
             // 'cell selection': cellSelection,
             'column selection': columnSelection
         };
-        var minSpacing = 1.0;
+        var minSpacing = 1.1;
         var maxSpacing = 10.0;
         var gui = new dat.GUI();
 
@@ -746,7 +740,6 @@ $(function() {
             if (event.keyCode == 27) {
                 spColumns.selectedCell = undefined;
                 spColumns.selectedColumn = undefined;
-                inputCells.selectedCell = undefined;
                 updateCellRepresentations();
             }
         }, false );
