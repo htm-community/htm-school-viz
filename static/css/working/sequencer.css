@@ -137,7 +137,7 @@ h1 {
 #legend {
     position: absolute;
     bottom: 10px;
-    right: 10px;
+    left: 10px;
     font-size: 14pt;
     width: 300px;
 }

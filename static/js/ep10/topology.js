@@ -376,7 +376,6 @@ $(function() {
         cellviz = new SpToInputVisualization(inputCells, spColumns);
         cellviz.layerSpacing = 60;
         clearAllCells();
-
         cellviz.render();
     }
 
