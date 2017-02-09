@@ -313,7 +313,9 @@ $(function() {
                 x: 300,
                 y: 2000,
                 z: 8000
-            }, spacing: defaultSpCellSpacing
+            },
+            spacing: defaultSpCellSpacing,
+            layerSpacing: 60
         });
         clearAllCells();
         cellviz.render();
