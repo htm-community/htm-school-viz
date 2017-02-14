@@ -140,6 +140,10 @@ h1 {
     left: 10px;
     font-size: 14pt;
     width: 500px;
+    border: solid black 1px;
+    border-radius: 20px;
+    background-color: white;
+    padding: 10px 0;
 }
 
 #legend li span {
@@ -148,7 +152,14 @@ h1 {
     height: 20px;
     border: solid black 1px;
     margin-right: 10px;
+    font-size: 20pt;
 }
 #legend li {
     list-style: none;
+}
+
+#legend .count {
+    min-width: 100px;
+    padding-left: 40px;
+    font-family: Menlo;
 }

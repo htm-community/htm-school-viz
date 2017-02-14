@@ -61,9 +61,13 @@ $(function() {
         BST_FCTRS: 'boostFactors'
     };
 
-    function SpatialPoolerClient(save) {
+    function SpatialPoolerClient(save, cleanSlate) {
         this._id = undefined;
-        this._cleanSlate = shouldCleanSlate();
+        if (cleanSlate !== undefined) {
+            this._cleanSlate = cleanSlate;
+        } else {
+            this._cleanSlate = shouldCleanSlate();
+        }
         this._save = save;
         if (this._save == undefined) {
             this._save = false;

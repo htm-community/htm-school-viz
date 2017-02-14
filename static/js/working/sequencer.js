@@ -11,10 +11,13 @@ $(function() {
     // SP params we are not allowing user to change
     var inputDimensions = [100];
     var columnDimensions = [1024];
-    var cellsPerColumn = 8;
+    var cellsPerColumn = 4;
     var spParams = new HTM.utils.sp.Params(
         'sp-params', inputDimensions, columnDimensions
     );
+    var proximalConnectionThreshold = spParams.getParams()['synPermConnected'];
+    // TM connection threshold
+    var distalConnectionThreshold = 0.50;
 
     var counter = 0;
     var bucketLabels = [];
@@ -35,19 +38,25 @@ $(function() {
     var bpm = 60;
 
     // Turns on/off column and cell selection modes.
-    var columnSelection = false;
+    var columnSelection = true;
     // var cellSelection = true;
+    var showMatchingSegments = false;
 
     var cellStates = HtmCellStates;
 
     var defaultSpCellSpacing = {
-        x: 1.1, y: 1.1, z: 1.1
+        x: 8, y: 1.1, z: 1.1
     };
     // var defaultCellsPerRow = Math.floor(Math.sqrt(columnDimensions[0]));
     var defaultCellsPerRow = 30;
 
     // One-step in the past.
     var lastPredictedCells = [];
+
+    // UI stuff
+    var $activeSegmentDisplay = $('#active-segments');
+    var $matchingSegmentDisplay = $('#matching-segments');
+    var $confidenceDisplay = $('#confidence');
 
     ////////////////////////////////////////////////////////////////////////////
     // These globals contain the HTM state that gets displayed on the cell
@@ -177,6 +186,8 @@ $(function() {
         });
 
         $nextInfoCell.html(mark);
+        $confidenceDisplay.html(Math.round(htmState.inference[0][0] * 100) + '%');
+
     }
 
     function renderSequencerGrid(selector, beats, pads) {
@@ -341,14 +352,16 @@ $(function() {
             || state == cellStates.predictiveActive.state;
     }
 
-    function selectHtmCell(cellValue, activeSegments) {
+    function selectHtmCell(cellValue, activeSegments, matchingSegments) {
         _.each(activeSegments, function(segment) {
             if (cellStateIsActive(cellValue.state)) {
                 _.each(segment.synapses, function(synapse) {
                     if (synapse.presynapticCell == cellValue.cellIndex) {
                         cellviz.distalSegments.push({
                             source: cellValue.cellIndex,
-                            target: segment.cell
+                            target: segment.cell,
+                            permanence: synapse.permanence,
+                            connected: true
                         });
                     }
                 });
@@ -357,19 +370,48 @@ $(function() {
                     if (segment.cell == cellValue.cellIndex) {
                         cellviz.distalSegments.push({
                             source: synapse.presynapticCell,
-                            target: segment.cell
+                            target: segment.cell,
+                            permanence: synapse.permanence,
+                            connected: true
                         });
                     }
                 });
             }
         });
+        if (showMatchingSegments) {
+            _.each(matchingSegments, function(segment) {
+                if (cellStateIsActive(cellValue.state)) {
+                    _.each(segment.synapses, function(synapse) {
+                        if (synapse.presynapticCell == cellValue.cellIndex) {
+                            cellviz.distalSegments.push({
+                                source: cellValue.cellIndex,
+                                target: segment.cell,
+                                permanence: synapse.permanence,
+                                connected: false
+                            });
+                        }
+                    });
+                } else if (cellStateIsPredictive(cellValue.state)) {
+                    _.each(segment.synapses, function(synapse) {
+                        if (segment.cell == cellValue.cellIndex) {
+                            cellviz.distalSegments.push({
+                                source: synapse.presynapticCell,
+                                target: segment.cell,
+                                permanence: synapse.permanence,
+                                connected: false
+                            });
+                        }
+                    });
+                }
+            });
+        }
     }
 
-    function selectColumn(columnIndex, activeSegments, connectedSynapses) {
+    function selectColumn(columnIndex, activeSegments, matchingSegments, connectedSynapses) {
         var cells = spColumns.getCellsInColumn(columnIndex);
         var firstCell = cells[0];
         _.each(cells, function(cellValue) {
-            selectHtmCell(cellValue, activeSegments);
+            selectHtmCell(cellValue, activeSegments, matchingSegments);
         });
         _.each(connectedSynapses, function(proximalSynapse) {
             cellviz.proximalSegments.push({
@@ -387,6 +429,7 @@ $(function() {
         var potentialPools  = htmState.potentialPools;
         var connectedSynapses = htmState.connectedSynapses;
         var activeSegments = htmState.activeSegments;
+        var matchingSegments = htmState.matchingSegments;
         var predictiveCellIndices = htmState.predictiveCells;
         var receptiveField;
         var inhibitionMasks  = htmState.inhibitionMasks;
@@ -436,7 +479,7 @@ $(function() {
                 state = cellStates.predictive;
             } else {
                 // Cell is not active.
-                if (predictiveCellIndices.indexOf(globalCellIndex) > -1) {
+                if (lastPredictedCells.indexOf(globalCellIndex) > -1) {
                     // Cell was predicted last step, but not active.
                     state = cellStates.wronglyPredicted;
                 }
@@ -455,15 +498,18 @@ $(function() {
         if (columnSelection && spColumns.selectedColumn) {
             selectColumn(
                 spColumns.selectedColumn,
-                activeSegments,
+                activeSegments, matchingSegments,
                 connectedSynapses[spColumns.selectedColumn]
             );
         } else if (spColumns.selectedCell) {
             cellValue = spColumns.cells[spColumns.selectedCell];
-            selectHtmCell(cellValue, activeSegments);
+            selectHtmCell(cellValue, activeSegments, matchingSegments);
         }
 
         cellviz.redraw();
+
+        $activeSegmentDisplay.html(activeSegments.length);
+        $matchingSegmentDisplay.html(matchingSegments.length);
     }
 
     function setupDatGui() {
@@ -476,7 +522,8 @@ $(function() {
             'sp-z': defaultSpCellSpacing.z,
             'cells per row': defaultCellsPerRow,
             // 'cell selection': cellSelection,
-            'column selection': columnSelection
+            'column selection': columnSelection,
+            'show matching segments': showMatchingSegments
         };
         var minSpacing = 1.1;
         var maxSpacing = 10.0;
@@ -527,6 +574,11 @@ $(function() {
         // });
         selectionModes.add(params, 'column selection').onChange(function(isOn) {
             columnSelection = isOn;
+            updateCellRepresentations();
+        });
+        selectionModes.add(params, 'show matching segments').onChange(function(isOn) {
+            showMatchingSegments = isOn;
+            updateCellRepresentations();
         });
         selectionModes.open();
     }
@@ -542,7 +594,7 @@ $(function() {
             cellsPerColumn: cellsPerColumn,
             activationThreshold: 10,
             initialPermanence: 0.21,
-            connectedPermanence: 0.50,
+            connectedPermanence: distalConnectionThreshold,
             minThreshold: 10,
             maxNewSynapseCount: 20,
             permanenceIncrement: 0.10,
@@ -557,6 +609,7 @@ $(function() {
         spClient = new HTM.SpatialPoolerClient();
         tmClient = new HTM.TemporalMemoryClient();
         loading(true);
+        // spParams.setParam('boostStrength', 10);
         spClient.initialize(spParams.getParams(), function(spResp) {
             console.log('SP initialized.');
             var tmParams = getTmParams();
@@ -630,11 +683,10 @@ $(function() {
           spLearn: false,
           tmLearn: learn,
           reset: reset,
-          // getInhibitionMasks: true,
-          // getPotentialPools: true,
           getPermanences: true,
           getActiveSegments: true,
           getConnectedSynapses: true,
+          getMatchingSegments: true
         };
 
         counter++;
@@ -642,6 +694,9 @@ $(function() {
         if (reset) {
             console.log('TM Reset after this row of data.');
         }
+
+        // Stash current predictive cells to use for next render.
+        lastPredictedCells = htmState.predictiveCells;
 
         // Run encoding through SP/TM.
         computeClient.compute(encoding, computeConfig, function(err, response) {
@@ -652,10 +707,7 @@ $(function() {
             htmState = response;
             // Add the encoding as well.
             htmState.inputEncoding = encoding;
-            // Stash current predictive cells to use for next render.
-            lastPredictedCells = htmState.predictiveCells;
             updateCellRepresentations();
-
             updatePredictions(beat);
         });
     }
