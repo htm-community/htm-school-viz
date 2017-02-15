@@ -39,8 +39,7 @@ $(function() {
 
     // Turns on/off column and cell selection modes.
     var columnSelection = true;
-    // var cellSelection = true;
-    var showMatchingSegments = false;
+    var showProximal = false;
 
     var cellStates = HtmCellStates;
 
@@ -352,72 +351,63 @@ $(function() {
             || state == cellStates.predictiveActive.state;
     }
 
-    function selectHtmCell(cellValue, activeSegments, matchingSegments) {
-        _.each(activeSegments, function(segment) {
-            if (cellStateIsActive(cellValue.state)) {
+    function selectHtmCell(cellValue, allSegments) {
+        _.each(allSegments, function(segment) {
+            if (segment.cell == cellValue.cellIndex) {
+                // Segments for this cell.
+                _.each(segment.synapses, function(synapse) {
+                    cellviz.distalSegments.push({
+                        source: segment.cell,
+                        target: synapse.presynapticCell,
+                        permanence: synapse.permanence,
+                        connected: segment.connected,
+                        predictiveTarget: true
+                    });
+                });
+            } else {
+                // Look through other segments for this cell as a target.
                 _.each(segment.synapses, function(synapse) {
                     if (synapse.presynapticCell == cellValue.cellIndex) {
-                        cellviz.distalSegments.push({
-                            source: cellValue.cellIndex,
-                            target: segment.cell,
-                            permanence: synapse.permanence,
-                            connected: true
-                        });
-                    }
-                });
-            } else if (cellStateIsPredictive(cellValue.state)) {
-                _.each(segment.synapses, function(synapse) {
-                    if (segment.cell == cellValue.cellIndex) {
                         cellviz.distalSegments.push({
                             source: synapse.presynapticCell,
                             target: segment.cell,
                             permanence: synapse.permanence,
-                            connected: true
+                            connected: segment.connected,
+                            predictiveTarget: false
                         });
                     }
                 });
             }
         });
-        if (showMatchingSegments) {
-            _.each(matchingSegments, function(segment) {
-                if (cellStateIsActive(cellValue.state)) {
-                    _.each(segment.synapses, function(synapse) {
-                        if (synapse.presynapticCell == cellValue.cellIndex) {
-                            cellviz.distalSegments.push({
-                                source: cellValue.cellIndex,
-                                target: segment.cell,
-                                permanence: synapse.permanence,
-                                connected: false
-                            });
-                        }
-                    });
-                } else if (cellStateIsPredictive(cellValue.state)) {
-                    _.each(segment.synapses, function(synapse) {
-                        if (segment.cell == cellValue.cellIndex) {
-                            cellviz.distalSegments.push({
-                                source: synapse.presynapticCell,
-                                target: segment.cell,
-                                permanence: synapse.permanence,
-                                connected: false
-                            });
-                        }
-                    });
-                }
+    }
+
+    function selectColumn(columnIndex, allSegments, connectedSynapses) {
+        var cells = spColumns.getCellsInColumn(columnIndex);
+        var firstCell = cells[0];
+        _.each(cells, function(cellValue) {
+            selectHtmCell(cellValue, allSegments);
+        });
+        if (showProximal) {
+            _.each(connectedSynapses, function(proximalSynapse) {
+                cellviz.proximalSegments.push({
+                    source: firstCell.cellIndex,
+                    target: proximalSynapse
+                });
             });
         }
     }
 
-    function selectColumn(columnIndex, activeSegments, matchingSegments, connectedSynapses) {
-        var cells = spColumns.getCellsInColumn(columnIndex);
-        var firstCell = cells[0];
-        _.each(cells, function(cellValue) {
-            selectHtmCell(cellValue, activeSegments, matchingSegments);
-        });
-        _.each(connectedSynapses, function(proximalSynapse) {
-            cellviz.proximalSegments.push({
-                source: firstCell.cellIndex,
-                target: proximalSynapse
+    function mergeSegments(left, right) {
+        return _.map(left, function(lval) {
+            var lcompare = JSON.stringify(lval);
+            var connected = false;
+            var rval = _.find(right, function(rval) {
+                return JSON.stringify(rval) == lcompare;
             });
+            if (rval) {
+                connected = true;
+            }
+            return _.extend({}, lval, {connected: connected});
         });
     }
 
@@ -430,6 +420,7 @@ $(function() {
         var connectedSynapses = htmState.connectedSynapses;
         var activeSegments = htmState.activeSegments;
         var matchingSegments = htmState.matchingSegments;
+        var allSegments = mergeSegments(matchingSegments, activeSegments);
         var predictiveCellIndices = htmState.predictiveCells;
         var receptiveField;
         var inhibitionMasks  = htmState.inhibitionMasks;
@@ -498,12 +489,12 @@ $(function() {
         if (columnSelection && spColumns.selectedColumn) {
             selectColumn(
                 spColumns.selectedColumn,
-                activeSegments, matchingSegments,
+                allSegments,
                 connectedSynapses[spColumns.selectedColumn]
             );
         } else if (spColumns.selectedCell) {
             cellValue = spColumns.cells[spColumns.selectedCell];
-            selectHtmCell(cellValue, activeSegments, matchingSegments);
+            selectHtmCell(cellValue, allSegments);
         }
 
         cellviz.redraw();
@@ -521,9 +512,8 @@ $(function() {
             'sp-y': defaultSpCellSpacing.y,
             'sp-z': defaultSpCellSpacing.z,
             'cells per row': defaultCellsPerRow,
-            // 'cell selection': cellSelection,
             'column selection': columnSelection,
-            'show matching segments': showMatchingSegments
+            'show proximal': showProximal
         };
         var minSpacing = 1.1;
         var maxSpacing = 10.0;
@@ -568,16 +558,13 @@ $(function() {
         });
         spSpacing.open();
 
-        var selectionModes = gui.addFolder('Selection Modes');
-        // selectionModes.add(params, 'cell selection').onChange(function(isOn) {
-        //     cellSelection = isOn;
-        // });
+        var selectionModes = gui.addFolder('Display Options');
         selectionModes.add(params, 'column selection').onChange(function(isOn) {
             columnSelection = isOn;
             updateCellRepresentations();
         });
-        selectionModes.add(params, 'show matching segments').onChange(function(isOn) {
-            showMatchingSegments = isOn;
+        selectionModes.add(params, 'show proximal').onChange(function(isOn) {
+            showProximal = isOn;
             updateCellRepresentations();
         });
         selectionModes.open();
@@ -696,7 +683,7 @@ $(function() {
         }
 
         // Stash current predictive cells to use for next render.
-        lastPredictedCells = htmState.predictiveCells;
+        lastPredictedCells = htmState.predictiveCells || [];
 
         // Run encoding through SP/TM.
         computeClient.compute(encoding, computeConfig, function(err, response) {
