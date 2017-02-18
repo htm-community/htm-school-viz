@@ -74,7 +74,7 @@ button#show-sp-params {
 body {
     background-color: #e0e0e0;
 }
-#sequencer-grid table td.on {
+.on {
     background-color: #fdffa1 !important;
     box-shadow: 0 0 10px 4px #79fcff
 }
@@ -86,9 +86,8 @@ body {
     border-radius: 14px;
     text-align: center;
     color: grey;
-    font-size: smaller;
 }
-#sequencer-grid table td.note {
+.note {
     background-color: white;
     width: 60px;
     height: 60px;
@@ -114,14 +113,13 @@ body {
     width: 100%;
 }
 
-
 #player, #sequencer-grid {
     position: absolute;
     top: 10px;
 }
 #player {
-    right: 10px;
-    top: 390px;
+    right: 270px;
+    top: 10px;
 }
 #sequencer-grid {
     left: 10px;
@@ -162,4 +160,17 @@ h1 {
     min-width: 100px;
     padding-left: 40px;
     font-family: Menlo;
+}
+
+#note-columns {
+    position: absolute;
+    top: 10px;
+    right: 400px;
+}
+#note-columns ul li {
+    border-radius: 14px;
+    text-align: center;
+    color: grey;
+    list-style: none;
+    padding-top: 10px;
 }
