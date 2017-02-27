@@ -35,21 +35,20 @@ $(function() {
     var padCount = 4;
     var loop;
     var lastBeat = beats - 1;
-    var bpm = 100;
+    var bpm = 120;
 
     // Turns on/off column and cell selection modes.
     var columnSelection = false;
     // segments
     var showProximal = false;
     var showSegments = true;
-    var showLastSegments = false;
     var showPresynaptic = false;
     // cells
     var showActive = false;
     var showCorrect = false;
-    var showPreviousActive = false;
-    var showPredictive = false;
     var showWrong = false;
+    var showPredicted = false;
+    var showPredictive = false;
 
     // Counts of segments for selected cells.
     var selectedCellActiveSegmentCount = 0;
@@ -69,7 +68,6 @@ $(function() {
 
     // One-step in the past.
     var lastPredictedCells = [];
-    var lastSegments = [];
     var lastActiveCells = [];
 
     // UI stuff
@@ -172,10 +170,10 @@ $(function() {
 
     function updateLegend() {
         $('#legend ul li.active').toggle(showActive);
-        $('#legend ul li.predictive').toggle(showPredictive);
+        $('#legend ul li.predictive').toggle(showPredicted);
+        $('#legend ul li.previouslyPredictive').toggle(showPredictive);
         $('#legend ul li.correctlyPredicted').toggle(showCorrect);
-        $('#legend ul li.previouslyActive').toggle(showPreviousActive);
-        $('#legend ul li.predictiveActive').toggle(showPredictive);
+        $('#legend ul li.predictiveActive').toggle(showPredicted);
         $('#legend ul li.wronglyPredicted').toggle(showWrong);
     }
 
@@ -428,7 +426,7 @@ $(function() {
             || state == cellStates.predictiveActive.state;
     }
 
-    function selectHtmCell(cellValue, currentSegments, lastSegments) {
+    function selectHtmCell(cellValue, currentSegments) {
         selectedCellActiveSegmentCount = 0;
         selectedCellMatchingSegmentCount = 0;
         console.log(cellValue);
@@ -461,11 +459,6 @@ $(function() {
         if (showSegments) {
             console.log('Displaying current segments for %s', cellValue.cellIndex);
             populateSegments(currentSegments, cellValue.cellIndex);
-        }
-
-        if (showLastSegments) {
-            console.log('Displaying last segments for %s', cellValue.cellIndex);
-            populateSegments(lastSegments, cellValue.cellIndex);
         }
 
         if (showPresynaptic) {
@@ -507,7 +500,7 @@ $(function() {
         var cells = spColumns.getCellsInColumn(columnIndex);
         var firstCell = cells[0];
         _.each(cells, function(cellValue) {
-            selectHtmCell(cellValue, allSegments, lastSegments);
+            selectHtmCell(cellValue, allSegments);
         });
         if (showProximal) {
             _.each(connectedSynapses, function(proximalSynapse) {
@@ -577,26 +570,26 @@ $(function() {
             } else {
                 state = cellStates.inactive;
             }
+            if (showPredictive && lastPredictedCells.indexOf(globalCellIndex) > -1) {
+                state = cellStates.previouslyPredictive;
+            }
 
             if (activeCellIndices.indexOf(globalCellIndex) > -1) {
                 // Cell is active.
                 if (showActive) {
                     state = cellStates.active;
                 }
-                if (showPredictive && predictiveCellIndices.indexOf(globalCellIndex) > -1) {
+                if (showPredicted && predictiveCellIndices.indexOf(globalCellIndex) > -1) {
                     state = cellStates.predictiveActive;
                 }
                 if (showCorrect && lastPredictedCells.indexOf(globalCellIndex) > -1) {
                     state = cellStates.correctlyPredicted;
                 }
-            } else if (showPredictive && predictiveCellIndices.indexOf(globalCellIndex) > -1) {
+            } else if (showPredicted && predictiveCellIndices.indexOf(globalCellIndex) > -1) {
                 // Cell is predictive.
                 state = cellStates.predictive;
             } else {
                 // Cell is not active.
-                if (showPreviousActive && lastActiveCells.indexOf(globalCellIndex) > -1) {
-                    state = cellStates.previouslyActive;
-                }
                 if (showWrong && lastPredictedCells.indexOf(globalCellIndex) > -1) {
                     // Cell was predicted last step, but not active.
                     state = cellStates.wronglyPredicted;
@@ -623,7 +616,7 @@ $(function() {
             );
         } else if (spColumns.selectedCell) {
             cellValue = spColumns.cells[spColumns.selectedCell];
-            selectHtmCell(cellValue, allSegments, lastSegments);
+            selectHtmCell(cellValue, allSegments);
         }
 
         cellviz.redraw();
@@ -651,15 +644,14 @@ $(function() {
             'cells per row': defaultCellsPerRow,
             // display options
             'column selection': columnSelection,
-            'show active': showActive,
-            'show predictive': showPredictive,
+            'predictive': showPredictive,
+            'active': showActive,
+            'predicted': showPredicted,
             'show correct': showCorrect,
             'show wrong': showWrong,
-            'show prev active': showPreviousActive,
             // segments
             'proximal': showProximal,
             'segments': showSegments,
-            'last segments': showLastSegments,
             'presynaptic': showPresynaptic
         };
         var minSpacing = 1.1;
@@ -710,11 +702,15 @@ $(function() {
             columnSelection = isOn;
             updateCellRepresentations();
         });
-        selectionModes.add(params, 'show active').onChange(function(isOn) {
+        selectionModes.add(params, 'active').onChange(function(isOn) {
             showActive = isOn;
             updateCellRepresentations();
         });
-        selectionModes.add(params, 'show predictive').onChange(function(isOn) {
+        selectionModes.add(params, 'predicted').onChange(function(isOn) {
+            showPredicted = isOn;
+            updateCellRepresentations();
+        });
+        selectionModes.add(params, 'predictive').onChange(function(isOn) {
             showPredictive = isOn;
             updateCellRepresentations();
         });
@@ -726,10 +722,6 @@ $(function() {
             showWrong = isOn;
             updateCellRepresentations();
         });
-        selectionModes.add(params, 'show prev active').onChange(function(isOn) {
-            showPreviousActive = isOn;
-            updateCellRepresentations();
-        });
         selectionModes.open();
 
         var segmentModes = gui.addFolder('Segments');
@@ -739,10 +731,6 @@ $(function() {
         });
         segmentModes.add(params, 'segments').onChange(function(isOn) {
             showSegments = isOn;
-            updateCellRepresentations();
-        });
-        segmentModes.add(params, 'last segments').onChange(function(isOn) {
-            showLastSegments = isOn;
             updateCellRepresentations();
         });
         segmentModes.add(params, 'presynaptic').onChange(function(isOn) {
@@ -871,10 +859,6 @@ $(function() {
         // Run encoding through SP/TM.
         computeClient.compute(encoding, computeConfig, function(err, response) {
             if (err) throw err;
-            // Store the last segments for display during active cell selection.
-            if (htmState) {
-                lastSegments = htmState.allSegments;
-            }
             // Share the HTM state globally. Any renderers can inspect it
             // anytime to get current state.
             htmState = response;
@@ -885,7 +869,7 @@ $(function() {
             // Add the encoding as well.
             htmState.inputEncoding = encoding;
             updateCellRepresentations();
-            updatePredictions(beat);
+            // updatePredictions(beat);
             spColumns.updateAll({highlight: false});
             highlightColumns();
             // Stash info about columns related to this prediction.
