@@ -6,7 +6,7 @@ var glob = require('glob');
 var path = require('path');
 
 //get port from command line arguments
-var port = process.argv[2] || 8080;
+var port = process.argv[2] || 8001;
 
 var app = express();
 
