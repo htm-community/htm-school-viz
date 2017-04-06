@@ -29,10 +29,10 @@ Install npm requirements:
 
 ## Run
 
-> **REQUIREMENT**: This server depends on the [nupic-history-server](https://github.com/htm-community/nupic-history-server) running on PORT 8000. You must have that server running for any spatial pooler visualizations to work.
+> **REQUIREMENT**: This server depends on the [nupic-history-server](https://github.com/htm-community/nupic-history-server) running on PORT 8080. You must have that server running for any spatial pooler visualizations to work (ep. 7+). 
 
 Now start this server on any port you like:
 
-    npm start 8080
+    npm start 8001
 
-View on <http://localhost:8080/>.
+View on <http://localhost:8001/>.
