@@ -21,6 +21,16 @@ This is a web application with a Nodejs server and a JavaScript frontend.
 - Handlebars
 - Moment
 
+## Dependencies
+
+-  [NuPIC History Server](https://github.com/htm-community/nupic-history-server) - install & run
+- [Cell-viz](https://github.com/numenta/cell-viz/) - install & generate the static content with `webpack`
+#### Generate static content from cell-viz
+There are 2 options:
+- Permanent link: `ln -s static/js/third/dyson-bundle.js YOUR_PATH/cell-viz/out/dyson.js` This is a permanent solution, just need to update the webpack in `cell-viz` later on. 
+- Generate the file: go to `cd YOUR_PATH/cell-viz/`, generate: `webpack --output-path OTHER_PATH/htm-school-viz/static/js/third --output-filename dyson-bundle.js` 
+
+
 ## Install
 
 Install npm requirements:
@@ -36,3 +46,10 @@ Now start this server on any port you like:
     npm start 8001
 
 View on <http://localhost:8001/>.
+
+## Episodes
+
+Notes about the episodes. 
+
+- Ep. 10, ep. 11: need to generate the `webpack` static content from `cell-viz`
+- Ep. 10: You appear too close to the scene, press `s` to zoom-out. Currently works only in Chrome/Chromium browsers
