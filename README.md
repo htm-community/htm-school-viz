@@ -5,6 +5,8 @@
 
 These are supporting visualizations for the [HTM School](https://www.youtube.com/playlist?list=PL3yXMgtrZmDqhsFQzwUC9V8MeeVOQ7eZ9) educational video series.
 
+[Here is a guide to running the complete HTM School Visualization Suite](https://discourse.numenta.org/t/how-to-run-htm-school-visualizations/2346).
+
 ## Stack
 
 This is a web application with a Nodejs server and a JavaScript frontend.
