@@ -26,7 +26,7 @@ This is a web application with a Nodejs server and a JavaScript frontend.
 ## Dependencies
 
 -  [NuPIC History Server](https://github.com/htm-community/nupic-history-server) - install & run
-- [Cell-viz](https://github.com/numenta/cell-viz/) - install & generate the static content with `webpack`
+- [Cell-viz](https://github.com/numenta/cell-viz/) 1.1.2 - install & generate the static content with `webpack`
 #### Generate static content from cell-viz
 There are 2 options:
 - Permanent link: `ln -s static/js/third/dyson-bundle.js YOUR_PATH/cell-viz/out/dyson.js` This is a permanent solution, just need to update the webpack in `cell-viz` later on. 
@@ -41,7 +41,7 @@ Install npm requirements:
 
 ## Run
 
-> **REQUIREMENT**: This server depends on the [nupic-history-server](https://github.com/htm-community/nupic-history-server) running on PORT 8080. You must have that server running for any spatial pooler visualizations to work (ep. 7+). 
+> **REQUIREMENT**: This server depends on the [nupic-history-server](https://github.com/htm-community/nupic-history-server) 0.0.1 running on PORT 8080. You must have that server running for any spatial pooler visualizations to work (ep. 7+). 
 
 Now start this server on any port you like:
 
