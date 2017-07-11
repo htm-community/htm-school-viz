@@ -2,7 +2,7 @@ $(function() {
 
     var learn = true;
     var playing = false;
-    var noise = 0.00;
+    var noise = 0.0;
 
     var spClient;
     var tmClient;
@@ -11,7 +11,7 @@ $(function() {
     // SP params we are not allowing user to change
     var inputDimensions = [100];
     var columnDimensions = [1024];
-    var cellsPerColumn = 4;
+    var cellsPerColumn = 1;
     var spParams = new HTM.utils.sp.Params(
         'sp-params', inputDimensions, columnDimensions
     );
@@ -31,11 +31,11 @@ $(function() {
     var keys = undefined;
     var noteNames = undefined;
     var grid = undefined;
-    var beats = 4;
+    var beats = 8;
     var padCount = 4;
     var loop;
     var lastBeat = beats - 1;
-    var bpm = 120;
+    var bpm = 100;
 
     // Turns on/off column and cell selection modes.
     var columnSelection = false;
@@ -429,7 +429,7 @@ $(function() {
     function selectHtmCell(cellValue, currentSegments) {
         selectedCellActiveSegmentCount = 0;
         selectedCellMatchingSegmentCount = 0;
-        console.log(cellValue);
+        // console.log(cellValue);
 
         function populateSegments(segs, cellIndex) {
             _.each(segs, function(segment) {
@@ -754,8 +754,8 @@ $(function() {
             connectedPermanence: distalConnectionThreshold,
             minThreshold: 10,
             maxNewSynapseCount: 20,
-            permanenceIncrement: 0.10,
-            permanenceDecrement: 0.02,
+            permanenceIncrement: 0.50,
+            permanenceDecrement: 0.50,
             predictedSegmentDecrement: 0.0,
             maxSegmentsPerCell: 255,
             maxSynapsesPerSegment: 255
@@ -869,7 +869,7 @@ $(function() {
             // Add the encoding as well.
             htmState.inputEncoding = encoding;
             updateCellRepresentations();
-            // updatePredictions(beat);
+            updatePredictions(beat);
             spColumns.updateAll({highlight: false});
             highlightColumns();
             // Stash info about columns related to this prediction.
@@ -915,7 +915,7 @@ $(function() {
     }
 
     ////////////////////////////////////////
-    // Global Program Start
+    // Program Start
     ////////////////////////////////////////
 
     function start() {

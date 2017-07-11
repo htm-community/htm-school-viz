@@ -1,0 +1,176 @@
+body {
+    margin: 0;
+}
+rect {
+    stroke: #CACACA;
+}
+#loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(100, 100, 100, 0.6);
+    text-align: center;
+    padding-top: 200px;
+}
+#loading.little {
+    right: inherit;
+    left: inherit;
+    bottom: inherit;
+    background-color: inherit;
+    padding: 0;
+    margin-left: 400px;
+}
+.modal-dialog {
+    width: 80%;
+}
+.modal-content .row {
+    margin: 0;
+}
+svg#visualization {
+    border: solid 1px slategrey;
+    background-color: white;
+}
+button#show-sp-params {
+    position: absolute;
+    left: 807px;
+    top: 30px;
+}
+.sdrs div {
+    text-align: center;
+}
+#tm {
+    width: 1200px;
+    height: 940px;
+}
+#tm canvas {
+    border: 3px solid rgb(24, 93, 139);
+}
+#cell-legend .key {
+    border: solid black 2px;
+    width: 50px;
+    height: 50px;
+}
+#cell-legend .inactive {
+    background-color: #FFFFFF;
+}
+#cell-legend .active {
+    background-color: #FFFF00;
+}
+#cell-legend .predictive {
+    background-color: #FF0000;
+}
+#cell-legend .active.predictive {
+    background-color: #FFAC33;
+}
+#cell-legend .correct {
+    background-color: #6699FF;
+}
+#cell-legend .desc {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+body {
+    background-color: #e0e0e0;
+}
+.on {
+    background-color: #fdffa1 !important;
+    box-shadow: 0 0 10px 4px #79fcff
+}
+#sequencer-grid table {
+    border-collapse: inherit;
+    border-spacing: 10px;
+}
+#sequencer-grid table td {
+    border-radius: 14px;
+    text-align: center;
+    color: grey;
+}
+.note {
+    background-color: white;
+    width: 60px;
+    height: 60px;
+    border: solid #485048 3px;
+}
+#sequencer-grid table td.on-beat {
+    box-shadow: 0 0 10px 4px #ff4845
+}
+#sequencer-grid table td.prediction {
+    border: blue dotted 5px;
+    /*box-shadow: 0 0 10px 4px yellow*/
+}
+#sequencer-grid table tr.info td {
+    box-shadow: none;
+    color: darkred;
+}
+#sequencer-grid table tr.info td.correct {
+    color: green;
+}
+.sequencer-container {
+    padding: 20px;
+    background-color: #89b4dd;
+    width: 100%;
+}
+
+#player, #sequencer-grid {
+    position: absolute;
+    top: 10px;
+}
+#player {
+    right: 270px;
+    top: 10px;
+}
+#sequencer-grid {
+    left: 10px;
+    width: 540px;
+    border: 1px solid black;
+    border-radius: 20px;
+}
+
+h1 {
+    display: none;
+}
+
+#legend {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-size: 14pt;
+    width: 500px;
+    border: solid black 1px;
+    border-radius: 20px;
+    background-color: white;
+    padding: 10px 0;
+}
+
+#legend li span {
+    float: left;
+    width: 20px;
+    height: 20px;
+    border: solid black 1px;
+    margin-right: 10px;
+    font-size: 20pt;
+}
+#legend li {
+    list-style: none;
+}
+
+#legend .count {
+    min-width: 100px;
+    padding-left: 40px;
+    font-family: Menlo;
+}
+
+#note-columns {
+    position: absolute;
+    top: 10px;
+    right: 400px;
+}
+#note-columns ul li {
+    border-radius: 14px;
+    text-align: center;
+    color: grey;
+    list-style: none;
+    padding-top: 10px;
+}

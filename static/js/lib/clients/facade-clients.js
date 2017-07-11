@@ -26,22 +26,6 @@ $(function() {
         return out;
     }
 
-    function shouldCleanSlate() {
-        if (window.HTM_SCHOOL && window.HTM_SCHOOL._slateIsCleaned) {
-            return false;
-        } else {
-            markSlateClean();
-            return true;
-        }
-    }
-
-    function markSlateClean() {
-        if (! window.HTM_SCHOOL) {
-            window.HTM_SCHOOL = {};
-        }
-        window.HTM_SCHOOL._slateIsCleaned = true;
-    }
-
     // TODO: Create an abstract base class for these two clients.
 
     ////////////////////////////////////////////////////////
@@ -61,13 +45,8 @@ $(function() {
         BST_FCTRS: 'boostFactors'
     };
 
-    function SpatialPoolerClient(save, cleanSlate) {
+    function SpatialPoolerClient(save) {
         this._id = undefined;
-        if (cleanSlate !== undefined) {
-            this._cleanSlate = cleanSlate;
-        } else {
-            this._cleanSlate = shouldCleanSlate();
-        }
         this._save = save;
         if (this._save == undefined) {
             this._save = false;
@@ -78,46 +57,30 @@ $(function() {
         var me = this;
         var url = host + '/_sp/';
 
-        function doInit() {
-            me.params = params;
-            var payload = {
-              params: params,
-              states: [
-                SpSnapshots.ACT_COL,
-                SpSnapshots.POT_POOLS,
-                SpSnapshots.CON_SYN,
-                SpSnapshots.PERMS
-              ],
-              save: me._save
-            };
-            $.ajax({
-                type: 'POST',
-                url: url,
-                data: JSON.stringify(payload),
-                success: function(response) {
-                    me._id = response.id;
-                    callback(null, response);
-                },
-                dataType: 'JSON'
-            });
-        }
+        me.params = params;
 
-        if (this._cleanSlate) {
-            this._flush(doInit);
-        } else {
-            doInit();
-        }
+        var payload = {
+          params: params,
+          states: [
+            SpSnapshots.ACT_COL,
+            SpSnapshots.POT_POOLS,
+            SpSnapshots.CON_SYN,
+            SpSnapshots.PERMS
+          ],
+          save: me._save
+        };
 
-    };
-
-    SpatialPoolerClient.prototype._flush = function(callback) {
-        var url = host + '/_flush/';
-        console.log('flushing');
         $.ajax({
-            type: 'DELETE',
+            type: 'POST',
             url: url,
-            success: callback
+            data: JSON.stringify(payload),
+            success: function(response) {
+                me._id = response.id;
+                callback(null, response);
+            },
+            dataType: 'JSON'
         });
+
     };
 
     SpatialPoolerClient.prototype.compute =
