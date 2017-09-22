@@ -11,7 +11,7 @@ $(function() {
     // SP params we are not allowing user to change
     var inputDimensions = [100];
     var columnDimensions = [1024];
-    var cellsPerColumn = 4;
+    var cellsPerColumn = 16;
     var spParams = new HTM.utils.sp.Params(
         'sp-params', inputDimensions, columnDimensions
     );
