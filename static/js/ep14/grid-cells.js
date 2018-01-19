@@ -1,7 +1,5 @@
 $(function() {
 
-
-
     function getRandomInt(min, max) {
       min = Math.ceil(min);
       max = Math.floor(max);
@@ -16,14 +14,14 @@ $(function() {
         let gridCellModules = [];
 
         for (let i of Array(numModules).keys()) {
-            var width = 4;
-            var height = 4;
+            var width = 10;
+            var height = 10;
             var scale = 20;
             var red = getRandomInt(0, 255);
             var green = getRandomInt(0, 255);
             var blue = getRandomInt(0, 255);
             var dotSize = 5;
-            var orientation = getRandomInt(0, 30);
+            var orientation = getRandomInt(0, 60);
             let module = new window.HTM.utils.gridCells.GridCellModule(width, height, scale, dotSize, orientation, red, green, blue);
             module.render(ctx, canvas.width, canvas.height);
             gridCellModules.push(module);

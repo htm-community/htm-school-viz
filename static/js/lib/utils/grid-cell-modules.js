@@ -77,7 +77,13 @@ $(function() {
         }
 
         createPoints(width, height) {
-            let x = -width, y = -height, gridx = 0, gridy = 0;
+            // By starting x,y lower than 0, we draw points far outside the
+            // canvas frame, which might be necessary if there is a rotation.
+            // We don't want any areas in the canvas frame with no cell
+            // coverage. You'll see the same thing below (*) as we are counting
+            // up. We create points far beyond the canvas frame just in case we
+            // need them for rotations.
+            let x = -width*2, y = -height*2, gridx = 0, gridy = 0;
             let id = 0;
             let points = [];
             while (y <= height*2) {
