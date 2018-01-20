@@ -37,6 +37,7 @@ $(function() {
             this.g = g; // green
             this.b = b; // blue
             this.a = 0.1; // alpha defaults to dim.
+            this.sensitivity = 1;
             this.cells = this.createGridCells();
         }
 
@@ -76,7 +77,7 @@ $(function() {
             return cells;
         }
 
-        createPoints(width, height) {
+        createPoints(width, height, ignoreOrientation) {
             // By starting x,y lower than 0, we draw points far outside the
             // canvas frame, which might be necessary if there is a rotation.
             // We don't want any areas in the canvas frame with no cell
@@ -95,7 +96,7 @@ $(function() {
                     // Odd rows shifted for isometric display
                     if (gridy % 2 > 0) { xmod += this.length / 2; }
                     // If orientation is not 0, translate
-                    if (this.orientation != 0) {
+                    if (! ignoreOrientation && this.orientation != 0) {
                         let rotatedPoint = translatePoint(x, y, this.orientation);
                         xmod = rotatedPoint.x;
                         ymod = rotatedPoint.y;
@@ -115,29 +116,45 @@ $(function() {
             return points;
         }
 
-        render(ctx, width, height) {
+        render(ctx, width, height, showInactiveCells, ignoreOrientation) {
             var me = this;
             var activeGridCells = this.activeGridCells;
-            this.points = this.createPoints(width, height);
+            this.points = this.createPoints(width, height, ignoreOrientation);
             this.points.forEach(function(p, count) {
                 let x = p.x, y = p.y, size = p.size;
-                if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                    me.a = 0.3;
+
+                if (showInactiveCells) {
+                  if (activeGridCells && activeGridCells.includes(p.gridCell)) {
+                      me.a = 1.0;
+                  } else {
+                      me.a = 0.2;
+                  }
+                  ctx.fillStyle = me.fillStyle;
+                  ctx.beginPath();
+                  ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+                  ctx.fill();
+                  // ctx.fillStyle = 'white';
+                  // ctx.fillText(count, x - size / 2, y + size / 2, size);
                 } else {
-                    me.a = 0.1;
+                  if (activeGridCells && activeGridCells.includes(p.gridCell)) {
+                      me.a = 0.75;
+                      ctx.fillStyle = me.fillStyle;
+                      ctx.beginPath();
+                      ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+                      ctx.fill();
+                      // ctx.fillStyle = 'white';
+                      // ctx.fillText(count, x - size / 2, y + size / 2, size);
+                  }
                 }
-                ctx.fillStyle = me.fillStyle;
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-                ctx.fill();
-                // ctx.fillStyle = 'white';
-                // ctx.fillText(count, x - size / 2, y + size / 2, size);
+
             });
         }
 
         intersect(x, y) {
-            var cellsByDistance = this.getGridCellsByDistance(x, y);
-            this.activeGridCells = cellsByDistance.slice(0, 1);
+            let cellsByDistance = this.getGridCellsByDistance(x, y);
+            let cellsToChoose = this.width * this.height * (this.sensitivity / 100);
+            if (cellsToChoose < 1) cellsToChoose = 1;
+            this.activeGridCells = cellsByDistance.slice(0, cellsToChoose);
         }
     }
 
