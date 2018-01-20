@@ -6,7 +6,7 @@ $(function() {
     let $showRotation = $('#show-rotation').bootstrapSwitch({state: false});
     let gridCellModules = [];
     let showInactiveCells = false;
-    let showRotation = false;
+    let showRotation = true;
     let $gridCellModuleContainer = $('#grid-cell-module-canvas-container');
     let $nSlider = $('#n-slider');
     let cellSensitivity = 2 ;
