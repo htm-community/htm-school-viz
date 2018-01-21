@@ -1,4 +1,4 @@
-$(function() {
+$(function () {
 
     function translatePoint(x, y, degrees) {
         var radians = degrees * (Math.PI / 180);
@@ -47,15 +47,15 @@ $(function() {
 
         getGridCellsByDistance(x, y) {
             var points = this.points;
-            var mappedDistances = points.map(function(p, i) {
+            var mappedDistances = points.map(function (p, i) {
                 return {index: i, distance: Math.hypot(p.x - x, p.y - y)};
             });
-            mappedDistances.sort(function(a, b) {
+            mappedDistances.sort(function (a, b) {
                 if (a.distance > b.distance) return 1;
                 if (a.distance < b.distance) return -1;
                 return 0;
             });
-            return mappedDistances.map(function(mappedDistance) {
+            return mappedDistances.map(function (mappedDistance) {
                 return points[mappedDistance.index].gridCell;
             });
         }
@@ -84,19 +84,21 @@ $(function() {
             // coverage. You'll see the same thing below (*) as we are counting
             // up. We create points far beyond the canvas frame just in case we
             // need them for rotations.
-            let x = -width, y = -height*3, gridx = 0, gridy = 0;
+            let x = -width, y = -height * 3, gridx = 0, gridy = 0;
             let id = 0;
             let points = [];
-            while (y <= height*2) {
+            while (y <= height * 2) {
                 let row = [];
                 gridx = 0;
-                while (x <= width*2) {
+                while (x <= width * 2) {
                     let xmod = x;
                     let ymod = y;
                     // Odd rows shifted for isometric display
-                    if (gridy % 2 > 0) { xmod += this.length / 2; }
+                    if (gridy % 2 > 0) {
+                        xmod += this.length / 2;
+                    }
                     // If orientation is not 0, translate
-                    if (! ignoreOrientation && this.orientation != 0) {
+                    if (!ignoreOrientation && this.orientation != 0) {
                         let rotatedPoint = translatePoint(x, y, this.orientation);
                         xmod = rotatedPoint.x;
                         ymod = rotatedPoint.y;
@@ -120,31 +122,31 @@ $(function() {
             var me = this;
             var activeGridCells = this.activeGridCells;
             this.points = this.createPoints(width, height, ignoreOrientation);
-            this.points.forEach(function(p, count) {
+            this.points.forEach(function (p, count) {
                 let x = p.x, y = p.y, size = p.size;
 
                 if (showInactiveCells) {
-                  if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                      me.a = 1.0;
-                  } else {
-                      me.a = 0.2;
-                  }
-                  ctx.fillStyle = me.fillStyle;
-                  ctx.beginPath();
-                  ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-                  ctx.fill();
-                  // ctx.fillStyle = 'white';
-                  // ctx.fillText(count, x - size / 2, y + size / 2, size);
+                    if (activeGridCells && activeGridCells.includes(p.gridCell)) {
+                        me.a = 1.0;
+                    } else {
+                        me.a = 0.2;
+                    }
+                    ctx.fillStyle = me.fillStyle;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+                    ctx.fill();
+                    // ctx.fillStyle = 'white';
+                    // ctx.fillText(count, x - size / 2, y + size / 2, size);
                 } else {
-                  if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                      me.a = 0.75;
-                      ctx.fillStyle = me.fillStyle;
-                      ctx.beginPath();
-                      ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-                      ctx.fill();
-                      // ctx.fillStyle = 'white';
-                      // ctx.fillText(count, x - size / 2, y + size / 2, size);
-                  }
+                    if (activeGridCells && activeGridCells.includes(p.gridCell)) {
+                        me.a = 0.75;
+                        ctx.fillStyle = me.fillStyle;
+                        ctx.beginPath();
+                        ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+                        ctx.fill();
+                        // ctx.fillStyle = 'white';
+                        // ctx.fillText(count, x - size / 2, y + size / 2, size);
+                    }
                 }
 
             });

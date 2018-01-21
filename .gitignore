@@ -13,3 +13,6 @@ dump.rdb
 
 # local soft links for development convenience
 static/js/third/dyson-bundle.js
+
+# NPM I guess does this?
+package-lock.json
