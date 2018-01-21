@@ -3,10 +3,8 @@ $(function () {
     let worldCanvas = document.getElementById('world');
     let worldCtx = worldCanvas.getContext('2d');
     let $showInactive = $('#show-inactive').bootstrapSwitch({state: false});
-    let $showRotation = $('#show-rotation').bootstrapSwitch({state: false});
     let gridCellModules = [];
     let showInactiveCells = false;
-    let showRotation = true;
     let $gridCellModuleContainer = $('#grid-cell-module-canvas-container');
     let $nSlider = $('#n-slider');
     let cellSensitivity = 2;
@@ -18,35 +16,44 @@ $(function () {
         return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
     }
 
-    function drawGridCellModuleCanvas(module, count) {
+    function drawGridCellModuleCanvas(module, id) {
         let width = module.width * module.length + module.length / 2;
         let height = module.height * module.length;
         // console.log("Converting module w/h/l %s/%s/%s to pixels %s , %s", module.width, module.height, module.length, width, height);
-        let $module = $gridCellModuleContainer.find('#module-' + count);
+        let $module = $gridCellModuleContainer.find('#module-' + id);
         if ($module.length == 0) {
-            $module = $('<canvas id="module-' + count + '" width="'
+            $module = $('<canvas id="module-' + id + '" width="'
                 + (width - module.length) + '" height="' + (height - module.length) + '"></canvas>');
             $module.appendTo($gridCellModuleContainer);
         }
-        let modCanvas = document.getElementById('module-' + count);
+        let modCanvas = document.getElementById('module-' + id);
+        let $modCanvas = $(modCanvas);
         let modCtx = modCanvas.getContext('2d');
-        let rotateString = 'rotate(0deg)';
-        if (showRotation) {
-            rotateString = 'rotate(' + module.orientation + 'deg)';
+
+        //let rotateString = 'rotate(' + module.orientation + 'deg)';
+        //$modCanvas.css({
+        //    'transform': rotateString
+        //});
+
+        if (! module.listening) {
+            console.log("adding event listener to module-%s canvas", id);
+            $modCanvas.on('mousemove', function (evt) {
+                let mousePos = getMousePos(modCanvas, evt);
+                intersectModule(id, mousePos.x, mousePos.y);
+                evt.stopPropagation();
+                evt.preventDefault();
+            });
+            module.listening = true;
         }
-        $(modCanvas).css({
-            '-moz-transform': rotateString,
-            '-webkit-transform': rotateString,
-            '-o-transform': rotateString,
-            '-ms-transform': rotateString,
-            'transform': rotateString
+        module.render(modCtx, modCanvas.width, modCanvas.height, true, false);
+    }
+
+    function intersectModule(moduleId, x, y) {
+        gridCellModules.forEach(function(module, i) {
+            if (i == moduleId) module.intersect(x, y);
+            else module.clearGridCells();
         });
-        modCanvas.addEventListener('mousemove', function (evt) {
-            let mousePos = getMousePos(modCanvas, evt);
-            console.log('over module %s at %s,%s', count, mousePos.x, mousePos.y);
-            intersectModule(count, mousePos.x, mousePos.y);
-        }, false);
-        module.render(modCtx, modCanvas.width, modCanvas.height, true, true);
+        redraw();
     }
 
     function draw() {
@@ -80,20 +87,6 @@ $(function () {
         }
     }
 
-    function intersectModule(moduleId, x, y) {
-        worldCtx.clearRect(0, 0, worldCanvas.width, worldCanvas.height);
-        gridCellModules.forEach(function (module, i) {
-            module.sensitivity = cellSensitivity;
-            let moduleCanvas = document.getElementById('module-' + i);
-            let moduleCtx = moduleCanvas.getContext('2d');
-            moduleCtx.clearRect(0, 0, moduleCanvas.width, moduleCanvas.height);
-            //drawGridCellModuleCanvas(module, i);
-            //module.render(moduleCtx, moduleCanvas.width, moduleCanvas.height, true, true);
-            //module.render(ctx, worldCanvas.width, worldCanvas.height, showInactiveCells);
-        });
-
-    }
-
     function redraw() {
         worldCtx.clearRect(0, 0, worldCanvas.width, worldCanvas.height);
         gridCellModules.forEach(function (module, i) {
@@ -101,9 +94,13 @@ $(function () {
             let moduleCanvas = document.getElementById('module-' + i);
             let moduleCtx = moduleCanvas.getContext('2d');
             moduleCtx.clearRect(0, 0, moduleCanvas.width, moduleCanvas.height);
-            drawGridCellModuleCanvas(module, i);
-            module.render(moduleCtx, moduleCanvas.width, moduleCanvas.height, true, true);
-            module.render(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
+            if (selectedGridCellModuleIndex == undefined) {
+                drawGridCellModuleCanvas(module, i);
+                module.render(moduleCtx, moduleCanvas.width, moduleCanvas.height, true, false);
+                module.render(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
+            } else {
+
+            }
         });
     }
 
@@ -115,27 +112,19 @@ $(function () {
         };
     }
 
-    function intersectPoint(x, y) {
-        gridCellModules.forEach(function (module) {
-            module.intersect(x, y);
-        });
-        redraw();
-    }
-
     worldCanvas.addEventListener('mousemove', function (evt) {
         var mousePos = getMousePos(worldCanvas, evt);
         selectedGridCellModuleIndex = undefined;
-        intersectPoint(mousePos.x, mousePos.y);
+        gridCellModules.forEach(function (module) {
+            module.intersect(mousePos.x, mousePos.y);
+        });
+        redraw();
         evt.stopPropagation();
         evt.preventDefault();
     }, false);
 
     $showInactive.on('switchChange.bootstrapSwitch', function (evt, state) {
         showInactiveCells = !showInactiveCells;
-    });
-
-    $showRotation.on('switchChange.bootstrapSwitch', function (evt, state) {
-        showRotation = !showRotation;
     });
 
     $nSlider.slider({
