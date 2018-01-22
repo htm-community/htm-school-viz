@@ -3,8 +3,6 @@ $(function () {
     let worldCanvas = document.getElementById('world');
     let worldCtx = worldCanvas.getContext('2d');
     let gridCellModules = [];
-    let showInactiveCells = false;
-    let $showInactive = $('#show-inactive').bootstrapSwitch({state: showInactiveCells});
     let $gridCellModuleContainer = $('#grid-cell-module-canvas-container');
     let $nSlider = $('#n-slider');
     let cellSensitivity = 2;
@@ -19,7 +17,6 @@ $(function () {
     function drawGridCellModuleCanvas(module, id) {
         let width = module.width * module.length + module.length / 2;
         let height = module.height * module.length;
-        // console.log("Converting module w/h/l %s/%s/%s to pixels %s , %s", module.width, module.height, module.length, width, height);
         let $module = $gridCellModuleContainer.find('#module-' + id);
         if ($module.length == 0) {
             $module = $('<canvas id="module-' + id + '" width="'
@@ -30,15 +27,13 @@ $(function () {
         let $modCanvas = $(modCanvas);
         let modCtx = modCanvas.getContext('2d');
 
-        //let rotateString = 'rotate(' + module.orientation + 'deg)';
-        //$modCanvas.css({
-        //    'transform': rotateString
-        //});
-
+        /**************************************************
+         * This is the Grid Cell Module mouseover handler.
+         **************************************************/
         if (! module.listening) {
-            console.log("adding event listener to module-%s canvas", id);
             $modCanvas.on('mousemove', function (evt) {
                 let mousePos = getMousePos(modCanvas, evt);
+                selectedGridCellModuleIndex = id;
                 intersectModule(id, mousePos.x, mousePos.y);
             });
             module.listening = true;
@@ -60,12 +55,14 @@ $(function () {
         gridCellModules = [];
 
         for (let i of Array(numModules).keys()) {
+            let darkness = 200;
             let width = getRandomInt(3, 8);
-            let height = getRandomInt(3, 8);
-            let scale = getRandomInt(10, 60);
-            let red = getRandomInt(0, 255);
-            let green = getRandomInt(0, 255);
-            let blue = getRandomInt(0, 255);
+            let height = width;
+            if (height%2==1) height++;
+            let scale = getRandomInt(10, 80);
+            let red = getRandomInt(0, darkness);
+            let green = getRandomInt(0, darkness);
+            let blue = getRandomInt(0, darkness);
             let dotSize = scale / 4;
             let orientation = getRandomInt(0, 60);
             let module = new window.HTM.utils.gridCells.GridCellModule(
@@ -88,7 +85,7 @@ $(function () {
 
         for (let i = 0; i < gridCellModules.length; i++) {
             let module = gridCellModules[i];
-            module.renderWorld(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
+            module.renderWorld(worldCtx, worldCanvas.width, worldCanvas.height);
             drawGridCellModuleCanvas(module, i);
         }
     }
@@ -99,14 +96,15 @@ $(function () {
             module.sensitivity = cellSensitivity;
             let moduleCanvas = document.getElementById('module-' + i);
             let moduleCtx = moduleCanvas.getContext('2d');
+            let showInactive = selectedGridCellModuleIndex == i;
             moduleCtx.clearRect(0, 0, moduleCanvas.width, moduleCanvas.height);
-            if (selectedGridCellModuleIndex == undefined) {
-                //drawGridCellModuleCanvas(module, i);
-                module.renderWorld(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
-                module.renderGridCellModule(moduleCtx, moduleCanvas.width, moduleCanvas.height, true);
-            } else {
+            module.renderWorld(worldCtx, worldCanvas.width, worldCanvas.height, showInactive);
+            module.renderGridCellModule(moduleCtx, moduleCanvas.width, moduleCanvas.height, true);
 
-            }
+            //if (selectedGridCellModuleIndex == undefined) {
+            //} else {
+            //
+            //}
         });
     }
 
@@ -118,6 +116,9 @@ $(function () {
         };
     }
 
+    /**************************************************
+     * This is the WORLD mouseover handler.
+     **************************************************/
     worldCanvas.addEventListener('mousemove', function (evt) {
         var mousePos = getMousePos(worldCanvas, evt);
         selectedGridCellModuleIndex = undefined;
@@ -126,10 +127,6 @@ $(function () {
         });
         redraw();
     }, false);
-
-    $showInactive.on('switchChange.bootstrapSwitch', function (evt, state) {
-        showInactiveCells = state;
-    });
 
     $nSlider.slider({
         min: 1, max: 100, value: 1, step: 1,

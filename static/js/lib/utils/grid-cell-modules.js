@@ -164,16 +164,9 @@ $(function () {
             });
         }
 
-        intersect(x, y, translate) {
+        intersect(x, y) {
             console.log("Intersecting module at %s, %s", x, y);
-            let xmod = x, ymod = y;
-            //if (translate) {
-            //    let rotatedPoint = translatePoint(x, y, -this.orientation);
-            //    xmod = rotatedPoint.x;
-            //    ymod = rotatedPoint.y;
-            //    // console.log("%s: from %s,%s to %s,%s", this.orientation, x, y, xmod, ymod);
-            //}
-            let cellsByDistance = this.getGridCellsByDistance(xmod, ymod);
+            let cellsByDistance = this.getGridCellsByDistance(x, y);
             let cellsToChoose = this.width * this.height * (this.sensitivity / 100);
             if (cellsToChoose < 1) cellsToChoose = 1;
             this.activeGridCells = cellsByDistance.slice(0, cellsToChoose);
