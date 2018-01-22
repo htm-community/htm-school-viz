@@ -2,9 +2,9 @@ $(function () {
 
     let worldCanvas = document.getElementById('world');
     let worldCtx = worldCanvas.getContext('2d');
-    let $showInactive = $('#show-inactive').bootstrapSwitch({state: false});
     let gridCellModules = [];
     let showInactiveCells = false;
+    let $showInactive = $('#show-inactive').bootstrapSwitch({state: showInactiveCells});
     let $gridCellModuleContainer = $('#grid-cell-module-canvas-container');
     let $nSlider = $('#n-slider');
     let cellSensitivity = 2;
@@ -40,8 +40,6 @@ $(function () {
             $modCanvas.on('mousemove', function (evt) {
                 let mousePos = getMousePos(modCanvas, evt);
                 intersectModule(id, mousePos.x, mousePos.y);
-                evt.stopPropagation();
-                evt.preventDefault();
             });
             module.listening = true;
         }
@@ -51,7 +49,7 @@ $(function () {
     function intersectModule(moduleId, x, y) {
         gridCellModules.forEach(function(module, i) {
             if (i == moduleId) module.intersect(x, y);
-            else module.clearGridCells();
+            else module.clearActiveGridCells();
         });
         redraw();
     }
@@ -61,20 +59,20 @@ $(function () {
         let numModules = 10;
         gridCellModules = [];
 
-        //for (let i of Array(numModules).keys()) {
-        //    let width = getRandomInt(3, 8);
-        //    let height = getRandomInt(3, 8);
-        //    let scale = getRandomInt(10, 60);
-        //    let red = getRandomInt(0, 255);
-        //    let green = getRandomInt(0, 255);
-        //    let blue = getRandomInt(0, 255);
-        //    let dotSize = scale / 4;
-        //    let orientation = getRandomInt(0, 60);
-        //    let module = new window.HTM.utils.gridCells.GridCellModule(
-        //        width, height, scale, dotSize, orientation, red, green, blue
-        //    );
-        //    gridCellModules.push(module);
-        //}
+        for (let i of Array(numModules).keys()) {
+            let width = getRandomInt(3, 8);
+            let height = getRandomInt(3, 8);
+            let scale = getRandomInt(10, 60);
+            let red = getRandomInt(0, 255);
+            let green = getRandomInt(0, 255);
+            let blue = getRandomInt(0, 255);
+            let dotSize = scale / 4;
+            let orientation = getRandomInt(0, 60);
+            let module = new window.HTM.utils.gridCells.GridCellModule(
+                width, height, scale, dotSize, orientation, red, green, blue
+            );
+            gridCellModules.push(module);
+        }
 
         gridCellModules.push(new window.HTM.utils.gridCells.GridCellModule(
             4, 4, 50, 10, 30, 255, 0, 0
@@ -103,7 +101,7 @@ $(function () {
             let moduleCtx = moduleCanvas.getContext('2d');
             moduleCtx.clearRect(0, 0, moduleCanvas.width, moduleCanvas.height);
             if (selectedGridCellModuleIndex == undefined) {
-                drawGridCellModuleCanvas(module, i);
+                //drawGridCellModuleCanvas(module, i);
                 module.renderWorld(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
                 module.renderGridCellModule(moduleCtx, moduleCanvas.width, moduleCanvas.height, true);
             } else {
@@ -127,12 +125,10 @@ $(function () {
             module.intersect(mousePos.x, mousePos.y);
         });
         redraw();
-        evt.stopPropagation();
-        evt.preventDefault();
     }, false);
 
     $showInactive.on('switchChange.bootstrapSwitch', function (evt, state) {
-        showInactiveCells = !showInactiveCells;
+        showInactiveCells = state;
     });
 
     $nSlider.slider({

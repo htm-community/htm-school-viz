@@ -1,5 +1,20 @@
 $(function () {
 
+    function includesGridCell(cells, gridCell) {
+        let out = false;
+        if (cells.length == 0) return out;
+        for (let i = 0; i < cells.length; i++) {
+            let c = cells[i];
+            if (c.x == gridCell.x && c.y) {
+                out = true;
+                break;
+            }
+        }
+        return out;
+    }
+
+    var uniqueArray = (arrArg) => arrArg.filter((elem, pos, arr) => arr.indexOf(elem) == pos);
+
     function translatePoint(pointX, pointY, originX, originY, degrees) {
         var angle = degrees * (Math.PI / 180);
         return {
@@ -37,6 +52,7 @@ $(function () {
             this.a = 0.1; // alpha defaults to dim.
             this.sensitivity = 1;
             this.cells = this.createGridCells();
+            this.clearActiveGridCells();
         }
 
         get fillStyle() {
@@ -53,9 +69,9 @@ $(function () {
                 if (a.distance < b.distance) return -1;
                 return 0;
             });
-            return mappedDistances.map(function (mappedDistance) {
+            return uniqueArray(mappedDistances.map(function (mappedDistance) {
                 return points[mappedDistance.index].gridCell;
-            });
+            }));
         }
 
         createGridCells() {
@@ -75,13 +91,6 @@ $(function () {
         }
 
         createPoints(width, height) {
-            // By starting y lower than 0, we draw points far north of the
-            // canvas frame, which might be necessary if there is a rotation.
-            // We don't want any areas in the canvas frame with no cell
-            // coverage. You'll see the same thing below (*) as we are counting
-            // up. We create points far beyond the canvas frame just in case we
-            // need them for rotations.
-            //let x = -width, y = -height * 3, gridx = 0, gridy = 0;
             let x = 0, y = 0, gridx = 0, gridy = 0;
             let id = 0;
             let points = [];
@@ -95,9 +104,9 @@ $(function () {
                         xmod += this.length / 2;
                     }
                     // Rotate, using center as origin.
-                    let rotatedPoint = translatePoint(x, y, width / 2, height / 2, this.orientation);
-                    xmod = rotatedPoint.x;
-                    ymod = rotatedPoint.y;
+                    //let rotatedPoint = translatePoint(x, y, width / 2, height / 2, this.orientation);
+                    //xmod = rotatedPoint.x;
+                    //ymod = rotatedPoint.y;
                     let p = new Point(id++, xmod, ymod, this.dotSize, gridx, gridy);
                     p.gridCell = this.cells[gridy][gridx];
                     points.push(p);
@@ -114,39 +123,32 @@ $(function () {
         }
 
         renderWorld(ctx, width, height, showInactiveCells) {
-            var me = this;
-            var activeGridCells = this.activeGridCells;
+            let me = this;
+            let activeGridCells = this.activeGridCells;
+            let agc = activeGridCells[0];
+            //if (agc) console.log("Active grid cell at %s,%s", agc.x, agc.y);
             this.points = this.createPoints(width, height);
             this.points.forEach(function (p) {
                 let x = p.x, y = p.y, size = p.size;
-                if (showInactiveCells) {
-                    if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                        me.a = 1.0;
-                    } else {
-                        me.a = 0.2;
-                    }
-                    ctx.fillStyle = me.fillStyle;
-                    ctx.beginPath();
-                    ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-                    ctx.fill();
+                //console.log(" scanning grid cell at %s,%s", p.gridCell.x, p.gridCell.y);
+                if (activeGridCells && activeGridCells.includes(p.gridCell)) {
+                    me.a = 1.0;
                 } else {
-                    if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                        me.a = 0.75;
-                        ctx.fillStyle = me.fillStyle;
-                        ctx.beginPath();
-                        ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-                        ctx.fill();
-                    }
+                    if (showInactiveCells) me.a = 0.2;
+                    else me.a = 0.0;
                 }
-
+                ctx.fillStyle = me.fillStyle;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+                ctx.fill();
             });
         }
 
         renderGridCellModule(ctx, width, height) {
             var me = this;
             var activeGridCells = this.activeGridCells;
-            this.points = this.createPoints(width, height);
-            this.points.forEach(function (p, i) {
+            this.gridCellPoints = this.createPoints(width, height);
+            this.gridCellPoints.forEach(function (p, i) {
                 let x = p.x, y = p.y, size = p.size;
                     if (activeGridCells && activeGridCells.includes(p.gridCell)) {
                         me.a = 1.0;
@@ -165,19 +167,20 @@ $(function () {
         intersect(x, y, translate) {
             console.log("Intersecting module at %s, %s", x, y);
             let xmod = x, ymod = y;
-            if (translate) {
-                let rotatedPoint = translatePoint(x, y, -this.orientation);
-                xmod = rotatedPoint.x;
-                ymod = rotatedPoint.y;
-                // console.log("%s: from %s,%s to %s,%s", this.orientation, x, y, xmod, ymod);
-            }
+            //if (translate) {
+            //    let rotatedPoint = translatePoint(x, y, -this.orientation);
+            //    xmod = rotatedPoint.x;
+            //    ymod = rotatedPoint.y;
+            //    // console.log("%s: from %s,%s to %s,%s", this.orientation, x, y, xmod, ymod);
+            //}
             let cellsByDistance = this.getGridCellsByDistance(xmod, ymod);
             let cellsToChoose = this.width * this.height * (this.sensitivity / 100);
             if (cellsToChoose < 1) cellsToChoose = 1;
             this.activeGridCells = cellsByDistance.slice(0, cellsToChoose);
+            console.log(this.activeGridCells[0])
         }
 
-        clearGridCells() {
+        clearActiveGridCells() {
             this.activeGridCells = [];
         }
     }
