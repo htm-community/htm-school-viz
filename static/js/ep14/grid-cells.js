@@ -45,7 +45,7 @@ $(function () {
             });
             module.listening = true;
         }
-        module.render(modCtx, modCanvas.width, modCanvas.height, true, false);
+        module.renderGridCellModule(modCtx, modCanvas.width, modCanvas.height, true);
     }
 
     function intersectModule(moduleId, x, y) {
@@ -58,31 +58,39 @@ $(function () {
 
     function draw() {
         worldCtx.clearRect(0, 0, worldCanvas.width, worldCanvas.height);
-        let numModules = 4;
+        let numModules = 10;
         gridCellModules = [];
 
-        for (let i of Array(numModules).keys()) {
-            let width = getRandomInt(3, 8);
-            let height = getRandomInt(3, 8);
-            let scale = getRandomInt(10, 60);
-            let red = getRandomInt(0, 255);
-            let green = getRandomInt(0, 255);
-            let blue = getRandomInt(0, 255);
-            let dotSize = scale / 4;
-            let orientation = getRandomInt(0, 60);
-            let module = new window.HTM.utils.gridCells.GridCellModule(
-                width, height, scale, dotSize, orientation, red, green, blue
-            );
-            gridCellModules.push(module);
-        }
+        //for (let i of Array(numModules).keys()) {
+        //    let width = getRandomInt(3, 8);
+        //    let height = getRandomInt(3, 8);
+        //    let scale = getRandomInt(10, 60);
+        //    let red = getRandomInt(0, 255);
+        //    let green = getRandomInt(0, 255);
+        //    let blue = getRandomInt(0, 255);
+        //    let dotSize = scale / 4;
+        //    let orientation = getRandomInt(0, 60);
+        //    let module = new window.HTM.utils.gridCells.GridCellModule(
+        //        width, height, scale, dotSize, orientation, red, green, blue
+        //    );
+        //    gridCellModules.push(module);
+        //}
 
-        // gridCellModules.push(new window.HTM.utils.gridCells.GridCellModule(
-        //   6, 4, 20, 5, 10, getRandomInt(0, 255), getRandomInt(0, 255), getRandomInt(0, 255)
-        // ));
+        gridCellModules.push(new window.HTM.utils.gridCells.GridCellModule(
+            4, 4, 50, 10, 30, 255, 0, 0
+        ));
+
+        //gridCellModules.push(new window.HTM.utils.gridCells.GridCellModule(
+        //    3, 3, 60, 10, 0, 0, 255, 0
+        //));
+        //
+        //gridCellModules.push(new window.HTM.utils.gridCells.GridCellModule(
+        //    4, 4, 70, 10, 0, 0, 0, 255
+        //));
 
         for (let i = 0; i < gridCellModules.length; i++) {
             let module = gridCellModules[i];
-            module.render(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
+            module.renderWorld(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
             drawGridCellModuleCanvas(module, i);
         }
     }
@@ -96,8 +104,8 @@ $(function () {
             moduleCtx.clearRect(0, 0, moduleCanvas.width, moduleCanvas.height);
             if (selectedGridCellModuleIndex == undefined) {
                 drawGridCellModuleCanvas(module, i);
-                module.render(moduleCtx, moduleCanvas.width, moduleCanvas.height, true, false);
-                module.render(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
+                module.renderWorld(worldCtx, worldCanvas.width, worldCanvas.height, showInactiveCells);
+                module.renderGridCellModule(moduleCtx, moduleCanvas.width, moduleCanvas.height, true);
             } else {
 
             }
