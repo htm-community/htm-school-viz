@@ -24,7 +24,7 @@ $(function () {
     }
 
     class Point {
-        constructor(id, x, y, size, gridx, gridy) {
+        constructor(id, x, y, size) {
             this.id = id;
             this.x = x;
             this.y = y;
@@ -99,14 +99,16 @@ $(function () {
                 while (x <= width) {
                     let xmod = x;
                     let ymod = y;
+                    let originx = 0; // width / 2;
+                    let originy = 0; // height / 2;
                     // Odd rows shifted for isometric display
                     if (gridy % 2 > 0) {
                         xmod += this.length / 2;
                     }
                     // Rotate, using center as origin.
-                    //let rotatedPoint = translatePoint(x, y, width / 2, height / 2, this.orientation);
-                    //xmod = rotatedPoint.x;
-                    //ymod = rotatedPoint.y;
+                    let rotatedPoint = translatePoint(xmod, ymod, originx, originy, this.orientation);
+                    xmod = rotatedPoint.x;
+                    ymod = rotatedPoint.y;
                     let p = new Point(id++, xmod, ymod, this.dotSize, gridx, gridy);
                     p.gridCell = this.cells[gridy][gridx];
                     points.push(p);
@@ -125,12 +127,9 @@ $(function () {
         renderWorld(ctx, width, height, showInactiveCells) {
             let me = this;
             let activeGridCells = this.activeGridCells;
-            let agc = activeGridCells[0];
-            //if (agc) console.log("Active grid cell at %s,%s", agc.x, agc.y);
             this.points = this.createPoints(width, height);
             this.points.forEach(function (p) {
                 let x = p.x, y = p.y, size = p.size;
-                //console.log(" scanning grid cell at %s,%s", p.gridCell.x, p.gridCell.y);
                 if (activeGridCells && activeGridCells.includes(p.gridCell)) {
                     me.a = 1.0;
                 } else {
@@ -150,17 +149,18 @@ $(function () {
             this.gridCellPoints = this.createPoints(width, height);
             this.gridCellPoints.forEach(function (p, i) {
                 let x = p.x, y = p.y, size = p.size;
-                    if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                        me.a = 1.0;
-                    } else {
-                        me.a = 0.2;
-                    }
-                    ctx.fillStyle = me.fillStyle;
-                    ctx.beginPath();
-                    ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-                    ctx.fill();
-                    ctx.fillStyle = 'white';
-                    ctx.fillText(i, x - size / 2, y + size / 2, size);
+                if (activeGridCells && activeGridCells.includes(p.gridCell)) {
+                    me.a = 1.0;
+                } else {
+                    me.a = 0.2;
+                }
+                ctx.fillStyle = me.fillStyle;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                // todo: rotate text
+                ctx.fillText(i, x - size / 2, y + size / 2, size);
             });
         }
 
