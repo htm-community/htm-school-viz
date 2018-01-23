@@ -94,6 +94,8 @@ $(function () {
             let x = 0, y = 0, gridx = 0, gridy = 0;
             let id = 0;
             let points = [];
+            let offsetX = 0;
+            let offsetY = 0;
             while (y <= height) {
                 gridx = 0;
                 while (x <= width) {
@@ -101,6 +103,7 @@ $(function () {
                     let ymod = y;
                     let originx = 0; // width / 2;
                     let originy = 0; // height / 2;
+                    // offset by 1/2 width
                     // Odd rows shifted for isometric display
                     if (gridy % 2 > 0) {
                         xmod += this.length / 2;

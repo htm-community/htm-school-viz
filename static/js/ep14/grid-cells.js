@@ -25,9 +25,10 @@ $(function () {
     function drawGridCellModuleCanvas(module, id) {
         let width = module.width * module.length + module.length / 2;
         let height = module.height * module.length;
+        let longest = Math.max(width, height);
         $('body').append(gridCellModuleParamTemplate({
             id: id, size: module.dotSize,
-            width: width, height: height, length: module.length,
+            width: longest, height: longest, length: module.length,
             orientation: module.orientation
         }));
         let $rotationSlider = $('#rotation-slider-' + id);
