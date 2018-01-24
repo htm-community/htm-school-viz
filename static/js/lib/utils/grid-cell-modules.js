@@ -1,5 +1,10 @@
 $(function () {
 
+    // opacity
+    let off = 0.0;
+    let dim = 0.2;
+    let on = 1.0;
+
     function includesGridCell(cells, gridCell) {
         let out = false;
         if (cells.length == 0) return out;
@@ -24,18 +29,34 @@ $(function () {
     }
 
     class Point {
-        constructor(id, x, y, size) {
+        constructor(id, x, y, gridCell, size) {
             this.id = id;
             this.x = x;
             this.y = y;
+            this.gridCell = gridCell;
             this.size = size;
+            this.alpha = 0.3;
         }
+
     }
 
     class GridCell {
         constructor(x, y) {
             this.x = x;
             this.y = y;
+            this.active = false;
+        }
+
+        activate() {
+            this.active = true;
+        }
+
+        deactivate() {
+            this.active = false;
+        }
+
+        isActive() {
+            return this.active;
         }
     }
 
@@ -50,14 +71,17 @@ $(function () {
             this.r = r; // red
             this.g = g; // green
             this.b = b; // blue
-            this.a = 0.1; // alpha defaults to dim.
             this.sensitivity = 1;
-            this.cells = this.createGridCells();
+            this.gridCells = this.createGridCells();
             this.clearActiveGridCells();
         }
 
-        get fillStyle() {
-            return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + this.a + ')';
+        setWorld(world) {
+            this.$world = world;
+        }
+
+        setTile(tile) {
+            this.$tile = tile;
         }
 
         getGridCellsByDistance(x, y) {
@@ -95,8 +119,6 @@ $(function () {
             let x = 0, y = 0, gridx = 0, gridy = 0;
             let id = 0;
             let points = [];
-            let offsetX = 0;
-            let offsetY = 0;
             while (y <= height) {
                 gridx = 0;
                 while (x <= width) {
@@ -110,11 +132,14 @@ $(function () {
                         xmod += this.length / 2;
                     }
                     // Rotate, using center as origin.
-                    let rotatedPoint = translatePoint(xmod, ymod, originx, originy, this.orientation);
+                    let rotatedPoint = translatePoint(
+                        xmod, ymod, originx, originy, this.orientation
+                    );
                     xmod = rotatedPoint.x;
                     ymod = rotatedPoint.y;
-                    let p = new Point(id++, xmod, ymod, this.dotSize, gridx, gridy);
-                    p.gridCell = this.cells[gridy][gridx];
+                    let p = new Point(
+                        id++, xmod, ymod, this.gridCells[gridy][gridx], this.dotSize
+                    );
                     points.push(p);
                     x += this.length;
                     gridx++;
@@ -130,46 +155,34 @@ $(function () {
 
         _renderPoints(pnts, el) {
             let me = this;
-            let activeGridCells = me.activeGridCells;
+            //let activeGridCells = me.activeGridCells;
             let dots = el.selectAll("circle")
-                .data(pnts).enter()
-                .append("circle");
-            let dotAttributes = dots.attr("cx", function(p) { return p.x; })
+                .data(pnts);
+            dots.exit().remove();
+            dots.enter().append("circle")
+                .attr("cx", function(p) { return p.x; })
                 .attr("cy", function(p) { return p.y; })
                 .attr("r", function (p) { return p.size; })
                 .style("fill", function(p) {
-                    if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                        debugger;
-                    } else {
-                        return me.fillStyle;
+                    let alpha = p.alpha;
+                    if (p.gridCell.isActive()) {
+                        alpha = 1.0;
                     }
+                    return 'rgba(' + me.r + ',' + me.g + ',' + me.b + ',' + alpha + ')';
                 });
             return dots;
         }
 
-        renderD3World($world, showInactiveCells) {
+        renderD3World(showInactiveCells) {
             let me = this;
-            let activeGridCells = me.activeGridCells;
+            let $world = me.$world;
             me.points = me.createPoints($world.attr('width'), $world.attr('height'), true);
-            me.points.forEach(function (p) {
-                if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                    me.a = 1.0;
-                } else {
-                    if (showInactiveCells) me.a = 0.2;
-                    else me.a = 0.0;
-                }
-            });
-            let moduleGroup = $world.append("g").attr("id", me.id);
-
-            let dots = me._renderPoints(this.points, moduleGroup);
-
-            //dots.on('mousemove', function() {
-            //    me.intersect(d3.event.pageX, d3.event.pageY);
-            //    dots.data(me.points).enter();
-            //});
+            let moduleGroup = $world.append("g").attr("id", "module-" + me.id);
+            me._renderPoints(this.points, moduleGroup);
         }
 
-        renderD3GridCellModuleTile($tile) {
+        renderD3GridCellModuleTile() {
+            let $tile = this.$tile;
             let pixelWidth = this.width * this.length;
             let pixelHeight = this.height * this.length;
             $tile.attr('width', pixelWidth).attr('height', pixelHeight);
@@ -182,12 +195,19 @@ $(function () {
             let cellsByDistance = this.getGridCellsByDistance(x, y);
             let cellsToChoose = this.width * this.height * (this.sensitivity / 100);
             if (cellsToChoose < 1) cellsToChoose = 1;
-            this.activeGridCells = cellsByDistance.slice(0, cellsToChoose);
-            console.log(this.activeGridCells[0])
+            this.clearActiveGridCells();
+            cellsByDistance.slice(0, cellsToChoose).forEach(function(gridCell) {
+                gridCell.activate();
+            });
         }
 
         clearActiveGridCells() {
-            this.activeGridCells = [];
+            let cells = this.gridCells;
+            for (let x = 0; x < cells.length; x++) {
+                for (let y = 0; y < cells[x].length; y++) {
+                    cells[x][y].deactivate();
+                }
+            }
         }
     }
 

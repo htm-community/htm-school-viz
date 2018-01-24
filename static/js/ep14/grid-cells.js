@@ -22,8 +22,9 @@ $(function () {
         let overlayContainer = d3.select("body").append('div').attr('id', 'module-overlays');
         gridCellModules.forEach(function(module, i) {
             let overlay = overlayContainer.append('div').attr('id', 'module-overlay-' + i);
-            let $svg = overlay.append('svg').attr('class', 'tile');
-            module.renderD3GridCellModuleTile($svg);
+            let $tile = overlay.append('svg').attr('class', 'tile');
+            module.setTile($tile);
+            module.renderD3GridCellModuleTile();
         });
     }
 
@@ -37,6 +38,42 @@ $(function () {
             .attr('height', window.innerHeight);
 
         let $world = d3.select('#world');
+
+        //let points = [];
+        //let max = 1000;
+        //
+        //function addRandomPoint() {
+        //    points.push(
+        //        {
+        //            x: getRandomInt(0, max), y: getRandomInt(0, max), color: 'black'
+        //        }
+        //    );
+        //}
+        //
+        //while (points.length < 10) addRandomPoint();
+        //
+        //function renderStuff() {
+        //    let dots = d3.select('#world').selectAll("circle")
+        //        .data(points);
+        //    dots.enter()
+        //        .append("circle")
+        //        .attr("cx", function(p) { return p.x; })
+        //        .attr("cy", function(p) { return p.y; })
+        //        .attr('r', 20)
+        //        .attr("fill", function(p) {
+        //            console.log('filling ' + p.color);
+        //            return p.color;
+        //        });
+        //    dots.exit();
+        //}
+        //
+        //d3.select('#world').selectAll("circle").on('mousemove', function() {
+        //    points[0].color = 'red';
+        //    console.log('Updating data');
+        //    renderStuff();
+        //});
+        //
+        //renderStuff();
 
         let numModules = 4;
 
@@ -54,7 +91,16 @@ $(function () {
                 id, gridWidth, gridHeight, gridLength, dotSize, orientation, r, g, b
             );
             gridCellModules.push(module);
-            module.renderD3World($world, true);
+            module.setWorld($world);
+            module.renderD3World(true);
+
+            $world.on('mousemove', function() {
+                gridCellModules.forEach(function(module) {
+                    module.intersect(d3.event.pageX, d3.event.pageY);
+                    module.renderD3World(true);
+                });
+            });
+
         }
 
         renderGridCellModuleOverlays();
