@@ -150,7 +150,7 @@ $(function () {
         renderD3World($world, showInactiveCells) {
             let me = this;
             let activeGridCells = me.activeGridCells;
-            me.points = me.createPoints($world[0][0].clientWidth, $world[0][0].clientHeight, true);
+            me.points = me.createPoints($world.attr('width'), $world.attr('height'), true);
             me.points.forEach(function (p) {
                 if (activeGridCells && activeGridCells.includes(p.gridCell)) {
                     me.a = 1.0;
@@ -163,22 +163,17 @@ $(function () {
 
             let dots = me._renderPoints(this.points, moduleGroup);
 
-            dots.on('mousemove', function() {
-                me.intersect(d3.event.pageX, d3.event.pageY);
-                dots.data(me.points).enter();
-            });
+            //dots.on('mousemove', function() {
+            //    me.intersect(d3.event.pageX, d3.event.pageY);
+            //    dots.data(me.points).enter();
+            //});
         }
 
         renderD3GridCellModuleTile($tile) {
-            let me = this;
             let pixelWidth = this.width * this.length;
             let pixelHeight = this.height * this.length;
             $tile.attr('width', pixelWidth).attr('height', pixelHeight);
-
-            let activeGridCells = this.activeGridCells;
-
             this.gridCellPoints = this.createPoints(pixelWidth, pixelHeight);
-
             this._renderPoints(this.gridCellPoints, $tile);
         }
 
