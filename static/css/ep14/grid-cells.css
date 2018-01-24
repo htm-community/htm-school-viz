@@ -1,4 +1,36 @@
-canvas {
-    border: 1px solid black;
+body {
+    margin: 0;
+    padding: 0;
+}
+
+
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%; /* aspect ratio */
+    vertical-align: top;
+    overflow: hidden;
+}
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    left: 0;
+}
+
+
+svg#world {
     background-color: white;
+}
+
+svg.tile {
+    border: solid 1px black;
+    background-color: white;
+}
+
+#module-overlays {
+    position: absolute;
+    top: 20px;
+    left: 20px;
 }

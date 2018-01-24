@@ -13,10 +13,10 @@ $(function () {
         return out;
     }
 
-    var uniqueArray = (arrArg) => arrArg.filter((elem, pos, arr) => arr.indexOf(elem) == pos);
+    let uniqueArray = (arrArg) => arrArg.filter((elem, pos, arr) => arr.indexOf(elem) == pos);
 
     function translatePoint(pointX, pointY, originX, originY, degrees) {
-        var angle = degrees * (Math.PI / 180);
+        let angle = degrees * (Math.PI / 180);
         return {
             x: Math.cos(angle) * (pointX - originX) - Math.sin(angle) * (pointY - originY) + originX,
             y: Math.sin(angle) * (pointX - originX) + Math.cos(angle) * (pointY - originY) + originY
@@ -40,7 +40,8 @@ $(function () {
     }
 
     class GridCellModule {
-        constructor(width, height, length, dotSize, orientation, r, g, b) {
+        constructor(id, width, height, length, dotSize, orientation, r, g, b) {
+            this.id = id;
             this.width = width; // dimensions, not pixels
             this.height = height; // dimensions, not pixels
             this.length = length; // pixels
@@ -60,8 +61,8 @@ $(function () {
         }
 
         getGridCellsByDistance(x, y) {
-            var points = this.points;
-            var mappedDistances = points.map(function (p, i) {
+            let points = this.points;
+            let mappedDistances = points.map(function (p, i) {
                 return {index: i, distance: Math.hypot(p.x - x, p.y - y)};
             });
             mappedDistances.sort(function (a, b) {
@@ -127,44 +128,58 @@ $(function () {
             return points;
         }
 
-        renderWorld(ctx, width, height, showInactiveCells) {
+        _renderPoints(pnts, el) {
             let me = this;
-            let activeGridCells = this.activeGridCells;
-            this.points = this.createPoints(width, height);
-            this.points.forEach(function (p) {
-                let x = p.x, y = p.y, size = p.size;
+            let activeGridCells = me.activeGridCells;
+            let dots = el.selectAll("circle")
+                .data(pnts).enter()
+                .append("circle");
+            let dotAttributes = dots.attr("cx", function(p) { return p.x; })
+                .attr("cy", function(p) { return p.y; })
+                .attr("r", function (p) { return p.size; })
+                .style("fill", function(p) {
+                    if (activeGridCells && activeGridCells.includes(p.gridCell)) {
+                        debugger;
+                    } else {
+                        return me.fillStyle;
+                    }
+                });
+            return dots;
+        }
+
+        renderD3World($world, showInactiveCells) {
+            let me = this;
+            let activeGridCells = me.activeGridCells;
+            me.points = me.createPoints($world[0][0].clientWidth, $world[0][0].clientHeight, true);
+            me.points.forEach(function (p) {
                 if (activeGridCells && activeGridCells.includes(p.gridCell)) {
                     me.a = 1.0;
                 } else {
                     if (showInactiveCells) me.a = 0.2;
                     else me.a = 0.0;
                 }
-                ctx.fillStyle = me.fillStyle;
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-                ctx.fill();
+            });
+            let moduleGroup = $world.append("g").attr("id", me.id);
+
+            let dots = me._renderPoints(this.points, moduleGroup);
+
+            dots.on('mousemove', function() {
+                me.intersect(d3.event.pageX, d3.event.pageY);
+                dots.data(me.points).enter();
             });
         }
 
-        renderGridCellModule(ctx, width, height) {
-            var me = this;
-            var activeGridCells = this.activeGridCells;
-            this.gridCellPoints = this.createPoints(width, height);
-            this.gridCellPoints.forEach(function (p, i) {
-                let x = p.x, y = p.y, size = p.size;
-                if (activeGridCells && activeGridCells.includes(p.gridCell)) {
-                    me.a = 1.0;
-                } else {
-                    me.a = 0.2;
-                }
-                ctx.fillStyle = me.fillStyle;
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-                ctx.fill();
-                ctx.fillStyle = 'white';
-                // todo: rotate text
-                ctx.fillText(i, x - size / 2, y + size / 2, size);
-            });
+        renderD3GridCellModuleTile($tile) {
+            let me = this;
+            let pixelWidth = this.width * this.length;
+            let pixelHeight = this.height * this.length;
+            $tile.attr('width', pixelWidth).attr('height', pixelHeight);
+
+            let activeGridCells = this.activeGridCells;
+
+            this.gridCellPoints = this.createPoints(pixelWidth, pixelHeight);
+
+            this._renderPoints(this.gridCellPoints, $tile);
         }
 
         intersect(x, y) {
