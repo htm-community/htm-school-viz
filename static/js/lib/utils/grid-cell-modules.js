@@ -2,8 +2,8 @@ $(function () {
 
     // opacity
     let off = 0.0;
-    let dim = 0.2;
-    let on = 1.0;
+    let dim = 0.1;
+    let on = 0.75;
 
     function includesGridCell(cells, gridCell) {
         let out = false;
@@ -35,7 +35,7 @@ $(function () {
             this.y = y;
             this.gridCell = gridCell;
             this.size = size;
-            this.alpha = 0.3;
+            this.alpha = dim;
         }
 
     }
@@ -74,14 +74,6 @@ $(function () {
             this.sensitivity = 1;
             this.gridCells = this.createGridCells();
             this.clearActiveGridCells();
-        }
-
-        setWorld(world) {
-            this.$world = world;
-        }
-
-        setTile(tile) {
-            this.$tile = tile;
         }
 
         getGridCellsByDistance(x, y) {
@@ -124,8 +116,8 @@ $(function () {
                 while (x <= width) {
                     let xmod = x;
                     let ymod = y;
-                    let originx = 0; // width / 2;
-                    let originy = 0; // height / 2;
+                    let originx = width / 2;
+                    let originy = height / 2;
                     // offset by 1/2 width
                     // Odd rows shifted for isometric display
                     if (gridy % 2 > 0) {
@@ -153,41 +145,39 @@ $(function () {
             return points;
         }
 
-        _renderPoints(pnts, el) {
+        renderPoints($svg, lite) {
             let me = this;
-            //let activeGridCells = me.activeGridCells;
-            let dots = el.selectAll("circle")
-                .data(pnts);
-            dots.exit().remove();
+            this.points = this.createPoints($svg.attr('width'), $svg.attr('height'), true);
+            let moduleGroup = $svg.select("g#module-" + this.id);
+            if (moduleGroup.empty()) {
+                moduleGroup = $svg.append("g").attr("id", "module-" + this.id);
+            }
+            moduleGroup.text('');
+            let dots = moduleGroup.selectAll("circle")
+                .data(this.points);
             dots.enter().append("circle")
                 .attr("cx", function(p) { return p.x; })
                 .attr("cy", function(p) { return p.y; })
                 .attr("r", function (p) { return p.size; })
                 .style("fill", function(p) {
                     let alpha = p.alpha;
+                    if (lite) alpha = off;
                     if (p.gridCell.isActive()) {
-                        alpha = 1.0;
+                        alpha = on;
                     }
                     return 'rgba(' + me.r + ',' + me.g + ',' + me.b + ',' + alpha + ')';
                 });
             return dots;
         }
 
-        renderD3World(showInactiveCells) {
-            let me = this;
-            let $world = me.$world;
-            me.points = me.createPoints($world.attr('width'), $world.attr('height'), true);
-            let moduleGroup = $world.append("g").attr("id", "module-" + me.id);
-            me._renderPoints(this.points, moduleGroup);
-        }
+        renderModuleBoundaries($svg) {
+            let w = $svg.attr('width');
+            let h = $svg.attr('height');
+            let moduleGroup = $svg.select("g#module-border-" + this.id);
+            if (moduleGroup.empty()) {
+                moduleGroup = $svg.append("g").attr("id", "module-" + this.id);
+            }
 
-        renderD3GridCellModuleTile() {
-            let $tile = this.$tile;
-            let pixelWidth = this.width * this.length;
-            let pixelHeight = this.height * this.length;
-            $tile.attr('width', pixelWidth).attr('height', pixelHeight);
-            this.gridCellPoints = this.createPoints(pixelWidth, pixelHeight);
-            this._renderPoints(this.gridCellPoints, $tile);
         }
 
         intersect(x, y) {
