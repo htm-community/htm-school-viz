@@ -1,5 +1,12 @@
 $(function () {
 
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+    }
+
+
     // opacity
     let off = 0.0;
     let dim = 0.1;
@@ -29,10 +36,13 @@ $(function () {
     }
 
     class Point {
-        constructor(id, x, y, gridCell, size) {
+        constructor(id, x, y, r, g, b, gridCell, size) {
             this.id = id;
             this.x = x;
             this.y = y;
+            this.r = r; // red
+            this.g = g; // green
+            this.b = b; // blue
             this.gridCell = gridCell;
             this.size = size;
             this.alpha = dim;
@@ -130,7 +140,8 @@ $(function () {
                     xmod = rotatedPoint.x;
                     ymod = rotatedPoint.y;
                     let p = new Point(
-                        id++, xmod, ymod, this.gridCells[gridy][gridx], this.dotSize
+                        id++, xmod, ymod, this.r, this.g, this.b,
+                        this.gridCells[gridy][gridx], this.dotSize
                     );
                     points.push(p);
                     x += this.length;
@@ -145,43 +156,7 @@ $(function () {
             return points;
         }
 
-        renderPoints($svg, lite) {
-            let me = this;
-            this.points = this.createPoints($svg.attr('width'), $svg.attr('height'), true);
-            let moduleGroup = $svg.select("g#module-" + this.id);
-            if (moduleGroup.empty()) {
-                moduleGroup = $svg.append("g").attr("id", "module-" + this.id);
-            }
-            moduleGroup.text('');
-            let dots = moduleGroup.selectAll("circle")
-                .data(this.points);
-            dots.enter().append("circle")
-                .attr("cx", function(p) { return p.x; })
-                .attr("cy", function(p) { return p.y; })
-                .attr("r", function (p) { return p.size; })
-                .style("fill", function(p) {
-                    let alpha = p.alpha;
-                    if (lite) alpha = off;
-                    if (p.gridCell.isActive()) {
-                        alpha = on;
-                    }
-                    return 'rgba(' + me.r + ',' + me.g + ',' + me.b + ',' + alpha + ')';
-                });
-            return dots;
-        }
-
-        renderModuleBoundaries($svg) {
-            let w = $svg.attr('width');
-            let h = $svg.attr('height');
-            let moduleGroup = $svg.select("g#module-border-" + this.id);
-            if (moduleGroup.empty()) {
-                moduleGroup = $svg.append("g").attr("id", "module-" + this.id);
-            }
-
-        }
-
         intersect(x, y) {
-            console.log("Intersecting module at %s, %s", x, y);
             let cellsByDistance = this.getGridCellsByDistance(x, y);
             let cellsToChoose = this.width * this.height * (this.sensitivity / 100);
             if (cellsToChoose < 1) cellsToChoose = 1;
@@ -201,9 +176,89 @@ $(function () {
         }
     }
 
+    class GridCellModuleRenderer {
+        constructor(modules) {
+            this.modules = modules;
+        }
+
+        on(eventName, handler) {
+            d3.select('#world').on(eventName, handler);
+        }
+
+        prepareRender() {
+            this.width = window.innerWidth;
+            this.height = window.innerHeight;
+            this.$world = d3.select('body')
+                .append('svg')
+                .attr('id', 'world')
+                .attr('width', this.width)
+                .attr('height', this.height);
+        }
+
+        render(lite) {
+            let width = this.width;
+            let height = this.height;
+
+            function treatGroups(groups) {
+                groups.attr('id', function(m) {
+                        return 'module-' + m.id;
+                    })
+                    .attr('visibility', function(m) {
+                        if (m.visible) return 'visible';
+                        return 'hidden';
+                    })
+                    .attr('class', 'module-group');
+            }
+
+            // Update
+            let groups = this.$world.selectAll('g').data(this.modules);
+            treatGroups(groups);
+
+            // Enter
+            let coming = groups.enter().append('g');
+            treatGroups(coming);
+
+            // Exit
+            groups.exit().remove();
+
+            function treatCircles(circles) {
+                circles
+                    .attr('cx', function(p) { return p.x; })
+                    .attr('cy', function(p) { return p.y; })
+                    .attr('r', function (p) { return p.size; })
+                    .style('fill', function(p) {
+                        let alpha = p.alpha;
+                        if (lite) alpha = off;
+                        if (p.gridCell.isActive()) {
+                            alpha = on;
+                        }
+                        return 'rgba(' + p.r + ',' + p.g + ',' + p.b + ',' + alpha + ')';
+                    });
+            }
+
+            this.modules.forEach(function(m, i) {
+                let group = d3.select(groups[0][i]);
+                m.points = m.createPoints(width, height, lite);
+
+                // Update
+                let circles = group.selectAll('circle').data(m.points);
+                treatCircles(circles);
+
+                // Enter
+                let coming = circles.enter().append('circle');
+                treatCircles(coming);
+
+                // Exit
+                circles.exit().remove();
+
+            });
+        }
+    }
+
     window.HTM.utils.gridCells = {
         Point: Point,
         GridCell: GridCell,
-        GridCellModule: GridCellModule
+        GridCellModule: GridCellModule,
+        GridCellModuleRenderer: GridCellModuleRenderer
     };
 });
