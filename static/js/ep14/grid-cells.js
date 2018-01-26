@@ -85,7 +85,7 @@ $(function () {
     function run() {
         prepareDom();
 
-        let numModules = 3;
+        let numModules = 1;
         if (numModules > 5) config.lite = true;
         if (numModules == 1) {
             let module = new GridCellModule(

@@ -132,6 +132,15 @@ $(function () {
             let x = 0, y = 0, gridx = 0, gridy = 0;
             let id = 0;
             let points = [];
+            let buffer = 1.0;
+            function pointOffScreen(p) {
+                return (p.x < 0 || p.x > width || p.y < 0 || p.y > height);
+            }
+            // Add buffer so we fill in all the edges
+            x = x - width*buffer;
+            y = y - height*buffer;
+            width += width*buffer;
+            height += height*buffer;
             while (y <= height) {
                 gridx = 0;
                 while (x <= width) {
@@ -154,7 +163,7 @@ $(function () {
                         id++, xmod, ymod, this.r, this.g, this.b,
                         this.gridCells[gridy][gridx], this.dotSize
                     );
-                    points.push(p);
+                    if (! pointOffScreen(p)) points.push(p);
                     x += this.length;
                     gridx++;
                     if (gridx > this.width - 1) gridx = 0;
