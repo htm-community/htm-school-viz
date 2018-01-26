@@ -85,26 +85,32 @@ $(function () {
     function run() {
         prepareDom();
 
-
-        let numModules = 5;
+        let numModules = 3;
         if (numModules > 5) config.lite = true;
-
-        // Build out modules
-        while (gridCellModules.length < numModules) {
-            let id = gridCellModules.length;
-            let gridWidth = getRandomInt(3, 6);
-            let gridHeight = getRandomInt(3, 6);
-            let gridLength = getRandomInt(30, 200);
-            let dotSize = gridLength / 4;
-            let orientation = getRandomInt(-45, 45);
-            let r = getRandomInt(0, 155);
-            let g = getRandomInt(0, 155);
-            let b = getRandomInt(0, 155);
+        if (numModules == 1) {
             let module = new GridCellModule(
-                id, gridWidth, gridHeight, gridLength,
-                dotSize, orientation, r, g, b
+                0, 4, 3, 20,
+                0, 0, 100, 255, 255
             );
             gridCellModules.push(module);
+        } else {
+            // Build out modules
+            while (gridCellModules.length < numModules) {
+                let id = gridCellModules.length;
+                let gridWidth = getRandomInt(3, 6);
+                let gridHeight = getRandomInt(3, 6);
+                let gridLength = getRandomInt(30, 200);
+                let dotSize = gridLength / 4;
+                let orientation = getRandomInt(-45, 45);
+                let r = getRandomInt(0, 155);
+                let g = getRandomInt(0, 155);
+                let b = getRandomInt(0, 155);
+                let module = new GridCellModule(
+                    id, gridWidth, gridHeight, gridLength,
+                    dotSize, orientation, r, g, b
+                );
+                gridCellModules.push(module);
+            }
         }
 
         let renderer = new GridCellModuleRenderer(gridCellModules);
