@@ -19,7 +19,7 @@ $(function () {
                 .attr('height', this.height);
         }
 
-        renderVoronoi(groups) {
+        renderVoronoi(groups, lite) {
             let origin = {x: 0, y: 0}
             let width = this.width;
             let height = this.height;
@@ -39,12 +39,15 @@ $(function () {
                         return cmd;
                     })
                     .attr('stroke', '#d6d6d6')
+                    .attr('stroke-width', function() {
+                        if (! lite) return 0.5
+                        else return 0
+                    })
                     .attr('fill', function(d) {
                         if (!d) return;
                         if (d.gridCell.isActive()) return rgb;
                         return 'none';
                     })
-                    .attr('stroke-width', 0.5)
                     .attr('fill-opacity', function(d) {
                         if (!d) return;
                         let a = 0.2;
@@ -116,7 +119,7 @@ $(function () {
             // Exit
             groups.exit().remove();
 
-            this.renderVoronoi(d3.selectAll('g.module-group'));
+            this.renderVoronoi(d3.selectAll('g.module-group'), lite);
         }
     }
 

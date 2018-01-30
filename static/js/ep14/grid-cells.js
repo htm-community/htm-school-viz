@@ -65,6 +65,8 @@ $(function () {
                 }
                 modules[i] = replacementModule
                 renderer.render(config.lite)
+                gui.destroy()
+                setupDatGui(modules, renderer)
             });
             // This is because of laziness.
             module.visible = true;
@@ -104,8 +106,8 @@ $(function () {
         let numModules = 5;
         if (numModules > 5) config.lite = true;
         if (numModules == 1) {
-            // let module = new GridCellModuleType(0, 3, 3, 0, 100);
-            let module = new RandomGridCellModule(0, 100)
+            let module = new GridCellModuleType(0, 3, 3, 0, 100);
+            // let module = new RandomGridCellModule(0, 100)
             gridCellModules.push(module);
         } else {
             while (gridCellModules.length < numModules) {
