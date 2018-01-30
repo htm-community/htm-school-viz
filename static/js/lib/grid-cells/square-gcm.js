@@ -1,8 +1,5 @@
 $(function () {
 
-    // opacity
-    let dim = 0.1
-
     let GridCell = window.HTM.gridCells.GridCell
     let GridCellModule = window.HTM.gridCells.GridCellModule
 
@@ -67,7 +64,7 @@ $(function () {
                         x: rotatedPoint.x,
                         y: rotatedPoint.y,
                         gridCell: this._getGridCellAt(gridx, gridy),
-                        alpha: dim
+                        alpha: 0.1
                     }
                     // Only save points that are currently on the screen, within a
                     // buffer defined by the grid spacing

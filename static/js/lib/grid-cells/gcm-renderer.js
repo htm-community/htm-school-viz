@@ -38,7 +38,7 @@ $(function () {
                         cmd += 'L ' + first[0] + ' ' + first[1] + ' ';
                         return cmd;
                     })
-                    .attr('stroke', 'grey')
+                    .attr('stroke', '#d6d6d6')
                     .attr('fill', function(d) {
                         if (!d) return;
                         if (d.gridCell.isActive()) return rgb;
@@ -53,16 +53,10 @@ $(function () {
                         }
                         return a;
                     });
-                // .on("mouseover", function(d, i) {
-                //     d3.select("#footer span").text(d.name);
-                //     d3.select("#footer .hint").text(d.city + ", " + d.state);
-                // });
-                points.attr("cx", function(d) { return d.x; })
-                    .attr("cy", function(d) { return d.y; })
-                    .attr("r", 2);
             }
 
             this.modules.forEach(function(m, i) {
+                if (! m.visible) return;
                 let g = d3.select(groups.nodes()[i]);
                 let rgb = 'rgb(' + m.r + ',' + m.g + ',' + m.b + ')';
                 m.points = m.createPoints(origin, width, height);
@@ -104,11 +98,11 @@ $(function () {
                 groups.attr('id', function(m) {
                     return 'module-' + m.id;
                 })
-                    .attr('visibility', function(m) {
-                        if (m.visible) return 'visible';
-                        return 'hidden';
-                    })
-                    .attr('class', 'module-group');
+                .attr('visibility', function(m) {
+                    if (m.visible) return 'visible';
+                    return 'hidden';
+                })
+                .attr('class', 'module-group');
             }
 
             // Update
@@ -122,7 +116,6 @@ $(function () {
             // Exit
             groups.exit().remove();
 
-            // this.renderHexDots(groups, lite);
             this.renderVoronoi(d3.selectAll('g.module-group'));
         }
     }

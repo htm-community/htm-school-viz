@@ -1,7 +1,8 @@
 $(function () {
     // let GridCellModule = window.HTM.utils.gridCells.GridCellModule;
-    let SquareGridCellModule = window.HTM.gridCells.SquareGridCellModule;
-    let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer;
+    let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
+    let SquareGridCellModule = window.HTM.gridCells.SquareGridCellModule
+    let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
     let GlobalConfig = function() {
         this.lite = false;
@@ -66,7 +67,7 @@ $(function () {
                 module.spacing = value;
                 renderer.render(config.lite);
             });
-            folder.add(module, 'orientation', 0, 45).onChange(function(value) {
+            folder.add(module, 'orientation', 0, 30).onChange(function(value) {
                 module.orientation = value;
                 renderer.render(config.lite);
             });
@@ -78,10 +79,12 @@ $(function () {
     function run() {
         prepareDom();
 
+        let GridCellModuleType = HexagonGridCellModule
+
         let numModules = 5;
         if (numModules > 5) config.lite = true;
         if (numModules == 1) {
-            let module = new SquareGridCellModule(0, 3, 3, 30, 100);
+            let module = new GridCellModuleType(0, 3, 3, 0, 100);
             gridCellModules.push(module);
         } else {
             while (gridCellModules.length < numModules) {
@@ -89,11 +92,11 @@ $(function () {
                 let xDim= getRandomInt(3, 6);
                 let yDim = getRandomInt(3, 6);
                 let spacing= getRandomInt(30, 200);
-                let orientation = getRandomInt(0, 45);
+                let orientation = getRandomInt(0, 30);
                 let r = getRandomInt(0, 155);
                 let g = getRandomInt(0, 155);
                 let b = getRandomInt(0, 155);
-                let module = new SquareGridCellModule(id, xDim, yDim, orientation, spacing);
+                let module = new GridCellModuleType(id, xDim, yDim, orientation, spacing);
                 module.setColor(r, g, b)
                 gridCellModules.push(module);
             }

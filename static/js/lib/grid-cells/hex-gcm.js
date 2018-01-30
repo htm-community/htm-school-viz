@@ -1,9 +1,10 @@
 $(function () {
 
-    // opacity
-    let dim = 0.1
+    let GridCell = window.HTM.gridCells.GridCell
+    let GridCellModule = window.HTM.gridCells.GridCellModule
 
-    class HexagonGridCellModule extends window.HTM.gridCells.GridCellModule {
+    class HexagonGridCellModule extends GridCellModule {
+
         constructor(id, xDim, yDim, orientation, spacing) {
             super(id, xDim * yDim, orientation)
             this.xDim = xDim
@@ -55,16 +56,22 @@ $(function () {
             while (y <= endAt.y) {
                 gridx = 0
                 while (x <= endAt.x) {
+                    // Shift every other row to get a pseudo hex grid
+                    let xmod = x
+                    let ymod = y
+                    xmod += y / 2;
+                    // ymod = y - (this.length - Math.sin(60 * (Math.PI / 180)));
+                    ymod = y - (y * 0.1);
                     // Rotate, using center as origin.
-                    let rotatedPoint = translatePoint(
-                        x, y, origin.x, origin.y, this.orientation
+                    let rotatedPoint = GridCellModule.translatePoint(
+                        xmod, ymod, origin.x, origin.y, this.orientation + 30
                     );
                     let point = {
                         id: pointId++,
                         x: rotatedPoint.x,
                         y: rotatedPoint.y,
                         gridCell: this._getGridCellAt(gridx, gridy),
-                        alpha: dim
+                        alpha: 0.1
                     }
                     // Only save points that are currently on the screen, within a
                     // buffer defined by the grid spacing
