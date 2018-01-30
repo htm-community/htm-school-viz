@@ -30,6 +30,7 @@ class GridCellModule {
         this.cellCount = cellCount
         this.setColor(100, 100, 255)
         this.orientation = orientation || 0
+        this.visible = true
     }
 
     static translatePoint(pointX, pointY, originX, originY, degrees) {
@@ -55,6 +56,12 @@ class GridCellModule {
     }
 
     intersect(x, y) {
+        throw new Error(
+            'GridCellModule implementations must provide intersect()'
+        )
+    }
+
+    get type() {
         throw new Error(
             'GridCellModule implementations must provide intersect()'
         )

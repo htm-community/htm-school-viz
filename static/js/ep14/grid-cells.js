@@ -44,8 +44,18 @@ $(function () {
             });
         }
 
-        modules.forEach(function(module) {
-            let folder = gui.addFolder('Module ' + module.id);
+        modules.forEach(function(module, i) {
+            let folder = gui.addFolder('Module ' + module.id)
+            let type = {type: module.type}
+            folder.add(type, 'type', ['square', 'hex']).onChange(function(value) {
+                let Type = (value == 'square' ? SquareGridCellModule : HexagonGridCellModule)
+                let replacementModule = new Type(
+                    module.id, module.xDim, module.yDim,
+                    module.orientation, module.spacing
+                )
+                modules[i] = replacementModule
+                renderer.render(config.lite)
+            });
             // This is because of laziness.
             module.visible = true;
             folder.add(module, 'visible').onChange(function(value) {

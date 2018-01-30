@@ -41,6 +41,10 @@ $(function () {
             debugger;
         }
 
+        get type() {
+            return 'square'
+        }
+
         createPoints(origin, w, h) {
             // Start rendering points at the origin by rendering grid cell modules
             // over the entire space, leaving enough room for rotation.
