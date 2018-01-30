@@ -2,6 +2,7 @@ $(function () {
     // let GridCellModule = window.HTM.utils.gridCells.GridCellModule;
     let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
     let SquareGridCellModule = window.HTM.gridCells.SquareGridCellModule
+    let RandomGridCellModule = window.HTM.gridCells.RandomGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
     let GlobalConfig = function() {
@@ -47,12 +48,21 @@ $(function () {
         modules.forEach(function(module, i) {
             let folder = gui.addFolder('Module ' + module.id)
             let type = {type: module.type}
-            folder.add(type, 'type', ['square', 'hex']).onChange(function(value) {
-                let Type = (value == 'square' ? SquareGridCellModule : HexagonGridCellModule)
-                let replacementModule = new Type(
-                    module.id, module.xDim, module.yDim,
-                    module.orientation, module.spacing
-                )
+            folder.add(type, 'type', ['square', 'hex', 'random']).onChange(function(value) {
+                let replacementModule;
+                if (value == 'square') {
+                    replacementModule = new SquareGridCellModule(
+                        module.id, module.xDim, module.yDim,
+                        module.orientation, module.spacing
+                    )
+                } else if (value == 'hex') {
+                    replacementModule = new HexagonGridCellModule(
+                        module.id, module.xDim, module.yDim,
+                        module.orientation, module.spacing
+                    )
+                } else if (value == 'random') {
+                    replacementModule = new RandomGridCellModule(module.id, 100, 20)
+                }
                 modules[i] = replacementModule
                 renderer.render(config.lite)
             });
@@ -68,8 +78,8 @@ $(function () {
                     m.visible = ! value;
                     m.solo = false;
                 });
-                module.visible = true;
                 module.solo = value;
+                module.visible = true;
                 renderer.render(config.lite);
                 updateAllControllerDisplays();
             });
@@ -94,7 +104,8 @@ $(function () {
         let numModules = 5;
         if (numModules > 5) config.lite = true;
         if (numModules == 1) {
-            let module = new GridCellModuleType(0, 3, 3, 0, 100);
+            // let module = new GridCellModuleType(0, 3, 3, 0, 100);
+            let module = new RandomGridCellModule(0, 100)
             gridCellModules.push(module);
         } else {
             while (gridCellModules.length < numModules) {

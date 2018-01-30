@@ -31,7 +31,6 @@ $(function () {
             })
         }
 
-
         _getGridCellAt(x, y) {
             for (let i = 0; i < this.gridCells.length; i++) {
                 let cell = this.gridCells[i];
@@ -54,7 +53,6 @@ $(function () {
                 y = startAt.y
             let gridx = 0,
                 gridy = 0
-            let pointId = 0
             let points = []
             while (y <= endAt.y) {
                 gridx = 0
@@ -64,7 +62,7 @@ $(function () {
                         x, y, origin.x, origin.y, this.orientation
                     );
                     let point = {
-                        id: pointId++,
+                        id: points.length,
                         x: rotatedPoint.x,
                         y: rotatedPoint.y,
                         gridCell: this._getGridCellAt(gridx, gridy),

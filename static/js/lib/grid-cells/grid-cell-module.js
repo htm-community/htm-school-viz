@@ -43,6 +43,12 @@ class GridCellModule {
         }
     }
 
+    static getRandomInt(minin, maxin) {
+        let min = Math.ceil(minin);
+        let max = Math.floor(maxin);
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
+
     createPoints(origin, w, h, orientation) {
         throw new Error(
             'GridCellModule implementations must provide createPoints()'
