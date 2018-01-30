@@ -1,5 +1,6 @@
 $(function () {
-    let GridCellModule = window.HTM.utils.gridCells.GridCellModule;
+    // let GridCellModule = window.HTM.utils.gridCells.GridCellModule;
+    let SquareGridCellModule = window.HTM.utils.gridCells.SquareGridCellModule;
     let GridCellModuleRenderer = window.HTM.utils.gridCells.GridCellModuleRenderer;
     // opacity
     let off = 0.0;
@@ -30,8 +31,8 @@ $(function () {
     }
     
     function setupDatGui(modules, renderer) {
-        var gui = new dat.GUI();
-        var moduleFolders = [];
+        let gui = new dat.GUI();
+        let moduleFolders = [];
 
         gui.add(config, 'lite').onChange(function(value) {
             config.lite = value;
@@ -65,15 +66,11 @@ $(function () {
                 renderer.render(config.lite);
                 updateAllControllerDisplays();
             });
-            folder.add(module, 'length', 10, 100).onChange(function(value) {
-                module.length = value;
+            folder.add(module, 'spacing', 10, 100).onChange(function(value) {
+                module.spacing = value;
                 renderer.render(config.lite);
             });
-            folder.add(module, 'dotSize', 1, 100).onChange(function(value) {
-                module.dotSize = value;
-                renderer.render(config.lite);
-            });
-            folder.add(module, 'orientation', -45, 45).onChange(function(value) {
+            folder.add(module, 'orientation', 0, 45).onChange(function(value) {
                 module.orientation = value;
                 renderer.render(config.lite);
             });
@@ -85,30 +82,23 @@ $(function () {
     function run() {
         prepareDom();
 
-        let numModules = 1;
+        let numModules = 5;
         if (numModules > 5) config.lite = true;
         if (numModules == 1) {
-            let module = new GridCellModule(
-                0, 4, 3, 20,
-                0, 0, 100, 255, 255
-            );
+            let module = new SquareGridCellModule(0, 3, 3, 30, 100);
             gridCellModules.push(module);
         } else {
-            // Build out modules
             while (gridCellModules.length < numModules) {
                 let id = gridCellModules.length;
-                let gridWidth = getRandomInt(3, 6);
-                let gridHeight = getRandomInt(3, 6);
-                let gridLength = getRandomInt(30, 200);
-                let dotSize = gridLength / 4;
-                let orientation = getRandomInt(-45, 45);
+                let xDim= getRandomInt(3, 6);
+                let yDim = getRandomInt(3, 6);
+                let spacing= getRandomInt(30, 200);
+                let orientation = getRandomInt(0, 45);
                 let r = getRandomInt(0, 155);
                 let g = getRandomInt(0, 155);
                 let b = getRandomInt(0, 155);
-                let module = new GridCellModule(
-                    id, gridWidth, gridHeight, gridLength,
-                    dotSize, orientation, r, g, b
-                );
+                let module = new SquareGridCellModule(id, xDim, yDim, orientation, spacing);
+                module.setColor(r, g, b)
                 gridCellModules.push(module);
             }
         }
@@ -116,7 +106,6 @@ $(function () {
         let renderer = new GridCellModuleRenderer(gridCellModules);
 
         renderer.prepareRender();
-        renderer.render(config.lite);
 
         renderer.on('mousemove', function() {
             gridCellModules.forEach(function(module) {
@@ -126,6 +115,7 @@ $(function () {
         });
 
         setupDatGui(gridCellModules, renderer);
+        renderer.render(config.lite);
 
     }
 
