@@ -1,19 +1,6 @@
 $(function () {
 
-// opacity
-let off = 0.0
-let dim = 0.1
-let on = 0.75
-
 let uniqueArray = (arrArg) => arrArg.filter((elem, pos, arr) => arr.indexOf(elem) == pos);
-
-function translatePoint(pointX, pointY, originX, originY, degrees) {
-    let angle = degrees * (Math.PI / 180);
-    return {
-        x: Math.cos(angle) * (pointX - originX) - Math.sin(angle) * (pointY - originY) + originX,
-        y: Math.sin(angle) * (pointX - originX) + Math.cos(angle) * (pointY - originY) + originY
-    };
-}
 
 class GridCell {
     constructor(x, y) {
@@ -37,11 +24,22 @@ class GridCell {
 
 
 class GridCellModule {
+
     constructor(id, cellCount, orientation) {
         this.id = id
         this.cellCount = cellCount
         this.setColor(100, 100, 255)
         this.orientation = orientation || 0
+    }
+
+    static translatePoint(pointX, pointY, originX, originY, degrees) {
+        let angle = degrees * (Math.PI / 180);
+        return {
+            x: Math.cos(angle) * (pointX - originX)
+                - Math.sin(angle) * (pointY - originY) + originX,
+            y: Math.sin(angle) * (pointX - originX)
+                + Math.cos(angle) * (pointY - originY) + originY
+        }
     }
 
     createPoints(origin, w, h, orientation) {
@@ -96,6 +94,9 @@ class GridCellModule {
 
 }
 
-window.HTM.gridCells = { GridCellModule: GridCellModule }
+window.HTM.gridCells = {
+    GridCell: GridCell,
+    GridCellModule: GridCellModule
+}
 
 })

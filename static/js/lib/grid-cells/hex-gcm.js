@@ -3,10 +3,7 @@ $(function () {
     // opacity
     let dim = 0.1
 
-    let GridCell = window.HTM.gridCells.GridCell
-    let GridCellModule = window.HTM.gridCells.GridCellModule
-
-    class SquareGridCellModule extends GridCellModule {
+    class HexagonGridCellModule extends window.HTM.gridCells.GridCellModule {
         constructor(id, xDim, yDim, orientation, spacing) {
             super(id, xDim * yDim, orientation)
             this.xDim = xDim
@@ -59,7 +56,7 @@ $(function () {
                 gridx = 0
                 while (x <= endAt.x) {
                     // Rotate, using center as origin.
-                    let rotatedPoint = GridCellModule.translatePoint(
+                    let rotatedPoint = translatePoint(
                         x, y, origin.x, origin.y, this.orientation
                     );
                     let point = {
@@ -93,6 +90,6 @@ $(function () {
         }
     }
 
-    window.HTM.gridCells.SquareGridCellModule = SquareGridCellModule
+    window.HTM.gridCells.HexagonGridCellModule = HexagonGridCellModule
 
 })

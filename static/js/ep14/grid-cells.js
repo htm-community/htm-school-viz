@@ -2,10 +2,6 @@ $(function () {
     // let GridCellModule = window.HTM.utils.gridCells.GridCellModule;
     let SquareGridCellModule = window.HTM.gridCells.SquareGridCellModule;
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer;
-    // opacity
-    let off = 0.0;
-    let dim = 0.1;
-    let on = 0.75;
 
     let GlobalConfig = function() {
         this.lite = false;

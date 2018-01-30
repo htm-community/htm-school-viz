@@ -1,10 +1,5 @@
 $(function () {
 
-    // opacity
-    let off = 0.0;
-    let dim = 0.1;
-    let on = 0.75;
-
     class GridCellModuleRenderer {
         constructor(modules) {
             this.modules = modules;
