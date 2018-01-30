@@ -1,7 +1,7 @@
 $(function () {
     // let GridCellModule = window.HTM.utils.gridCells.GridCellModule;
-    let SquareGridCellModule = window.HTM.utils.gridCells.SquareGridCellModule;
-    let GridCellModuleRenderer = window.HTM.utils.gridCells.GridCellModuleRenderer;
+    let SquareGridCellModule = window.HTM.gridCells.SquareGridCellModule;
+    let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer;
     // opacity
     let off = 0.0;
     let dim = 0.1;
