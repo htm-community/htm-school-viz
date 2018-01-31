@@ -49,7 +49,7 @@ $(function () {
         createPoints(origin, w, h) {
             // Start rendering points at the origin by rendering grid cell modules
             // over the entire space, leaving enough room for rotation.
-            let startAt = {x: origin.x - w, y: origin.y - h},
+            let startAt = {x: origin.x - w, y: origin.y - 2*h},
                 endAt = {x: origin.x + (2 * w), y: origin.y + (2 * h)}
             let x = startAt.x,
                 y = startAt.y
