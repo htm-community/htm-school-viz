@@ -29,15 +29,6 @@ $(function () {
             });
         }
 
-        renderModuleOverlays(svgs) {
-            this.modules.forEach(function(m, i) {
-                let svg = d3.select(svgs.nodes()[i])
-                let rgb = m.getColorString()
-                let modulePoints = m.createOverlayPoints()
-
-            });
-        }
-
         _treatVoronoiCell(module, paths, points, rgb, lite) {
             paths.attr("class", "cell")
                 .attr("d", function(d, i) {
@@ -70,6 +61,47 @@ $(function () {
                 });
         }
 
+        renderModuleOverlays(svgs) {
+            this.modules.forEach(function(m, i) {
+                let svg = d3.select(svgs.nodes()[i])
+                let rgb = m.getColorString()
+                let modulePoints = m.createOverlayPoints()
+
+            });
+        }
+
+        _renderVoronoiToElement(voronoi, module, $target, lite) {
+            let rgb = module.getColorString()
+            let positions = module.points.map(function(p) {
+                return [p.x, p.y];
+            });
+            let diagram = voronoi(positions);
+
+            let polygons = diagram.polygons();
+
+            // Attach gridcell info to each datum.
+            module.points.forEach(function(p, i) {
+                if (polygons[i]) polygons[i].gridCell = p.gridCell;
+            });
+
+            // Update
+            let paths = $target.selectAll('path').data(polygons);
+            let cells = $target.selectAll('circle').data(module.points);
+            this._treatVoronoiCell(module, paths, cells, rgb, lite);
+
+            // Enter
+            let newPaths = paths.enter().append('path');
+            let newCells = cells.enter().append('circle');
+            this._treatVoronoiCell(module, newPaths, newCells, rgb, lite);
+
+            // Exit
+            paths.exit().remove();
+            cells.exit().remove();
+
+            console.log('module %s has %s points', module.id, module.points.length)
+
+        }
+
         renderVoronoi(groups, lite) {
             let me = this;
             let origin = {x: 0, y: 0}
@@ -81,35 +113,8 @@ $(function () {
             this.modules.forEach(function(m, i) {
                 if (! m.visible) return;
                 let g = d3.select(groups.nodes()[i]);
-                let rgb = m.getColorString()
                 m.points = m.createWorldPoints(origin, width, height);
-                let positions = m.points.map(function(p) {
-                    return [p.x, p.y];
-                });
-                let diagram = voronoi(positions);
-
-                let polygons = diagram.polygons();
-
-                // Attach gridcell info to each datum.
-                m.points.forEach(function(p, i) {
-                    if (polygons[i]) polygons[i].gridCell = p.gridCell;
-                });
-
-                // Update
-                let paths = g.selectAll('path').data(polygons);
-                let cells = g.selectAll('circle').data(m.points);
-                me._treatVoronoiCell(m, paths, cells, rgb, lite);
-
-                // Enter
-                let newPaths = paths.enter().append('path');
-                let newCells = cells.enter().append('circle');
-                me._treatVoronoiCell(m, newPaths, newCells, rgb, lite);
-
-                // Exit
-                paths.exit().remove();
-                cells.exit().remove();
-
-                console.log('module %s has %s points', m.id, m.points.length)
+                me._renderVoronoiToElement(voronoi, m, g, lite)
             });
 
         }
