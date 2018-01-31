@@ -5,6 +5,15 @@ $(function () {
     let RandomGridCellModule = window.HTM.gridCells.RandomGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
+    let minSpacing = 60,
+        maxSpacing = 200,
+        minDim = 3,
+        maxDim = 8,
+        minOrientation = 0,
+        maxOrientation = 30,
+        minRgb = 0,
+        maxRgb = 155
+
     let GlobalConfig = function() {
         this.lite = false;
     };
@@ -62,9 +71,9 @@ $(function () {
                     )
                 } else if (value == 'random') {
                     replacementModule = new RandomGridCellModule(module.id, 100, 20)
-                    let r = getRandomInt(0, 155)
-                    let g = getRandomInt(0, 155)
-                    let b = getRandomInt(0, 155)
+                    let r = getRandomInt(minRgb, minRgb)
+                    let g = getRandomInt(minRgb, minRgb)
+                    let b = getRandomInt(minRgb, minRgb)
                     replacementModule.setColor(r, g, b)
                 }
                 modules[i] = replacementModule
@@ -89,11 +98,11 @@ $(function () {
                 renderer.render(config.lite);
                 updateAllControllerDisplays();
             });
-            folder.add(module, 'spacing', 10, 100).onChange(function(value) {
+            folder.add(module, 'spacing', minSpacing, maxSpacing).onChange(function(value) {
                 module.spacing = value;
                 renderer.render(config.lite);
             });
-            folder.add(module, 'orientation', 0, 30).onChange(function(value) {
+            folder.add(module, 'orientation', minOrientation, maxOrientation).onChange(function(value) {
                 module.orientation = value;
                 renderer.render(config.lite);
             });
@@ -115,33 +124,33 @@ $(function () {
             gridCellModules.push(module);
         } else {
             while (gridCellModules.length < numModules) {
-                let id = gridCellModules.length;
-                let xDim= getRandomInt(3, 6);
-                let yDim = getRandomInt(3, 6);
-                let spacing= getRandomInt(60, 200);
-                let orientation = getRandomInt(0, 30);
-                let r = getRandomInt(0, 155);
-                let g = getRandomInt(0, 155);
-                let b = getRandomInt(0, 155);
-                let module = new GridCellModuleType(id, xDim, yDim, orientation, spacing);
+                let id = gridCellModules.length
+                let xDim= getRandomInt(minDim, maxDim)
+                let yDim = getRandomInt(minDim, maxDim)
+                let spacing= getRandomInt(minSpacing, maxSpacing)
+                let orientation = getRandomInt(minOrientation, maxOrientation)
+                let r = getRandomInt(minRgb, maxRgb)
+                let g = getRandomInt(minRgb, maxRgb)
+                let b = getRandomInt(minRgb, maxRgb)
+                let module = new GridCellModuleType(id, xDim, yDim, orientation, spacing)
                 module.setColor(r, g, b)
-                gridCellModules.push(module);
+                gridCellModules.push(module)
             }
         }
 
-        let renderer = new GridCellModuleRenderer(gridCellModules);
+        let renderer = new GridCellModuleRenderer(gridCellModules)
 
         renderer.prepareRender();
 
         renderer.on('mousemove', function() {
             gridCellModules.forEach(function(module) {
-                module.intersect(d3.event.pageX, d3.event.pageY);
-                renderer.render(config.lite);
+                module.intersect(d3.event.pageX, d3.event.pageY)
+                renderer.render(config.lite)
             });
         });
 
-        setupDatGui(gridCellModules, renderer);
-        renderer.render(config.lite);
+        setupDatGui(gridCellModules, renderer)
+        renderer.render(config.lite)
 
     }
 
