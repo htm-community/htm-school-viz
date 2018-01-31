@@ -42,11 +42,11 @@ $(function () {
             debugger;
         }
 
-        get type() {
-            return 'hex'
+        createOverlayPoints() {
+
         }
 
-        createPoints(origin, w, h) {
+        createWorldPoints(origin, w, h) {
             // Start rendering points at the origin by rendering grid cell modules
             // over the entire space, leaving enough room for rotation.
             let startAt = {x: origin.x - w, y: origin.y - 2*h},

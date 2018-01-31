@@ -1,12 +1,11 @@
 $(function () {
-    // let GridCellModule = window.HTM.utils.gridCells.GridCellModule;
     let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
-    let minSpacing = 60,
-        maxSpacing = 200,
-        minDim = 3,
-        maxDim = 8,
+    let minSpacing = 30,
+        maxSpacing = 100,
+        minDim = 5,
+        maxDim = 10,
         minOrientation = 0,
         maxOrientation = 30,
         minRgb = 0,
@@ -26,15 +25,10 @@ $(function () {
         return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
     }
 
-    // END UTILS
-    /////////////
-
-    let gridCellModules = [];
-
     function prepareDom() {
         $('body').html('');
     }
-    
+
     function setupDatGui(modules, renderer) {
         let gui = new dat.GUI();
         let moduleFolders = [];
@@ -84,10 +78,16 @@ $(function () {
         });
     }
 
+    // END UTILS
+    /////////////
+
+    let gridCellModules = [];
+
+
     function run() {
         prepareDom();
 
-        let numModules = 5;
+        let numModules = 3;
         if (numModules > 5) config.lite = true;
         if (numModules == 1) {
             let module = new HexagonGridCellModule(0, 3, 3, 30, 100);

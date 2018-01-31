@@ -49,9 +49,15 @@ class GridCellModule {
         return Math.floor(Math.random() * (max - min)) + min;
     }
 
-    createPoints(origin, w, h, orientation) {
+    createOverlayPoints() {
         throw new Error(
-            'GridCellModule implementations must provide createPoints()'
+            'GridCellModule implementations must provide createOverlayPoints()'
+        )
+    }
+
+    createWorldPoints(origin, w, h, orientation) {
+        throw new Error(
+            'GridCellModule implementations must provide createWorldPoints()'
         )
     }
 
@@ -62,12 +68,6 @@ class GridCellModule {
     }
 
     intersect(x, y) {
-        throw new Error(
-            'GridCellModule implementations must provide intersect()'
-        )
-    }
-
-    get type() {
         throw new Error(
             'GridCellModule implementations must provide intersect()'
         )
