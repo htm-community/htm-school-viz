@@ -62,6 +62,10 @@ $(function () {
                     )
                 } else if (value == 'random') {
                     replacementModule = new RandomGridCellModule(module.id, 100, 20)
+                    let r = getRandomInt(0, 155)
+                    let g = getRandomInt(0, 155)
+                    let b = getRandomInt(0, 155)
+                    replacementModule.setColor(r, g, b)
                 }
                 modules[i] = replacementModule
                 renderer.render(config.lite)
@@ -114,7 +118,7 @@ $(function () {
                 let id = gridCellModules.length;
                 let xDim= getRandomInt(3, 6);
                 let yDim = getRandomInt(3, 6);
-                let spacing= getRandomInt(30, 200);
+                let spacing= getRandomInt(60, 200);
                 let orientation = getRandomInt(0, 30);
                 let r = getRandomInt(0, 155);
                 let g = getRandomInt(0, 155);
