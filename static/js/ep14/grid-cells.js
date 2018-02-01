@@ -114,12 +114,15 @@ $(function () {
         setupDatGui(gridCellModules, renderer)
         renderer.render(config.lite)
 
-        renderer.on('mousemove', function() {
-            gridCellModules.forEach(function(module, i) {
-                module.intersect(d3.event.pageX, d3.event.pageY, renderer.worldPoints[i])
-                renderer.render(config.lite)
+        if (renderer.worldPoints) {
+
+            renderer.on('mousemove', function() {
+                gridCellModules.forEach(function(module, i) {
+                    module.intersect(d3.event.pageX, d3.event.pageY, renderer.worldPoints[i])
+                    renderer.render(config.lite)
+                });
             });
-        });
+        }
     }
 
     window.onload = run;

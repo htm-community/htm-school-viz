@@ -100,7 +100,6 @@ $(function () {
             this.overlayPoints = []
             this.modules.forEach(function(m, i) {
                 let points = m.createOverlayPoints()
-                let spacing = m.spacing
                 me.overlayPoints.push(points)
                 let svg = d3.select(svgs.nodes()[i])
                 let positions = points.map(function(p) {

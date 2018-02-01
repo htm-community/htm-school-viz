@@ -32,7 +32,7 @@ $(function () {
             debugger;
         }
 
-        _shiftForHex(x, y) {
+        _parallelogramitize(x, y) {
             // Shift every other row to get a pseudo hex grid
             let xmod = x
             let ymod = y
@@ -42,11 +42,14 @@ $(function () {
             return [xmod, ymod]
         }
 
+        // We have to pad the grid cell X/Y output with 2 extra cells on all
+        // sides so the voronoi renders properly. These outer cells will be
+        // empty, no grid cells inside, so they can render differently.
         _addPadding(cells) {
             let out = cells.slice(0);
-            let padRows = 2
+            let padRows = 1
             for (let x = -padRows; x < this.xDim + padRows; x++) {
-                for (let y = 0; y < this.yDim + padRows; y++) {
+                for (let y = -padRows; y < this.yDim + padRows; y++) {
                     // Only add the padding cells
                     if (x < 0 || x <= this.xDim || y < 0 || y <= this.yDim) {
                         out.push({
@@ -63,19 +66,22 @@ $(function () {
         createOverlayPoints() {
             let me = this
             let spacing = this.spacing
-            // We have to pad the grid cell X/Y output with 2 extra cells on all
-            // sides so the voronoi renders properly. These outer cells will be
-            // empty, no grid cells inside, so they can render differently.
             let paddedCells = this._addPadding(this.gridCells)
+
             let out = paddedCells.map(function(gc, i) {
-                let [xmod, ymod] = me._shiftForHex(gc.x * spacing, gc.y * spacing)
+                let x = gc.x * spacing;
+                let y = gc.y * spacing;
+                let [xmod, ymod] = me._parallelogramitize(x, y)
                 let rotatedPoint = GridCellModule.translatePoint(
-                    xmod, ymod, 0, 0, me.orientation
+                    xmod, ymod, 0, 0, me.orientation + 30
                 );
+                // move them all away from origin by one cell
+                let xMoved = rotatedPoint.x + spacing
+                let yMoved = rotatedPoint.y + spacing
                 return {
                     id: i,
-                    x: rotatedPoint.x,
-                    y: rotatedPoint.y,
+                    x: xMoved,
+                    y: yMoved,
                     gridCell: gc,
                     alpha: 0.1
                 }
@@ -98,7 +104,7 @@ $(function () {
                 gridx = 0
                 while (x <= endAt.x) {
                     //// Shift every other row to get a pseudo hex grid
-                    let [xmod, ymod] = this._shiftForHex(x, y)
+                    let [xmod, ymod] = this._parallelogramitize(x, y)
                     // Rotate, using center as origin.
                     let rotatedPoint = GridCellModule.translatePoint(
                         xmod, ymod, origin.x, origin.y, this.orientation + 30
