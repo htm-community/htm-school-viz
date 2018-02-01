@@ -2,12 +2,12 @@ $(function () {
     let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
-    let minSpacing = 50,
+    const minSpacing = 50,
         maxSpacing = 60,
-        minDim = 5,
-        maxDim = 5,
+        minDim = 3,
+        maxDim = 8,
         minOrientation = 0,
-        maxOrientation = 30,
+        maxOrientation = 90,
         minRgb = 0,
         maxRgb = 155
 
@@ -90,7 +90,7 @@ $(function () {
         let numModules = 3;
         if (numModules > 5) config.lite = true;
         if (numModules == 1) {
-            let module = new HexagonGridCellModule(0, 3, 3, 30, 100);
+            let module = new HexagonGridCellModule(0, 4, 3, 0, 60);
             gridCellModules.push(module);
         } else {
             while (gridCellModules.length < numModules) {

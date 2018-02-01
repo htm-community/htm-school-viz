@@ -62,7 +62,7 @@ $(function () {
             points.attr('cx', function(p) { return p.x })
                 .attr('cy', function(p) { return p.y })
                 .attr('r', function(p) {
-                    if (p.gridCell && p.gridCell.isActive) {
+                    if (! lite && p.gridCell && p.gridCell.isActive) {
                         return 3
                     }
                     return 0
@@ -129,7 +129,10 @@ $(function () {
             voronoi.extent([[origin.x, origin.x], [width, height]])
 
             this.modules.forEach(function(m, i) {
-                if (! m.visible) return;
+                if (! m.visible) {
+                    me.worldPoints.push([])
+                    return
+                }
                 let g = d3.select(groups.nodes()[i]);
                 let points = m.createWorldPoints(origin, width, height);
                 me.worldPoints.push(points)

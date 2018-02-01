@@ -44,8 +44,9 @@ $(function () {
 
         _addPadding(cells) {
             let out = cells.slice(0);
-            for (let x = -2; x < this.xDim + 2; x++) {
-                for (let y = -2; y < this.yDim + 2; y++) {
+            let padRows = 2
+            for (let x = -padRows; x < this.xDim + padRows; x++) {
+                for (let y = 0; y < this.yDim + padRows; y++) {
                     // Only add the padding cells
                     if (x < 0 || x <= this.xDim || y < 0 || y <= this.yDim) {
                         out.push({
@@ -69,7 +70,7 @@ $(function () {
             let out = paddedCells.map(function(gc, i) {
                 let [xmod, ymod] = me._shiftForHex(gc.x * spacing, gc.y * spacing)
                 let rotatedPoint = GridCellModule.translatePoint(
-                    xmod, ymod, 0, 0, me.orientation + 30
+                    xmod, ymod, 0, 0, me.orientation
                 );
                 return {
                     id: i,
@@ -116,6 +117,9 @@ $(function () {
                         point.y >= origin.y - this.spacing &&
                         point.y <= origin.y + h + this.spacing) {
                         points.push(point)
+                    } else {
+                        if (point.x > 0 && point.x < w && point.y > 0 && point.y < h)
+                            console.log('skipped %s: %s, %s', point.id, point.x, point.y)
                     }
                     x += this.spacing
                     gridx++
