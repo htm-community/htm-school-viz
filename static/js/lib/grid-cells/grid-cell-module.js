@@ -67,12 +67,6 @@ class GridCellModule {
         )
     }
 
-    intersect(x, y) {
-        throw new Error(
-            'GridCellModule implementations must provide intersect()'
-        )
-    }
-
     getCellCount() {
         return this.cellCount
     }
@@ -85,6 +79,15 @@ class GridCellModule {
 
     getColorString() {
         return 'rgb(' + this.r + ', ' + this.g + ', ' + this.b + ')'
+    }
+
+    intersect(x, y, points) {
+        let cellsByDistance = this.getGridCellsByDistance(x, y, points)
+        let cellsToChoose = 1
+        this.clearActiveGridCells()
+        cellsByDistance.slice(0, cellsToChoose).forEach(function(gridCell) {
+            gridCell.activate()
+        })
     }
 
     getGridCellsByDistance(x, y, points) {

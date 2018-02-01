@@ -2,10 +2,10 @@ $(function () {
     let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
-    let minSpacing = 30,
-        maxSpacing = 100,
+    let minSpacing = 50,
+        maxSpacing = 60,
         minDim = 5,
-        maxDim = 10,
+        maxDim = 5,
         minOrientation = 0,
         maxOrientation = 30,
         minRgb = 0,
@@ -111,17 +111,15 @@ $(function () {
         let renderer = new GridCellModuleRenderer(gridCellModules)
 
         renderer.prepareRender();
-
-        renderer.on('mousemove', function() {
-            gridCellModules.forEach(function(module) {
-                module.intersect(d3.event.pageX, d3.event.pageY)
-                renderer.render(config.lite)
-            });
-        });
-
         setupDatGui(gridCellModules, renderer)
         renderer.render(config.lite)
 
+        renderer.on('mousemove', function() {
+            gridCellModules.forEach(function(module, i) {
+                module.intersect(d3.event.pageX, d3.event.pageY, renderer.worldPoints[i])
+                renderer.render(config.lite)
+            });
+        });
     }
 
     window.onload = run;

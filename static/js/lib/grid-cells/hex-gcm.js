@@ -23,16 +23,6 @@ $(function () {
             return cells
         }
 
-        intersect(x, y) {
-            let cellsByDistance = this.getGridCellsByDistance(x, y, this.points)
-            let cellsToChoose = 1
-            this.clearActiveGridCells()
-            cellsByDistance.slice(0, cellsToChoose).forEach(function(gridCell) {
-                gridCell.activate()
-            })
-        }
-
-
         _getGridCellAt(x, y) {
             for (let i = 0; i < this.gridCells.length; i++) {
                 let cell = this.gridCells[i];
@@ -42,8 +32,54 @@ $(function () {
             debugger;
         }
 
-        createOverlayPoints() {
+        _shiftForHex(x, y) {
+            // Shift every other row to get a pseudo hex grid
+            let xmod = x
+            let ymod = y
+            xmod += y / 2;
+            // ymod = y - (this.length - Math.sin(60 * (Math.PI / 180)));
+            ymod = y - (y * 0.1);
+            return [xmod, ymod]
+        }
 
+        _addPadding(cells) {
+            let out = cells.slice(0);
+            for (let x = -2; x < this.xDim + 2; x++) {
+                for (let y = -2; y < this.yDim + 2; y++) {
+                    // Only add the padding cells
+                    if (x < 0 || x <= this.xDim || y < 0 || y <= this.yDim) {
+                        out.push({
+                            x: x,
+                            y: y,
+                            alpha: 0.0
+                        })
+                    }
+                }
+            }
+            return out
+        }
+
+        createOverlayPoints() {
+            let me = this
+            let spacing = this.spacing
+            // We have to pad the grid cell X/Y output with 2 extra cells on all
+            // sides so the voronoi renders properly. These outer cells will be
+            // empty, no grid cells inside, so they can render differently.
+            let paddedCells = this._addPadding(this.gridCells)
+            let out = paddedCells.map(function(gc, i) {
+                let [xmod, ymod] = me._shiftForHex(gc.x * spacing, gc.y * spacing)
+                let rotatedPoint = GridCellModule.translatePoint(
+                    xmod, ymod, 0, 0, me.orientation + 30
+                );
+                return {
+                    id: i,
+                    x: rotatedPoint.x,
+                    y: rotatedPoint.y,
+                    gridCell: gc,
+                    alpha: 0.1
+                }
+            });
+            return out
         }
 
         createWorldPoints(origin, w, h) {
@@ -60,12 +96,8 @@ $(function () {
             while (y <= endAt.y) {
                 gridx = 0
                 while (x <= endAt.x) {
-                    // Shift every other row to get a pseudo hex grid
-                    let xmod = x
-                    let ymod = y
-                    xmod += y / 2;
-                    // ymod = y - (this.length - Math.sin(60 * (Math.PI / 180)));
-                    ymod = y - (y * 0.1);
+                    //// Shift every other row to get a pseudo hex grid
+                    let [xmod, ymod] = this._shiftForHex(x, y)
                     // Rotate, using center as origin.
                     let rotatedPoint = GridCellModule.translatePoint(
                         xmod, ymod, origin.x, origin.y, this.orientation + 30
