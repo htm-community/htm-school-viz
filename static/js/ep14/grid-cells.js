@@ -4,8 +4,10 @@ $(function () {
 
     const minSpacing = 50,
         maxSpacing = 60,
-        minDim = 3,
-        maxDim = 8,
+        minxDim = 4,
+        maxxDim = 7,
+        minyDim = 3,
+        maxyDim = 5,
         minOrientation = 0,
         maxOrientation = 90,
         minRgb = 0,
@@ -95,10 +97,10 @@ $(function () {
         } else {
             while (gridCellModules.length < numModules) {
                 let id = gridCellModules.length
-                let xDim= getRandomInt(minDim, maxDim)
-                let yDim = getRandomInt(minDim, maxDim)
+                let xDim= getRandomInt(minxDim, maxxDim)
+                let yDim = getRandomInt(minyDim, maxyDim)
                 let spacing= getRandomInt(minSpacing, maxSpacing)
-                let orientation = getRandomInt(minOrientation, maxOrientation)
+                let orientation = 0; getRandomInt(minOrientation, maxOrientation)
                 let r = getRandomInt(minRgb, maxRgb)
                 let g = getRandomInt(minRgb, maxRgb)
                 let b = getRandomInt(minRgb, maxRgb)

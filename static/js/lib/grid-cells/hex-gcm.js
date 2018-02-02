@@ -51,11 +51,13 @@ $(function () {
             for (let x = -padRows; x < this.xDim + padRows; x++) {
                 for (let y = -padRows; y < this.yDim + padRows; y++) {
                     // Only add the padding cells
-                    if (x < 0 || x <= this.xDim || y < 0 || y <= this.yDim) {
+                    if (x < 0 || x >= this.xDim || y < 0 || y >= this.yDim) {
+                        // This is like a fake grid cell.
                         out.push({
                             x: x,
                             y: y,
-                            alpha: 0.0
+                            alpha: 0.0,
+                            isPadding: true
                         })
                     }
                 }
