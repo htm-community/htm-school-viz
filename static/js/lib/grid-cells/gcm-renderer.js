@@ -78,10 +78,7 @@ $(function () {
             this._treatVoronoiCell(newPaths, rgb, lite);
 
             // Exit
-            paths.exit().remove();
-
-            console.log('module %s has %s datum', module.id, data.length)
-
+            paths.exit().remove()
         }
 
         _createVoronoiData(points, voronoi) {
