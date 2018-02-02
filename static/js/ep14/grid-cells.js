@@ -118,12 +118,21 @@ $(function () {
 
         if (renderer.worldPoints) {
 
-            renderer.on('mousemove', function() {
+            renderer.onWorld('mousemove', function() {
                 gridCellModules.forEach(function(module, i) {
                     module.intersect(d3.event.pageX, d3.event.pageY, renderer.worldPoints[i])
                     renderer.render(config.lite)
                 });
             });
+
+            renderer.onOverlay('mousemove', function(_, i) {
+                gridCellModules.forEach(function(module) {
+                    module.clearActiveGridCells()
+                })
+                let module = gridCellModules[i]
+                module.intersect(d3.event.offsetX, d3.event.offsetY, renderer.overlayPoints[i])
+                renderer.render(true)
+            })
         }
     }
 

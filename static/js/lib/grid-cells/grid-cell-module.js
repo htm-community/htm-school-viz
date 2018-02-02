@@ -86,7 +86,7 @@ class GridCellModule {
         let cellsToChoose = 1
         this.clearActiveGridCells()
         cellsByDistance.slice(0, cellsToChoose).forEach(function(gridCell) {
-            gridCell.activate()
+            if (! gridCell.isPadding) gridCell.activate()
         })
     }
 

@@ -5,8 +5,12 @@ $(function () {
             this.modules = modules;
         }
 
-        on(eventName, handler) {
+        onWorld(eventName, handler) {
             d3.select('#world').on(eventName, handler);
+        }
+
+        onOverlay(eventName, handler) {
+            d3.selectAll('#module-overlays svg').on(eventName, handler);
         }
 
         prepareRender() {
