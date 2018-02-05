@@ -44,7 +44,7 @@ $(function () {
 
         // We have to pad the grid cell X/Y output with 2 extra cells on all
         // sides so the voronoi renders properly. These outer cells will be
-        // empty, no grid cells inside, so they can render differently.
+        // empty, no grid cells inside, so they can renderWorld differently.
         _addPadding(cells) {
             let out = cells.slice(0);
             let padRows = 1

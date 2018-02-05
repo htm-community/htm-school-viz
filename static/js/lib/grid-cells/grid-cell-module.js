@@ -81,16 +81,34 @@ class GridCellModule {
         return 'rgb(' + this.r + ', ' + this.g + ', ' + this.b + ')'
     }
 
-    intersect(x, y, points) {
-        let cellsByDistance = this.getGridCellsByDistance(x, y, points)
-        let cellsToChoose = 1
+    intersectWorld(x, y, points) {
+        // We want to take the mouse position on the world and do two things:
+        // 1. mark the closest point(s) in each GCM world where the cursor is
+        //    intersecting the world
+        // 2. activate grid cells in each GCM globally that correspond to these
+        //    points
+        let numberOfPoints = 1
+        let closestPoints = this.getClosestPointsByDistance(x, y, points, numberOfPoints)
         this.clearActiveGridCells()
-        cellsByDistance.slice(0, cellsToChoose).forEach(function(gridCell) {
-            if (! gridCell.isPadding) gridCell.activate()
+        points.forEach(function(p) { p.hover = false })
+        closestPoints.forEach(function(p) {
+            p.hover = true
+            p.gridCell.activate()
         })
     }
 
-    getGridCellsByDistance(x, y, points) {
+    intersectOverlay(x, y, points) {
+        // We want to take the mouse position over the GCM overlay and do
+        // these things:
+        // 1. turn off all grid cells across all modules
+        this.clearActiveGridCells()
+        // 2. turn on grid cells within this module corresponding to x,y
+        let numberOfPoints = 1
+        let gridCells = this.getGridCellsByDistance(x, y, points, numberOfPoints)
+        gridCells.forEach(function(cell) { cell.activate() })
+    }
+
+    getClosestPointsByDistance(x, y, points, count) {
         let mappedDistances = points.map(function (p, i) {
             return {index: i, distance: Math.hypot(p.x - x, p.y - y)}
         })
@@ -99,9 +117,33 @@ class GridCellModule {
             if (a.distance < b.distance) return -1
             return 0
         })
-        return uniqueArray(mappedDistances.map(function (mappedDistance) {
+        let unique = uniqueArray(mappedDistances).slice(0, count)
+        return unique.map(function(point) {
+            return points[point.index]
+        })
+    }
+
+    getPointsByDistance(x, y, points) {
+        let mappedDistances = points.map(function (p, i) {
+            return {index: i, distance: Math.hypot(p.x - x, p.y - y)}
+        })
+        mappedDistances.sort(function (a, b) {
+            if (a.distance > b.distance) return 1
+            if (a.distance < b.distance) return -1
+            return 0
+        })
+        return uniqueArray(mappedDistances)
+    }
+
+    getGridCellsByDistance(x, y, points, count) {
+        let pointsByDistance = this.getPointsByDistance(x, y, points)
+        let noPadding = pointsByDistance.filter(function(point) {
+            let p = points[point.index]
+            return p.gridCell && ! p.gridCell.isPadding
+        })
+        return noPadding.map(function (mappedDistance) {
             return points[mappedDistance.index].gridCell
-        }))
+        }).slice(0, count)
     }
 
     clearActiveGridCells() {

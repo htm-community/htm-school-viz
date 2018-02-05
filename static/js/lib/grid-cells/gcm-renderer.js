@@ -1,5 +1,19 @@
 $(function () {
 
+    function fillByHover(data) {
+        if (data.point.hover) return data.rgb
+        return 'none'
+    }
+
+    function fillByActiveGridCells(data) {
+        let point = data.point
+        if (! point.gridCell.isPadding && point.gridCell.isActive()) {
+            return data.rgb
+        }
+        return 'none'
+    }
+
+
     class GridCellModuleRenderer {
         constructor(modules) {
             this.modules = modules;
@@ -33,7 +47,7 @@ $(function () {
             });
         }
 
-        _treatVoronoiCell(paths, rgb, lite) {
+        _treatVoronoiCell(paths, lite, fillFunction) {
             paths.attr("class", "cell")
                 .attr("d", function(data, i) {
                     let point = data.point
@@ -56,32 +70,24 @@ $(function () {
                     if (point.gridCell.isPadding) out = 0
                     return out
                 })
-                .attr('fill', function(data) {
-                    let point = data.point
-                    if (! point.gridCell.isPadding && point.gridCell.isActive()) {
-                        return rgb
-                    }
-                    return 'none'
-                })
+                .attr('fill', fillFunction)
                 .attr('fill-opacity', 0.75);
         }
 
-        _renderVoronoiToElement(module, data, $target, lite) {
-            let rgb = module.getColorString()
-
+        _renderVoronoiToElement(module, data, $target, lite, fillFunction) {
             // Update
             let paths = $target.selectAll('path').data(data);
-            this._treatVoronoiCell(paths, rgb, lite);
+            this._treatVoronoiCell(paths, lite, fillFunction);
 
             // Enter
             let newPaths = paths.enter().append('path');
-            this._treatVoronoiCell(newPaths, rgb, lite);
+            this._treatVoronoiCell(newPaths, lite, fillFunction);
 
             // Exit
             paths.exit().remove()
         }
 
-        _createVoronoiData(points, voronoi) {
+        _createVoronoiData(points, voronoi, rgb) {
             let positions = points.map(function(p) {
                 return [p.x, p.y];
             });
@@ -89,38 +95,42 @@ $(function () {
             let data = points.map(function(p, i) {
                 return {
                     point: points[i],
-                    polygon: polygons[i]
+                    polygon: polygons[i],
+                    rgb: rgb
                 }
             })
             return data
         }
 
-        renderModuleOverlays(svgs, lite) {
+        _renderModuleOverlayCells(svgs, moduleIndex, lite, fillFunction, mouseX, mouseY) {
             let me = this
             this.overlayPoints = []
             let voronoi = d3.voronoi()
-            this.modules.forEach(function(m, i) {
+            let m = this.modules[moduleIndex]
+            let rgb = m.getColorString()
 
-                let points = m.createOverlayPoints()
-                me.overlayPoints.push(points)
+            let points = m.createOverlayPoints()
+            if (mouseX !== undefined && mouseY !== undefined) {
+                m.intersectOverlay(mouseX, mouseY, points)
+            }
+            me.overlayPoints.push(points)
 
-                let svg = d3.select(svgs.nodes()[i])
-                let width = Math.max(...points.map(function(p) { return p.x }))
-                let height = Math.max(...points.map(function(p) { return p.y }))
-                svg.attr('width', width)
-                   .attr('height', height)
+            let svg = d3.select(svgs.nodes()[moduleIndex])
+            let width = Math.max(...points.map(function(p) { return p.x }))
+            let height = Math.max(...points.map(function(p) { return p.y }))
+            svg.attr('width', width)
+               .attr('height', height)
 
-                voronoi.extent([
-                    [0, 0],
-                    [width, height]
-                ])
+            voronoi.extent([
+                [0, 0],
+                [width, height]
+            ])
 
-                let data = me._createVoronoiData(points, voronoi)
-                me._renderVoronoiToElement(m, data, svg, lite)
-            });
+            let data = me._createVoronoiData(points, voronoi, rgb)
+            me._renderVoronoiToElement(m, data, svg, lite, fillFunction)
         }
 
-        renderWorld(groups, lite) {
+        _renderWorldCells(groups, lite, fillFunction, mouseX, mouseY) {
             let me = this;
             this.worldPoints = []
             let origin = {x: 0, y: 0}
@@ -134,13 +144,21 @@ $(function () {
                     me.worldPoints.push([])
                     return
                 }
-                let g = d3.select(groups.nodes()[i]);
 
+                let g = d3.select(groups.nodes()[i]);
+                let rgb = m.getColorString()
                 let points = m.createWorldPoints(origin, width, height);
+
+                if (mouseX !== undefined && mouseY !== undefined) {
+                    // If x/y are here, it means cursor is over the world so we
+                    // need to intersect it.
+                    m.intersectWorld(mouseX, mouseY, points)
+                }
+
                 me.worldPoints.push(points)
 
-                let data = me._createVoronoiData(points, voronoi)
-                me._renderVoronoiToElement(m, data, g, lite)
+                let data = me._createVoronoiData(me.worldPoints[i], voronoi, rgb)
+                me._renderVoronoiToElement(m, data, g, lite, fillFunction)
             });
 
         }
@@ -150,11 +168,11 @@ $(function () {
                 groups.attr('id', function(m) {
                     return 'module-' + m.id;
                 })
-                .attr('visibility', function(m) {
-                    if (m.visible) return 'visible';
-                    return 'hidden';
-                })
-                .attr('class', 'module-group');
+                    .attr('visibility', function(m) {
+                        if (m.visible) return 'visible';
+                        return 'hidden';
+                    })
+                    .attr('class', 'module-group');
             }
 
             // Update
@@ -168,8 +186,32 @@ $(function () {
             // Exit
             groups.exit().remove();
 
-            this.renderWorld(d3.selectAll('g.module-group'), lite);
-            this.renderModuleOverlays(d3.selectAll('#module-overlays svg'), false)
+            this.renderFromWorld(lite, 500, 500)
+        }
+
+        renderFromWorld(lite, mouseX, mouseY) {
+            let me = this
+            let groups = d3.selectAll('g.module-group');
+            this._renderWorldCells(groups, lite, fillByHover, mouseX, mouseY);
+            this.modules.forEach(function(module, i) {
+                let svgs = d3.selectAll('#module-overlays svg');
+                me._renderModuleOverlayCells(svgs, i, lite, fillByActiveGridCells)
+            })
+        }
+
+        renderFromOverlay(moduleIndex, lite, mouseX, mouseY) {
+            let me = this
+            this.modules.forEach(function(module, i) {
+                let x = undefined, y = undefined
+                if (i == moduleIndex) {
+                    x = mouseX
+                    y = mouseY
+                }
+                let svgs = d3.selectAll('#module-overlays svg');
+                me._renderModuleOverlayCells(svgs, moduleIndex, lite, fillByActiveGridCells, x, y)
+            })
+            let groups = d3.selectAll('g.module-group');
+            this._renderWorldCells(groups, lite, fillByActiveGridCells);
         }
     }
 
