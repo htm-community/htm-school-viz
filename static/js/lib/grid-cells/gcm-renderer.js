@@ -206,6 +206,8 @@ $(function () {
                 if (i == moduleIndex) {
                     x = mouseX
                     y = mouseY
+                } else {
+                    module.clearActiveGridCells()
                 }
                 let svgs = d3.selectAll('#module-overlays svg');
                 me._renderModuleOverlayCells(svgs, moduleIndex, lite, fillByActiveGridCells, x, y)
