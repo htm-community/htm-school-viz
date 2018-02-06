@@ -123,9 +123,10 @@ $(function () {
         _renderModuleOverlayCells(svgs, moduleIndex, lite, fillFunction, mouseX, mouseY) {
             let me = this
             this.overlayPoints = []
-            let origin = {x: 0, y: 0}
-            let voronoi = d3.voronoi()
             let m = this.modules[moduleIndex]
+            let spacing = m.spacing
+            let origin = {x: spacing*3, y: spacing*3}
+            let voronoi = d3.voronoi()
             let rgb = m.getColorString()
 
             let points = m.createOverlayPoints(origin)

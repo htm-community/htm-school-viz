@@ -45,9 +45,8 @@ $(function () {
         // We have to pad the grid cell X/Y output with 2 extra cells on all
         // sides so the voronoi renders properly. These outer cells will be
         // empty, no grid cells inside, so they can renderWorld differently.
-        _addPadding(cells) {
+        _addPadding(cells, padRows) {
             let out = cells.slice(0);
-            let padRows = 1
             for (let x = -padRows; x < this.xDim + padRows; x++) {
                 for (let y = -padRows; y < this.yDim + padRows; y++) {
                     // Only add the padding cells
@@ -68,7 +67,8 @@ $(function () {
         createOverlayPoints(origin) {
             let me = this
             let spacing = this.spacing
-            let paddedCells = this._addPadding(this.gridCells)
+            let padRows = 1
+            let paddedCells = this._addPadding(this.gridCells, padRows)
 
             let out = paddedCells.map(function(gc, i) {
                 let x = gc.x * spacing;
@@ -77,9 +77,9 @@ $(function () {
                 let rotatedPoint = GridCellModule.translatePoint(
                     xmod, ymod, origin.x, origin.y, me.orientation + 30
                 );
-                // move them all away from origin by one cell
-                let xMoved = rotatedPoint.x + spacing
-                let yMoved = rotatedPoint.y + spacing
+                // adjust for better rotation on screen
+                let xMoved = rotatedPoint.x;
+                let yMoved = rotatedPoint.y + 2*spacing
                 return {
                     id: i,
                     x: xMoved,

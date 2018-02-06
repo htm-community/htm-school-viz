@@ -2,16 +2,16 @@ $(function () {
     let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
-    const minSpacing = 50,
-        maxSpacing = 60,
-        minxDim = 4,
-        maxxDim = 7,
+    const minSpacing = 20,
+        maxSpacing = 80,
+        minxDim = 3,
+        maxxDim = 10,
         minyDim = 3,
-        maxyDim = 5,
+        maxyDim = 10,
         minOrientation = 0,
-        maxOrientation = 90,
+        maxOrientation = 45,
         minRgb = 0,
-        maxRgb = 155
+        maxRgb = 255
 
     let GlobalConfig = function() {
         this.lite = false;
