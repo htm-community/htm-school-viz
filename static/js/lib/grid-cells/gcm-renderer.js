@@ -102,24 +102,6 @@ $(function () {
             return data
         }
 
-        _getGridCellOrigin(points) {
-            let minx = undefined, miny = undefined,
-                maxx = undefined, maxy = undefined
-            points.forEach(function(p) {
-                if (! p.gridCell.isPadding) {
-                    if (minx == undefined || p.x < minx) minx = p.x
-                    if (maxx == undefined || p.x > maxx) maxx = p.x
-                    if (miny == undefined || p.y < miny) miny = p.y
-                    if (maxy == undefined || p.y > maxy) maxy = p.y
-                }
-            })
-            return {
-                x: (minx + maxx) / 2,
-                y: (miny + maxy) / 2
-            }
-            return {x: 0, y: 0}
-        }
-
         _renderModuleOverlayCells(svgs, moduleIndex, lite, fillFunction, mouseX, mouseY) {
             let me = this
             this.overlayPoints = []
@@ -130,8 +112,6 @@ $(function () {
             let rgb = m.getColorString()
 
             let points = m.createOverlayPoints(origin)
-            // origin = this._getGridCellOrigin(points)
-            // points = m.createOverlayPoints(origin)
             if (mouseX !== undefined && mouseY !== undefined) {
                 m.intersectOverlay(mouseX, mouseY, points)
             }
@@ -217,7 +197,7 @@ $(function () {
             this._renderWorldCells(groups, lite, fillByHover, mouseX, mouseY);
             this.modules.forEach(function(module, i) {
                 let svgs = d3.selectAll('#module-overlays svg');
-                me._renderModuleOverlayCells(svgs, i, lite, fillByActiveGridCells)
+                me._renderModuleOverlayCells(svgs, i, false, fillByActiveGridCells)
             })
         }
 
@@ -232,7 +212,7 @@ $(function () {
                     module.clearActiveGridCells()
                 }
                 let svgs = d3.selectAll('#module-overlays svg');
-                me._renderModuleOverlayCells(svgs, moduleIndex, lite, fillByActiveGridCells, x, y)
+                me._renderModuleOverlayCells(svgs, moduleIndex, false, fillByActiveGridCells, x, y)
             })
             let groups = d3.selectAll('g.module-group');
             this._renderWorldCells(groups, lite, fillByActiveGridCells);

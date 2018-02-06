@@ -31,6 +31,7 @@ class GridCellModule {
         this.setColor(100, 100, 255)
         this.orientation = orientation || 0
         this.visible = true
+        this.activeCells = 1
     }
 
     static translatePoint(pointX, pointY, originX, originY, degrees) {
@@ -87,8 +88,7 @@ class GridCellModule {
         //    intersecting the world
         // 2. activate grid cells in each GCM globally that correspond to these
         //    points
-        let numberOfPoints = 1
-        let closestPoints = this.getClosestPointsByDistance(x, y, points, numberOfPoints)
+        let closestPoints = this.getClosestPointsByDistance(x, y, points, this.activeCells)
         this.clearActiveGridCells()
         points.forEach(function(p) { p.hover = false })
         closestPoints.forEach(function(p) {
@@ -103,8 +103,7 @@ class GridCellModule {
         // 1. turn off all grid cells across all modules
         this.clearActiveGridCells()
         // 2. turn on grid cells within this module corresponding to x,y
-        let numberOfPoints = 1
-        let gridCells = this.getGridCellsByDistance(x, y, points, numberOfPoints)
+        let gridCells = this.getGridCellsByDistance(x, y, points, this.activeCells)
         gridCells.forEach(function(cell) { cell.activate() })
     }
 

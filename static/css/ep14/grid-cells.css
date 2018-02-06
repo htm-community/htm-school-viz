@@ -9,7 +9,7 @@ svg#world {
 
 #module-overlays {
     position: absolute;
-    top: 10px;
+    bottom: 10px;
     left: 10px;
 }
 
@@ -20,6 +20,8 @@ ul#module-overlays {
 }
 
 ul#module-overlays li {
+    display: inline;
+    padding-right: 10px;
 }
 
 #module-overlays svg {

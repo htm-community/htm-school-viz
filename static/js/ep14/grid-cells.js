@@ -5,16 +5,16 @@ $(function () {
     const minSpacing = 20,
         maxSpacing = 80,
         minxDim = 3,
-        maxxDim = 10,
+        maxxDim = 8,
         minyDim = 3,
-        maxyDim = 10,
+        maxyDim = 8,
         minOrientation = 0,
         maxOrientation = 45,
         minRgb = 0,
         maxRgb = 255
 
     let GlobalConfig = function() {
-        this.lite = false;
+        this.lite = true;
     };
     let config = new GlobalConfig();
 
@@ -71,6 +71,10 @@ $(function () {
                 module.spacing = value;
                 renderer.render(config.lite);
             });
+            folder.add(module, 'activeCells', 1, 10).onChange(function(value) {
+                module.activeCells = value;
+                renderer.render(config.lite);
+            }).step(1);
             folder.add(module, 'orientation', minOrientation, maxOrientation).onChange(function(value) {
                 module.orientation = value;
                 renderer.render(config.lite);
@@ -89,26 +93,43 @@ $(function () {
     function run() {
         prepareDom();
 
-        let numModules = 3;
-        if (numModules > 5) config.lite = true;
-        if (numModules == 1) {
-            let module = new HexagonGridCellModule(0, 4, 3, 0, 60);
-            gridCellModules.push(module);
-        } else {
-            while (gridCellModules.length < numModules) {
-                let id = gridCellModules.length
-                let xDim= getRandomInt(minxDim, maxxDim)
-                let yDim = getRandomInt(minyDim, maxyDim)
-                let spacing= getRandomInt(minSpacing, maxSpacing)
-                let orientation = 0; getRandomInt(minOrientation, maxOrientation)
-                let r = getRandomInt(minRgb, maxRgb)
-                let g = getRandomInt(minRgb, maxRgb)
-                let b = getRandomInt(minRgb, maxRgb)
-                let module = new HexagonGridCellModule(id, xDim, yDim, orientation, spacing)
-                module.setColor(r, g, b)
-                gridCellModules.push(module)
-            }
-        }
+        // let numModules = 3;
+        // if (numModules > 5) config.lite = true;
+        // if (numModules == 1) {
+        //     let module = new HexagonGridCellModule(0, 4, 3, 0, 60);
+        //     gridCellModules.push(module);
+        // } else {
+        //     while (gridCellModules.length < numModules) {
+        //         let id = gridCellModules.length
+        //         let xDim= getRandomInt(minxDim, maxxDim)
+        //         let yDim = getRandomInt(minyDim, maxyDim)
+        //         let spacing= getRandomInt(minSpacing, maxSpacing)
+        //         let orientation = getRandomInt(minOrientation, maxOrientation)
+        //         let r = getRandomInt(minRgb, maxRgb)
+        //         let g = getRandomInt(minRgb, maxRgb)
+        //         let b = getRandomInt(minRgb, maxRgb)
+        //         let activeCells = getRandomInt(1, 4)
+        //         let module = new HexagonGridCellModule(id, xDim, yDim, orientation, spacing)
+        //         module.setColor(r, g, b)
+        //         module.activeCells = activeCells
+        //         gridCellModules.push(module)
+        //     }
+        // }
+
+        let module = new HexagonGridCellModule(2, 4, 3, 10, 100)
+        module.setColor(100, 100, 255)
+        module.activeCells = 2
+        gridCellModules.push(module)
+
+        module = new HexagonGridCellModule(1, 5, 4, 0, 60)
+        module.setColor(100, 255, 100)
+        module.activeCells = 3
+        gridCellModules.push(module)
+
+        module = new HexagonGridCellModule(0, 7, 6, 45, 30)
+        module.setColor(255, 100 , 100)
+        module.activeCells = 7
+        gridCellModules.push(module)
 
         let renderer = new GridCellModuleRenderer(gridCellModules)
 
