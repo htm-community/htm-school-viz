@@ -33,6 +33,7 @@ class GridCellModule {
         this.orientation = orientation || 0
         this.visible = true
         this.activeCells = 1
+        this.weight = 1
     }
 
     static translatePoint(pointX, pointY, originX, originY, degrees) {

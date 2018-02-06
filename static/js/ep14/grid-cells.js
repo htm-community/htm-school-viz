@@ -68,6 +68,10 @@ $(function () {
                 renderer.render(config.lite);
                 updateAllControllerDisplays();
             });
+            folder.add(module, 'weight', 1, 5).onChange(function(value) {
+                module.weight = value;
+                renderer.render(config.lite);
+            }).step(1);
             folder.add(module, 'spacing', minSpacing, maxSpacing).onChange(function(value) {
                 module.spacing = value;
                 renderer.render(config.lite);
@@ -97,16 +101,19 @@ $(function () {
         let module = new HexagonGridCellModule(2, 4, 3, 10, 100)
         module.setColor(100, 100, 255)
         module.activeCells = 2
+        module.weight = 3
         gridCellModules.push(module)
 
         module = new HexagonGridCellModule(1, 5, 4, 0, 60)
         module.setColor(100, 255, 100)
         module.activeCells = 3
+        module.weight = 2
         gridCellModules.push(module)
 
         module = new HexagonGridCellModule(0, 7, 6, 45, 30)
         module.setColor(255, 100 , 100)
         module.activeCells = 7
+        module.weight = 1
         gridCellModules.push(module)
 
         let renderer = new GridCellModuleRenderer(gridCellModules)

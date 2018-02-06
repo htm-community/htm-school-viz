@@ -24,7 +24,16 @@ $(function () {
         }
 
         getEncoding() {
-            return this.gridCells.filter((gc) => ! gc.isPadding ).map((gc) => gc.isActive() ? 1 : 0)
+            let justGridCells = this.gridCells.filter((gc) => ! gc.isPadding );
+            let out = []
+            let weight = this.weight
+            justGridCells.forEach((gc) => {
+                let bit = gc.isActive() ? 1 : 0
+                for (let x = 0; x < weight; x++) {
+                    out.push(bit)
+                }
+            })
+            return out
         }
 
         _getGridCellAt(x, y) {
