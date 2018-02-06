@@ -678,9 +678,9 @@ $(function() {
     function loadGifList() {
         $.getJSON("/_giflist", function(resp) {
             var $giflist = $('#choose-gif');
-            _.each(resp.gifs, function(gifdata) {
-                var path = gifdata.path;
-                var dimensions = gifdata.dimensions;
+            _.each(resp.gifs, function(gifData) {
+                var path = gifData.path;
+                var dimensions = gifData.dimensions;
                 var name = path.split('/').pop().split('.').shift();
                 var $li = $('<li>');
                 var $btn = $('<button>');

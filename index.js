@@ -11,7 +11,7 @@ var port = process.argv[2] || 8001;
 var app = express();
 
 var NUPIC_SERVER = "http://localhost:8080";
-var GIF_PATH = "static/data/gifdata/";
+var GIF_PATH = "static/data/gifData/";
 
 //use handlebars render engine using the existing locations
 app.engine('.html', exphbs({
