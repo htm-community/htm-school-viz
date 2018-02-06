@@ -23,6 +23,10 @@ $(function () {
             return cells
         }
 
+        getEncoding() {
+            return this.gridCells.filter((gc) => ! gc.isPadding ).map((gc) => gc.isActive() ? 1 : 0)
+        }
+
         _getGridCellAt(x, y) {
             for (let i = 0; i < this.gridCells.length; i++) {
                 let cell = this.gridCells[i];

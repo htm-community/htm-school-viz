@@ -8,7 +8,8 @@ $(function () {
         maxOrientation = 45
 
     let GlobalConfig = function() {
-        this.lite = true;
+        this.lite = true
+        this.sdr = true
     };
     let config = new GlobalConfig();
 
@@ -31,6 +32,12 @@ $(function () {
 
         gui.add(config, 'lite').onChange(function(value) {
             config.lite = value;
+            renderer.render(config.lite);
+        });
+
+        gui.add(config, 'sdr').onChange(function(value) {
+            config.sdr = value;
+            d3.select('#encoding svg').remove()
             renderer.render(config.lite);
         });
 
@@ -106,16 +113,17 @@ $(function () {
 
         renderer.prepareRender();
         setupDatGui(gridCellModules, renderer)
-        renderer.render(config.lite)
+
+        renderer.render(config)
 
         if (renderer.worldPoints) {
 
             renderer.onWorld('mousemove', function() {
-                renderer.renderFromWorld(config.lite, d3.event.pageX, d3.event.pageY)
+                renderer.renderFromWorld(config, d3.event.pageX, d3.event.pageY)
             });
 
             renderer.onOverlay('mousemove', function(_, i) {
-                renderer.renderFromOverlay(i, config.lite, d3.event.offsetX, d3.event.offsetY)
+                renderer.renderFromOverlay(i, config, d3.event.offsetX, d3.event.offsetY)
             })
         }
     }

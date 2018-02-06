@@ -45,6 +45,7 @@ $(function () {
                     .append('svg')
                     .attr('id', 'module-overlay-' + i)
             });
+            d3.select('body').append('div').attr('id', 'encoding')
         }
 
         _treatVoronoiCell(paths, texts, lite, fillFunction) {
@@ -180,7 +181,7 @@ $(function () {
 
         }
 
-        render(lite) {
+        render(config) {
             function treatGroups(groups) {
                 groups.attr('id', function(m) {
                     return 'module-' + m.id;
@@ -203,20 +204,24 @@ $(function () {
             // Exit
             groups.exit().remove();
 
-            this.renderFromWorld(lite, 500, 500)
+            this.renderFromWorld(config, 500, 500)
+            if (config.sdr)
+                this.renderSdr()
         }
 
-        renderFromWorld(lite, mouseX, mouseY) {
+        renderFromWorld(config, mouseX, mouseY) {
             let me = this
             let groups = d3.selectAll('g.module-group');
-            this._renderWorldCells(groups, lite, fillByHover, mouseX, mouseY);
+            this._renderWorldCells(groups, config.lite, fillByHover, mouseX, mouseY);
             this.modules.forEach(function(module, i) {
                 let svgs = d3.selectAll('#module-overlays svg');
                 me._renderModuleOverlayCells(svgs, i, false, fillByActiveGridCells)
             })
+            if (config.sdr)
+                this.renderSdr()
         }
 
-        renderFromOverlay(moduleIndex, lite, mouseX, mouseY) {
+        renderFromOverlay(moduleIndex, config, mouseX, mouseY) {
             let me = this
             this.modules.forEach(function(module, i) {
                 let x = undefined, y = undefined
@@ -230,7 +235,20 @@ $(function () {
                 me._renderModuleOverlayCells(svgs, moduleIndex, false, fillByActiveGridCells, x, y)
             })
             let groups = d3.selectAll('g.module-group');
-            this._renderWorldCells(groups, lite, fillByActiveGridCells);
+            this._renderWorldCells(groups, config.lite, fillByActiveGridCells);
+            if (config.sdr)
+                this.renderSdr()
+        }
+
+        renderSdr() {
+            let encoding = []
+            this.modules.forEach(function(m) {
+                encoding = encoding.concat(m.getEncoding())
+            })
+            SDR.draw(encoding, 'encoding', {
+                spartan: true,
+                size: 30
+            });
         }
     }
 

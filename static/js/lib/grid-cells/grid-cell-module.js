@@ -69,6 +69,12 @@ class GridCellModule {
         )
     }
 
+    getEncoding() {
+        throw new Error(
+            'GridCellModule implementations must provide getEncoding()'
+        )
+    }
+
     getCellCount() {
         return this.cellCount
     }
