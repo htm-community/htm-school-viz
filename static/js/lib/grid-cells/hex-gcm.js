@@ -17,7 +17,7 @@ $(function () {
             let cells = []
             for (let x = 0; x < this.xDim; x++) {
                 for (let y = 0; y < this.yDim; y++) {
-                    cells.push(new GridCell(x, y))
+                    cells.push(new GridCell(cells.length, x, y))
                 }
             }
             return cells

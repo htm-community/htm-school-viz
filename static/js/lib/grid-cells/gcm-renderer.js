@@ -47,7 +47,7 @@ $(function () {
             });
         }
 
-        _treatVoronoiCell(paths, lite, fillFunction) {
+        _treatVoronoiCell(paths, texts, lite, fillFunction) {
             paths.attr("class", "cell")
                 .attr("d", function(data, i) {
                     let point = data.point
@@ -71,17 +71,32 @@ $(function () {
                     return out
                 })
                 .attr('fill', fillFunction)
-                .attr('fill-opacity', 0.75);
+                .attr('fill-opacity', 0.75)
+            texts.attr('x', function(d) {
+                    return d.point.x - 4
+                })
+                .attr('y', function(d) {
+                    return d.point.y + 3
+                })
+                .attr('font-size', 12)
+                .attr('fill', 'white')
+                .text(function(d) {
+                    let gc = d.point.gridCell
+                    if (! gc.isPadding && gc.isActive())
+                        return d.point.gridCell.id
+                })
         }
 
         _renderVoronoiToElement(module, data, $target, lite, fillFunction) {
             // Update
-            let paths = $target.selectAll('path').data(data);
-            this._treatVoronoiCell(paths, lite, fillFunction);
+            let paths = $target.selectAll('path').data(data)
+            let texts = $target.selectAll('text').data(data)
+            this._treatVoronoiCell(paths, texts, lite, fillFunction)
 
             // Enter
-            let newPaths = paths.enter().append('path');
-            this._treatVoronoiCell(newPaths, lite, fillFunction);
+            let newPaths = paths.enter().append('path')
+            let newTexts = texts.enter().append('text')
+            this._treatVoronoiCell(newPaths, newTexts, lite, fillFunction)
 
             // Exit
             paths.exit().remove()
@@ -90,8 +105,8 @@ $(function () {
         _createVoronoiData(points, voronoi, rgb) {
             let positions = points.map(function(p) {
                 return [p.x, p.y];
-            });
-            let polygons = voronoi(positions).polygons();
+            })
+            let polygons = voronoi(positions).polygons()
             let data = points.map(function(p, i) {
                 return {
                     point: points[i],

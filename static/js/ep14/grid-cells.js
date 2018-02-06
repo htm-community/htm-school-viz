@@ -4,14 +4,8 @@ $(function () {
 
     const minSpacing = 20,
         maxSpacing = 80,
-        minxDim = 3,
-        maxxDim = 8,
-        minyDim = 3,
-        maxyDim = 8,
         minOrientation = 0,
-        maxOrientation = 45,
-        minRgb = 0,
-        maxRgb = 255
+        maxOrientation = 45
 
     let GlobalConfig = function() {
         this.lite = true;
@@ -92,29 +86,6 @@ $(function () {
 
     function run() {
         prepareDom();
-
-        // let numModules = 3;
-        // if (numModules > 5) config.lite = true;
-        // if (numModules == 1) {
-        //     let module = new HexagonGridCellModule(0, 4, 3, 0, 60);
-        //     gridCellModules.push(module);
-        // } else {
-        //     while (gridCellModules.length < numModules) {
-        //         let id = gridCellModules.length
-        //         let xDim= getRandomInt(minxDim, maxxDim)
-        //         let yDim = getRandomInt(minyDim, maxyDim)
-        //         let spacing= getRandomInt(minSpacing, maxSpacing)
-        //         let orientation = getRandomInt(minOrientation, maxOrientation)
-        //         let r = getRandomInt(minRgb, maxRgb)
-        //         let g = getRandomInt(minRgb, maxRgb)
-        //         let b = getRandomInt(minRgb, maxRgb)
-        //         let activeCells = getRandomInt(1, 4)
-        //         let module = new HexagonGridCellModule(id, xDim, yDim, orientation, spacing)
-        //         module.setColor(r, g, b)
-        //         module.activeCells = activeCells
-        //         gridCellModules.push(module)
-        //     }
-        // }
 
         let module = new HexagonGridCellModule(2, 4, 3, 10, 100)
         module.setColor(100, 100, 255)

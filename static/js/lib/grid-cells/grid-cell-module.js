@@ -3,7 +3,8 @@ $(function () {
 let uniqueArray = (arrArg) => arrArg.filter((elem, pos, arr) => arr.indexOf(elem) == pos);
 
 class GridCell {
-    constructor(x, y) {
+    constructor(id, x, y) {
+        this.id = id
         this.x = x
         this.y = y
         this.active = false
