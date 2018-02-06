@@ -103,9 +103,21 @@ $(function () {
         }
 
         _getGridCellOrigin(points) {
-            let origin = {x: 0, y: 0}
-            let minx =
-            return origin
+            let minx = undefined, miny = undefined,
+                maxx = undefined, maxy = undefined
+            points.forEach(function(p) {
+                if (! p.gridCell.isPadding) {
+                    if (minx == undefined || p.x < minx) minx = p.x
+                    if (maxx == undefined || p.x > maxx) maxx = p.x
+                    if (miny == undefined || p.y < miny) miny = p.y
+                    if (maxy == undefined || p.y > maxy) maxy = p.y
+                }
+            })
+            return {
+                x: (minx + maxx) / 2,
+                y: (miny + maxy) / 2
+            }
+            return {x: 0, y: 0}
         }
 
         _renderModuleOverlayCells(svgs, moduleIndex, lite, fillFunction, mouseX, mouseY) {
@@ -117,8 +129,8 @@ $(function () {
             let rgb = m.getColorString()
 
             let points = m.createOverlayPoints(origin)
-            origin = this._getGridCellOrigin(points)
-            points = m.createOverlayPoints(origin)
+            // origin = this._getGridCellOrigin(points)
+            // points = m.createOverlayPoints(origin)
             if (mouseX !== undefined && mouseY !== undefined) {
                 m.intersectOverlay(mouseX, mouseY, points)
             }
