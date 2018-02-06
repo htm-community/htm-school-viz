@@ -65,7 +65,7 @@ $(function () {
             return out
         }
 
-        createOverlayPoints() {
+        createOverlayPoints(origin) {
             let me = this
             let spacing = this.spacing
             let paddedCells = this._addPadding(this.gridCells)
@@ -75,7 +75,7 @@ $(function () {
                 let y = gc.y * spacing;
                 let [xmod, ymod] = me._parallelogramitize(x, y)
                 let rotatedPoint = GridCellModule.translatePoint(
-                    xmod, ymod, 0, 0, me.orientation + 30
+                    xmod, ymod, origin.x, origin.y, me.orientation + 30
                 );
                 // move them all away from origin by one cell
                 let xMoved = rotatedPoint.x + spacing

@@ -102,14 +102,23 @@ $(function () {
             return data
         }
 
+        _getGridCellOrigin(points) {
+            let origin = {x: 0, y: 0}
+            let minx =
+            return origin
+        }
+
         _renderModuleOverlayCells(svgs, moduleIndex, lite, fillFunction, mouseX, mouseY) {
             let me = this
             this.overlayPoints = []
+            let origin = {x: 0, y: 0}
             let voronoi = d3.voronoi()
             let m = this.modules[moduleIndex]
             let rgb = m.getColorString()
 
-            let points = m.createOverlayPoints()
+            let points = m.createOverlayPoints(origin)
+            origin = this._getGridCellOrigin(points)
+            points = m.createOverlayPoints(origin)
             if (mouseX !== undefined && mouseY !== undefined) {
                 m.intersectOverlay(mouseX, mouseY, points)
             }
