@@ -270,6 +270,7 @@ $(function () {
     class CircleGridCellModuleRenderer extends GridCellModuleRenderer {
 
         renderFromWorld(config, mouseX, mouseY) {
+            if (config.screenLock) return
             let me = this
             let groups = d3.selectAll('g.module-group');
             let worldFillFunction = fillByHover
@@ -284,6 +285,7 @@ $(function () {
         }
 
         renderFromOverlay(moduleIndex, config, mouseX, mouseY) {
+            if (config.screenLock) return
             let me = this
             this.modules.forEach(function(module, i) {
                 let x = undefined, y = undefined

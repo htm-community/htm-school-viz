@@ -11,6 +11,7 @@ $(function () {
         this.lite = true
         this.sdr = false
         this.showFields = true
+        this.screenLock = false
     };
     let config = new GlobalConfig();
 
@@ -23,6 +24,10 @@ $(function () {
         return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
     }
 
+    function toggleScreenLock() {
+        config.screenLock = ! config.screenLock
+    }
+
     function prepareDom() {
         $('body').html('');
     }
@@ -33,19 +38,19 @@ $(function () {
 
         gui.add(config, 'lite').onChange(function(value) {
             config.lite = value;
-            renderer.render(config.lite);
+            renderer.render(config);
         });
 
         gui.add(config, 'sdr').onChange(function(value) {
             config.sdr = value;
             d3.select('#encoding svg').remove()
-            renderer.render(config.lite);
+            renderer.render(config);
         });
 
         gui.add(config, 'showFields').onChange(function(value) {
             config.showFields = value;
             d3.select('#encoding svg').remove()
-            renderer.render(config.lite);
+            renderer.render(config);
         });
 
         function updateAllControllerDisplays() {
@@ -62,7 +67,7 @@ $(function () {
             module.visible = true;
             folder.add(module, 'visible').onChange(function(value) {
                 module.visible = value;
-                renderer.render(config.lite);
+                renderer.render(config);
             });
             module.solo = false;
             folder.add(module, 'solo').onChange(function(value) {
@@ -72,24 +77,24 @@ $(function () {
                 });
                 module.solo = value;
                 module.visible = true;
-                renderer.render(config.lite);
+                renderer.render(config);
                 updateAllControllerDisplays();
             });
             folder.add(module, 'weight', 1, 5).onChange(function(value) {
                 module.weight = value;
-                renderer.render(config.lite);
+                renderer.render(config);
             }).step(1);
             folder.add(module, 'spacing', minSpacing, maxSpacing).onChange(function(value) {
                 module.spacing = value;
-                renderer.render(config.lite);
+                renderer.render(config);
             });
             folder.add(module, 'activeCells', 1, 10).onChange(function(value) {
                 module.activeCells = value;
-                renderer.render(config.lite);
+                renderer.render(config);
             }).step(1);
             folder.add(module, 'orientation', minOrientation, maxOrientation).onChange(function(value) {
                 module.orientation = value;
-                renderer.render(config.lite);
+                renderer.render(config);
             });
             // folder.open();
             moduleFolders.push(folder);
@@ -153,6 +158,12 @@ $(function () {
             })
         }
     }
+
+    $(document).keyup(function(e) {
+        if (e.keyCode === 32) {
+            toggleScreenLock();
+        }
+    });
 
     window.onload = run;
 });
