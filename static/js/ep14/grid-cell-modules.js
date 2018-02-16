@@ -8,11 +8,11 @@ $(function () {
         maxOrientation = 45
 
     let GlobalConfig = function() {
-        this.lite = false
+        this.lite = true
         this.sdr = false
         this.showFields = false
         this.screenLock = false
-        this.showNumbers = true
+        this.showNumbers = false
     };
     let config = new GlobalConfig();
 
@@ -117,11 +117,17 @@ $(function () {
     function run() {
         prepareDom();
 
-        let module = new HexagonGridCellModule(0, 4, 4, 0, 60)
-        module.setColor(100, 100, 255)
-        module.activeCells = 1
-        module.weight = 3
-        gridCellModules.push(module)
+        let numModules = 5
+
+        while (numModules-- > 0) {
+            let orientation = getRandomInt(0, 30)
+            let spacing = getRandomInt(40, 50)
+            let module = new HexagonGridCellModule(numModules, 4, 4, orientation, spacing)
+            module.setColor(getRandomInt(100, 255), getRandomInt(100, 255), getRandomInt(100, 255))
+            module.activeCells = 1
+            module.weight = 1
+            gridCellModules.push(module)
+        }
 
         let renderer = new GridCellModuleRenderer(gridCellModules)
 
