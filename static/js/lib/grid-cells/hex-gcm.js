@@ -91,7 +91,7 @@ $(function () {
                     xmod, ymod, origin.x, origin.y, me.orientation + 30
                 );
                 // adjust for better rotation on screen
-                let xMoved = rotatedPoint.x;
+                let xMoved = rotatedPoint.x - spacing;
                 let yMoved = rotatedPoint.y + 2*spacing
                 return {
                     id: i,
