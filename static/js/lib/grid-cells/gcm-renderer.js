@@ -5,7 +5,7 @@ $(function () {
         return 'none'
     }
 
-    function fillByActiveGridCells(data) {
+    function fillWithFields(data) {
         let point = data
         if (! point.gridCell.isPadding && point.gridCell.isActive()) {
             return data.rgb
@@ -105,12 +105,12 @@ $(function () {
             if (config.screenLock) return
             let me = this
             let groups = d3.selectAll('g.module-group');
-            let worldFillFunction = fillByHover
-            if (config.showFields) worldFillFunction = fillByActiveGridCells
-            this._renderWorldCells(groups, config, worldFillFunction, mouseX, mouseY);
+            this._renderWorldCells(groups, config, mouseX, mouseY);
+            let configCopy = Object.assign({}, config)
+            configCopy.showFields = true
             this.modules.forEach(function(module, i) {
                 let svgs = d3.selectAll('#module-overlays svg');
-                me._renderModuleOverlayCells(svgs, i, config, fillByActiveGridCells)
+                me._renderModuleOverlayCells(svgs, i, configCopy)
             })
             if (config.sdr)
                 this.renderSdr()
@@ -119,6 +119,8 @@ $(function () {
         renderFromOverlay(moduleIndex, config, mouseX, mouseY) {
             if (config.screenLock) return
             let me = this
+            let configCopy = Object.assign({}, config)
+            configCopy.showFields = true
             this.modules.forEach(function(module, i) {
                 let x = undefined, y = undefined
                 if (i == moduleIndex) {
@@ -128,15 +130,15 @@ $(function () {
                     module.clearActiveGridCells()
                 }
                 let svgs = d3.selectAll('#module-overlays svg');
-                me._renderModuleOverlayCells(svgs, moduleIndex, config, fillByActiveGridCells, x, y)
+                me._renderModuleOverlayCells(svgs, moduleIndex, configCopy, x, y)
             })
             let groups = d3.selectAll('g.module-group');
-            this._renderWorldCells(groups, config, fillByActiveGridCells);
+            this._renderWorldCells(groups, configCopy, fillWithFields);
             if (config.sdr)
                 this.renderSdr()
         }
 
-        _renderModuleOverlayCells(svgs, moduleIndex, config, fillFunction, mouseX, mouseY) {
+        _renderModuleOverlayCells(svgs, moduleIndex, config, mouseX, mouseY) {
             let me = this
             this.overlayPoints = []
             let m = this.modules[moduleIndex]
@@ -169,10 +171,10 @@ $(function () {
             // We always want to show the strokes on module overlays.
             let configCopy = Object.assign({}, config)
             configCopy.lite = false
-            me._renderCircleToElement(m, data, svg, configCopy, fillFunction)
+            me._renderCircleToElement(m, data, svg, configCopy)
         }
 
-        _renderWorldCells(groups, config, fillFunction, mouseX, mouseY) {
+        _renderWorldCells(groups, config, mouseX, mouseY) {
             let me = this;
             this.worldPoints = []
             let origin = {x: 0, y: 0}
@@ -180,7 +182,8 @@ $(function () {
             let height = this.height;
             let voronoi = d3.voronoi();
             voronoi.extent([[origin.x, origin.x], [width, height]])
-
+            let configCopy = Object.assign({}, config)
+            configCopy.stroke = 1
             this.modules.forEach(function(m, i) {
                 if (! m.visible) {
                     me.worldPoints.push([])
@@ -203,29 +206,29 @@ $(function () {
                     p.rgb = rgb
                     return p
                 })
-                me._renderCircleToElement(m, data, g, config, fillFunction)
+                me._renderCircleToElement(m, data, g, configCopy)
             });
         }
 
-        _renderCircleToElement(module, data, $target, config, fillFunction) {
+        _renderCircleToElement(module, data, $target, config) {
             let textData = data
             if (! config.showNumbers) textData = []
             // Update
             let circles = $target.selectAll('circle').data(data)
             let texts = $target.selectAll('text').data(textData)
-            this._treatCircle(module, circles, texts, config, fillFunction)
+            this._treatCircle(module, circles, texts, config)
 
             // Enter
             let newCircs = circles.enter().append('circle')
             let newTexts = texts.enter().append('text')
-            this._treatCircle(module, newCircs, newTexts, config, fillFunction)
+            this._treatCircle(module, newCircs, newTexts, config)
 
             // Exit
             circles.exit().remove()
             texts.exit().remove()
         }
 
-        _treatCircle(module, circles, texts, config, fillFunction) {
+        _treatCircle(module, circles, texts, config) {
 
             circles.attr("class", "cell")
                 .attr('cx', function(data) {
@@ -237,12 +240,15 @@ $(function () {
                 .attr('r', module.spacing / 2)
                 .attr('stroke', '#bbb')
                 .attr('stroke-width', function(data) {
-                    let out = 2
+                    let out = config.stroke
                     if (config.lite) out = 0
                     if (data.gridCell.isPadding) out = 0
                     return out
                 })
-                .attr('fill', fillFunction)
+                .attr('fill', (data) => {
+                    if (config.showFields) return fillWithFields(data)
+                    else return fillByHover(data)
+                })
                 .attr('fill-opacity', 0.75)
 
             texts.attr('x', function(d) {

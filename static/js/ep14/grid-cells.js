@@ -13,6 +13,7 @@ $(function () {
         this.showFields = false
         this.screenLock = false
         this.showNumbers = true
+        this.stroke = 3
     };
     let config = new GlobalConfig();
 
