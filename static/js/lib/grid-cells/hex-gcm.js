@@ -50,7 +50,7 @@ $(function () {
             let xmod = x
             let ymod = y
             xmod += y / 2;
-            // ymod = y - (this.length - Math.sin(60 * (Math.PI / 180)));
+            // ymod = y - (this.spacing - Math.sin(60 * (Math.PI / 180)));
             ymod = y - (y * 0.1);
             return [xmod, ymod]
         }

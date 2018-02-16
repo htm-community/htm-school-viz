@@ -9,7 +9,8 @@ $(function () {
 
     let GlobalConfig = function() {
         this.lite = true
-        this.sdr = true
+        this.sdr = false
+        this.showFields = true
     };
     let config = new GlobalConfig();
 
@@ -37,6 +38,12 @@ $(function () {
 
         gui.add(config, 'sdr').onChange(function(value) {
             config.sdr = value;
+            d3.select('#encoding svg').remove()
+            renderer.render(config.lite);
+        });
+
+        gui.add(config, 'showFields').onChange(function(value) {
+            config.showFields = value;
             d3.select('#encoding svg').remove()
             renderer.render(config.lite);
         });
@@ -84,7 +91,7 @@ $(function () {
                 module.orientation = value;
                 renderer.render(config.lite);
             });
-            folder.open();
+            // folder.open();
             moduleFolders.push(folder);
         });
     }
@@ -98,23 +105,35 @@ $(function () {
     function run() {
         prepareDom();
 
-        let module = new HexagonGridCellModule(2, 4, 3, 10, 100)
-        module.setColor(100, 100, 255)
-        module.activeCells = 2
-        module.weight = 3
-        gridCellModules.push(module)
+        let numModules = 5
 
-        module = new HexagonGridCellModule(1, 5, 4, 0, 60)
-        module.setColor(100, 255, 100)
-        module.activeCells = 3
-        module.weight = 2
-        gridCellModules.push(module)
+        while (numModules-- > 0) {
+            let orientation = getRandomInt(0, 30)
+            let spacing = getRandomInt(40, 50)
+            let module = new HexagonGridCellModule(numModules, 4, 4, orientation, spacing)
+            module.setColor(getRandomInt(100, 255), getRandomInt(100, 255), getRandomInt(100, 255))
+            module.activeCells = 1
+            module.weight = 1
+            gridCellModules.push(module)
+        }
 
-        module = new HexagonGridCellModule(0, 7, 6, 45, 30)
-        module.setColor(255, 100 , 100)
-        module.activeCells = 7
-        module.weight = 1
-        gridCellModules.push(module)
+        // let module = new HexagonGridCellModule(2, 4, 3, 0, 30)
+        // module.setColor(100, 100, 255)
+        // module.activeCells = 1
+        // module.weight = 3
+        // gridCellModules.push(module)
+        //
+        // module = new HexagonGridCellModule(1, 4, 3, 3, 20)
+        // module.setColor(100, 255, 100)
+        // module.activeCells = 1
+        // module.weight = 2
+        // gridCellModules.push(module)
+        //
+        // module = new HexagonGridCellModule(0, 4, 3, 6, 25)
+        // module.setColor(255, 100 , 100)
+        // module.activeCells = 1
+        // module.weight = 1
+        // gridCellModules.push(module)
 
         let renderer = new GridCellModuleRenderer(gridCellModules)
 
