@@ -43,6 +43,12 @@ $(function () {
                     .append('li')
                     .append('svg')
                     .attr('id', 'module-overlay-' + i)
+                    .attr('style', () => {
+                        let display = 'display:'
+                        if (module.visible) display += 'block'
+                        else display += 'none'
+                        return display
+                    })
             });
             d3.select('body').append('div').attr('id', 'encoding')
         }
@@ -52,11 +58,11 @@ $(function () {
                 groups.attr('id', function(m) {
                     return 'module-' + m.id;
                 })
-                    .attr('visibility', function(m) {
-                        if (m.visible) return 'visible';
-                        return 'hidden';
-                    })
-                    .attr('class', 'module-group');
+                .attr('visibility', function(m) {
+                    if (m.visible) return 'visible';
+                    return 'hidden';
+                })
+                .attr('class', 'module-group');
             }
 
             // Update
@@ -73,6 +79,15 @@ $(function () {
             this.renderFromWorld(config, 500, 500)
             if (config.sdr)
                 this.renderSdr()
+
+            // Update module overlay visibility
+            this.modules.forEach((m) => {
+                let svg= d3.select('#module-overlay-' + m.id)
+                let display = 'display:'
+                if (m.visible) display += 'inline'
+                else display += 'none'
+                svg.attr('style', display)
+            })
         }
 
         renderFromWorld(config, mouseX, mouseY) {
@@ -142,8 +157,8 @@ $(function () {
             let me = this
             this.overlayPoints = []
             let m = this.modules[moduleIndex]
-            let spacing = m.spacing
-            let origin = {x: spacing*3, y: spacing*3}
+            let scale = m.scale
+            let origin = {x: scale*3, y: scale*3}
             let voronoi = d3.voronoi()
 
             let points = m.createOverlayPoints(origin)
@@ -237,7 +252,7 @@ $(function () {
                 .attr('cy', function(data) {
                     return data.y
                 })
-                .attr('r', module.spacing / 2)
+                .attr('r', module.scale / 2)
                 .attr('stroke', '#bbb')
                 .attr('stroke-width', function(data) {
                     let out = config.stroke

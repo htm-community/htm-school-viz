@@ -77,17 +77,6 @@ $(function () {
                 module.visible = value;
                 renderer.render(config);
             });
-            module.solo = false;
-            folder.add(module, 'solo').onChange(function(value) {
-                modules.forEach(function(m) {
-                    m.visible = ! value;
-                    m.solo = false;
-                });
-                module.solo = value;
-                module.visible = true;
-                renderer.render(config);
-                updateAllControllerDisplays();
-            });
             folder.add(module, 'weight', 1, 5).onChange(function(value) {
                 module.weight = value;
                 renderer.render(config);

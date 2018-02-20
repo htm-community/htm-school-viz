@@ -5,11 +5,11 @@ $(function () {
 
     class HexagonGridCellModule extends GridCellModule {
 
-        constructor(id, xDim, yDim, orientation, spacing) {
+        constructor(id, xDim, yDim, orientation, scale) {
             super(id, xDim * yDim, orientation)
             this.xDim = xDim
             this.yDim = yDim
-            this.spacing = spacing
+            this.scale = scale
             this.gridCells = this.createGridCells()
         }
 
@@ -50,7 +50,7 @@ $(function () {
             let xmod = x
             let ymod = y
             xmod += y / 2;
-            // ymod = y - (this.spacing - Math.sin(60 * (Math.PI / 180)));
+            // ymod = y - (this.scale - Math.sin(60 * (Math.PI / 180)));
             ymod = y - (y * 0.1);
             return [xmod, ymod]
         }
@@ -79,20 +79,20 @@ $(function () {
 
         createOverlayPoints(origin) {
             let me = this
-            let spacing = this.spacing
+            let scale = this.scale
             let padRows = 1
             let paddedCells = this._addPadding(this.gridCells, padRows)
 
             let out = paddedCells.map(function(gc, i) {
-                let x = gc.x * spacing;
-                let y = gc.y * spacing;
+                let x = gc.x * scale;
+                let y = gc.y * scale;
                 let [xmod, ymod] = me._parallelogramitize(x, y)
                 let rotatedPoint = GridCellModule.translatePoint(
                     xmod, ymod, origin.x, origin.y, me.orientation + 30
                 );
                 // adjust for better rotation on screen
-                let xMoved = rotatedPoint.x - spacing;
-                let yMoved = rotatedPoint.y + 2*spacing
+                let xMoved = rotatedPoint.x - scale;
+                let yMoved = rotatedPoint.y + 2*scale
                 return {
                     id: i,
                     x: xMoved,
@@ -132,24 +132,24 @@ $(function () {
                         alpha: 0.1
                     }
                     // Only save points that are currently on the screen, within a
-                    // buffer defined by the grid spacing
-                    if (point.x >= origin.x - this.spacing &&
-                        point.x <= origin.x + w + this.spacing &&
-                        point.y >= origin.y - this.spacing &&
-                        point.y <= origin.y + h + this.spacing) {
+                    // buffer defined by the grid scale
+                    if (point.x >= origin.x - this.scale &&
+                        point.x <= origin.x + w + this.scale &&
+                        point.y >= origin.y - this.scale &&
+                        point.y <= origin.y + h + this.scale) {
                         points.push(point)
                     } else {
                         if (point.x > 0 && point.x < w && point.y > 0 && point.y < h)
                             console.log('skipped %s: %s, %s', point.id, point.x, point.y)
                     }
-                    x += this.spacing
+                    x += this.scale
                     gridx++
                     // This resets the grid cell module x dimension so it tiles.
                     if (gridx > this.xDim - 1) gridx = 0
                 }
                 // Reset X to walk through the next row
                 x = 0
-                y += this.spacing
+                y += this.scale
                 gridy++
                 // This resets the grid cell module y dimension so it tiles.
                 if (gridy > this.yDim - 1) gridy = 0

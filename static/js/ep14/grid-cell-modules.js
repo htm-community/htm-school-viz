@@ -2,15 +2,15 @@ $(function () {
     let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
-    const minSpacing = 20,
-        maxSpacing = 80,
+    const minScale = 20,
+        maxScale = 80,
         minOrientation = 0,
         maxOrientation = 45
 
     let GlobalConfig = function() {
-        this.lite = true
+        this.lite = false
         this.sdr = false
-        this.showFields = false
+        this.showFields = true
         this.screenLock = false
         this.showNumbers = false
         this.stroke = 3
@@ -71,29 +71,16 @@ $(function () {
 
         modules.forEach(function(module, i) {
             let folder = gui.addFolder('Module ' + module.id)
-            // This is because of laziness.
-            module.visible = true;
             folder.add(module, 'visible').onChange(function(value) {
                 module.visible = value;
                 renderer.render(config);
-            });
-            module.solo = false;
-            folder.add(module, 'solo').onChange(function(value) {
-                modules.forEach(function(m) {
-                    m.visible = ! value;
-                    m.solo = false;
-                });
-                module.solo = value;
-                module.visible = true;
-                renderer.render(config);
-                updateAllControllerDisplays();
             });
             folder.add(module, 'weight', 1, 5).onChange(function(value) {
                 module.weight = value;
                 renderer.render(config);
             }).step(1);
-            folder.add(module, 'spacing', minSpacing, maxSpacing).onChange(function(value) {
-                module.spacing = value;
+            folder.add(module, 'scale', minScale, maxScale).onChange(function(value) {
+                module.scale = value;
                 renderer.render(config);
             });
             folder.add(module, 'activeCells', 1, 10).onChange(function(value) {
@@ -119,15 +106,22 @@ $(function () {
         prepareDom();
 
         let numModules = 5
+        let count = 0
 
-        while (numModules-- > 0) {
+        while (count < 5) {
             let orientation = getRandomInt(0, 30)
-            let spacing = getRandomInt(40, 50)
-            let module = new HexagonGridCellModule(numModules, 4, 4, orientation, spacing)
+            let scale = getRandomInt(40, 50)
+            let module = new HexagonGridCellModule(count, 4, 4, orientation, scale)
             module.setColor(getRandomInt(100, 255), getRandomInt(100, 255), getRandomInt(100, 255))
             module.activeCells = 1
             module.weight = 1
+            if (count == 0) {
+                module.visible = true
+            } else {
+                module.visible = false
+            }
             gridCellModules.push(module)
+            count++
         }
 
         let renderer = new GridCellModuleRenderer(gridCellModules)
