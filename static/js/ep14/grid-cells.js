@@ -2,8 +2,8 @@ $(function () {
     let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
-    const minSpacing = 20,
-        maxSpacing = 80,
+    const minScale = 20,
+        maxScale = 80,
         minOrientation = 0,
         maxOrientation = 45
 
@@ -81,8 +81,8 @@ $(function () {
                 module.weight = value;
                 renderer.render(config);
             }).step(1);
-            folder.add(module, 'spacing', minSpacing, maxSpacing).onChange(function(value) {
-                module.spacing = value;
+            folder.add(module, 'scale', minScale, maxScale).onChange(function(value) {
+                module.scale = value;
                 renderer.render(config);
             });
             folder.add(module, 'activeCells', 1, 10).onChange(function(value) {
