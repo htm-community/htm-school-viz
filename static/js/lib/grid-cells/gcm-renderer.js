@@ -53,7 +53,7 @@ $(function () {
             d3.select('body').append('div').attr('id', 'encoding')
         }
 
-        render(config) {
+        render(config, intersectX, intersectY) {
             function treatGroups(groups) {
                 groups.attr('id', function(m) {
                     return 'module-' + m.id;
@@ -76,7 +76,7 @@ $(function () {
             // Exit
             groups.exit().remove();
 
-            this.renderFromWorld(config, 500, 500)
+            this.renderFromWorld(config, intersectX, intersectY)
             if (config.sdr)
                 this.renderSdr()
 
