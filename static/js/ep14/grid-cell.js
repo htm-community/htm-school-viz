@@ -12,7 +12,7 @@ $(function () {
         this.sdr = false
         this.showFields = false
         this.screenLock = false
-        this.showNumbers = true
+        this.showNumbers = false
         this.stroke = 0
         this.textSize = 24
         this.highlightGridCell = 9
@@ -39,29 +39,6 @@ $(function () {
     function setupDatGui(modules, renderer) {
         let gui = new dat.GUI();
         let moduleFolders = [];
-
-        gui.add(config, 'lite').onChange(function(value) {
-            config.lite = value;
-            renderer.render(config);
-        });
-
-        gui.add(config, 'sdr').onChange(function(value) {
-            config.sdr = value;
-            d3.select('#encoding svg').remove()
-            renderer.render(config);
-        });
-
-        gui.add(config, 'showFields').onChange(function(value) {
-            config.showFields = value;
-            d3.select('#encoding svg').remove()
-            renderer.render(config);
-        });
-
-        gui.add(config, 'showNumbers').onChange(function(value) {
-            config.showNumbers = value;
-            d3.select('#encoding svg').remove()
-            renderer.render(config);
-        });
 
         function updateAllControllerDisplays() {
             moduleFolders.forEach(function(folder) {
@@ -111,7 +88,7 @@ $(function () {
 
         let module = new HexagonGridCellModule(0, 4, 4, 0, 80)
         module.setColor(100, 100, 255)
-        module.activeCells = 1
+        module.activeCells = 10
         module.weight = 3
         gridCellModules.push(module)
 
