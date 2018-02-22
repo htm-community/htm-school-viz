@@ -1,12 +1,25 @@
 $(function () {
 
-    function fillByHover(data) {
-        if (data.hover) return data.rgb
+    function fillByHover(data, config) {
+        if (config.highlightGridCell !== undefined) {
+            if (config.highlightGridCell === data.gridCell.id && data.hover)
+              return data.rgb
+        } else {
+            if (data.hover) return data.rgb
+        }
         return 'none'
     }
 
-    function fillWithFields(data) {
+    function fillWithFields(data, config) {
         let point = data
+        if (config.highlightGridCell !== undefined) {
+            if (config.highlightGridCell === data.gridCell.id) {
+                if (! point.gridCell.isPadding && point.gridCell.isActive()) {
+                    return data.rgb
+                }
+            }
+            return 'none'
+        }
         if (! point.gridCell.isPadding && point.gridCell.isActive()) {
             return data.rgb
         }
@@ -261,8 +274,8 @@ $(function () {
                     return out
                 })
                 .attr('fill', (data) => {
-                    if (config.showFields) return fillWithFields(data)
-                    else return fillByHover(data)
+                    if (config.showFields) return fillWithFields(data, config)
+                    else return fillByHover(data, config)
                 })
                 .attr('fill-opacity', 0.75)
 

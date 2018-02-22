@@ -13,8 +13,9 @@ $(function () {
         this.showFields = false
         this.screenLock = false
         this.showNumbers = true
-        this.stroke = 3
+        this.stroke = 0
         this.textSize = 24
+        this.highlightGridCell = 9
     };
     let config = new GlobalConfig();
 
@@ -108,7 +109,7 @@ $(function () {
     function run() {
         prepareDom();
 
-        let module = new HexagonGridCellModule(0, 4, 4, 0, 100)
+        let module = new HexagonGridCellModule(0, 4, 4, 0, 80)
         module.setColor(100, 100, 255)
         module.activeCells = 1
         module.weight = 3
