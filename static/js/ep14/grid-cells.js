@@ -3,7 +3,7 @@ $(function () {
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
     const minScale = 20,
-        maxScale = 80,
+        maxScale = 100,
         minOrientation = 0,
         maxOrientation = 45
 
@@ -14,6 +14,7 @@ $(function () {
         this.screenLock = false
         this.showNumbers = true
         this.stroke = 3
+        this.textSize = 24
     };
     let config = new GlobalConfig();
 
@@ -107,7 +108,7 @@ $(function () {
     function run() {
         prepareDom();
 
-        let module = new HexagonGridCellModule(0, 4, 4, 0, 60)
+        let module = new HexagonGridCellModule(0, 4, 4, 0, 100)
         module.setColor(100, 100, 255)
         module.activeCells = 1
         module.weight = 3
@@ -139,4 +140,10 @@ $(function () {
     });
 
     window.onload = run;
+
+    // add listener to disable scroll
+    window.addEventListener('scroll', () => {
+        window.scrollTo( 0, 0 );
+    });
+
 });

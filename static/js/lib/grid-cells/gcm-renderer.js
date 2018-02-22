@@ -272,7 +272,7 @@ $(function () {
                 .attr('y', function(d) {
                     return d.y + 3
                 })
-                .attr('font-size', 16)
+                .attr('font-size', config.textSize)
                 .attr('fill', 'white')
                 .text(function(d) {
                     let gc = d.gridCell

@@ -14,6 +14,7 @@ $(function () {
         this.screenLock = false
         this.showNumbers = false
         this.stroke = 3
+        this.textSize = 16
     };
     let config = new GlobalConfig();
 
@@ -150,4 +151,10 @@ $(function () {
     });
 
     window.onload = run;
+
+    // add listener to disable scroll
+    window.addEventListener('scroll', () => {
+        window.scrollTo( 0, 0 );
+    });
+
 });
