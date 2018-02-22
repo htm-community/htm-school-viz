@@ -28,3 +28,7 @@ ul#module-overlays li {
     border: 1px solid black;
     background-color: white;
 }
+
+#world {
+  cursor: url("/static/img/mouse-cursor.png"), auto;
+}
