@@ -105,14 +105,14 @@ $(function () {
     function run() {
         prepareDom();
 
-        let numModules = 8
+        let numModules = 10
         let count = 0
         let scale = minScale
+        let orientation = 0
         let cellsPerRow = 10
         let activeCells = 3
 
         while (count < numModules) {
-            let orientation = getRandomInt(0, 60)
             let module = new HexagonGridCellModule(
               count, cellsPerRow, cellsPerRow, orientation, scale
             )
@@ -126,6 +126,7 @@ $(function () {
             module.visible = true
             gridCellModules.push(module)
             scale = scale * 1.4
+            orientation += 7.5
             count++
         }
 
@@ -145,6 +146,19 @@ $(function () {
             renderer.onWorld('click', function() {
                 renderer.saveLocationEncoding(d3.event.pageX, d3.event.pageY, renderer.encoding)
             })
+
+            let x = 0, y = 0, spacing = 200
+            while (x < window.innerWidth) {
+                let y = 0
+                while (y < window.innerHeight) {
+                    let configCopy = Object.assign({}, config)
+                    configCopy.computeOnly = true
+                    renderer.renderFromWorld(config, x, y)
+                    renderer.saveLocationEncoding(x, y, renderer.encoding)
+                    y += spacing
+                }
+                x += spacing
+            }
         }
     }
 

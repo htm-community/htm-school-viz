@@ -191,7 +191,6 @@ $(function () {
             let m = this.modules[moduleIndex]
             let scale = m.scale
             let origin = {x: scale*3, y: scale*3}
-            let voronoi = d3.voronoi()
 
             let points = m.createOverlayPoints(origin)
             if (mouseX !== undefined && mouseY !== undefined) {
@@ -204,11 +203,6 @@ $(function () {
             let height = Math.max(...points.map(function(p) { return p.y }))
             svg.attr('width', width)
                 .attr('height', height)
-
-            voronoi.extent([
-                [0, 0],
-                [width, height]
-            ])
 
             let rgb = m.getColorString()
             let data = points.map((p) => {
@@ -227,8 +221,6 @@ $(function () {
             let origin = {x: 0, y: 0}
             let width = this.width;
             let height = this.height;
-            let voronoi = d3.voronoi();
-            voronoi.extent([[origin.x, origin.x], [width, height]])
             let configCopy = Object.assign({}, config)
             configCopy.stroke = 1
             this.modules.forEach(function(m, i) {
@@ -253,7 +245,8 @@ $(function () {
                     p.rgb = rgb
                     return p
                 })
-                me._renderCircleToElement(m, data, g, configCopy)
+                if (! config.computeOnly)
+                  me._renderCircleToElement(m, data, g, configCopy)
             });
         }
 
@@ -323,7 +316,7 @@ $(function () {
                 .attr('r', (d) => {
                     let currentEncoding = me.encoding
                     let overlap = window.SDR.tools.getOverlapScore(currentEncoding, d.encoding)
-                    return overlap * 3
+                    return overlap * 6 || 1
                 })
                 .attr('fill', 'red')
                 .attr('fill-opacity', (d) => {

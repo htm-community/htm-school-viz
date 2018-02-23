@@ -1,0 +1,44 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+svg#world {
+    background-color: white;
+}
+
+#module-overlays {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+}
+
+ul#module-overlays {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+ul#module-overlays li {
+    display: inline;
+    padding-right: 10px;
+}
+
+#module-overlays {
+    display: none;
+}
+
+#encoding-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+    border: 2px solid black;
+    background-color: white;
+    padding: 10px;
+    padding-bottom: 20px;
+}
+
+#encoding svg {
+    height: 500px;
+}
