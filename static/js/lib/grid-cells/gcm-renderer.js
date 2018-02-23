@@ -28,7 +28,8 @@ $(function () {
 
     class GridCellModuleRenderer {
         constructor(modules) {
-            this.modules = modules;
+            this.modules = modules
+            this.clickLocations = []
         }
 
         onWorld(eventName, handler) {
@@ -63,7 +64,10 @@ $(function () {
                         return display
                     })
             });
-            d3.select('body').append('div').attr('id', 'encoding')
+            d3.select('body')
+                .append('div').attr('id', 'encoding-container')
+                .append('div').attr('id', 'encoding')
+            this.$world.append('g').attr('class', 'clicks')
         }
 
         render(config, intersectX, intersectY) {
@@ -79,11 +83,11 @@ $(function () {
             }
 
             // Update
-            let groups = this.$world.selectAll('g').data(this.modules);
+            let groups = this.$world.selectAll('g.projection').data(this.modules);
             treatGroups(groups);
 
             // Enter
-            let coming = groups.enter().append('g');
+            let coming = groups.enter().insert('g', ':first-child').attr('class', 'projection');
             treatGroups(coming);
 
             // Exit
@@ -91,7 +95,7 @@ $(function () {
 
             this.renderFromWorld(config, intersectX, intersectY)
             if (config.sdr)
-                this.renderSdr()
+                this.renderSdr(config)
 
             // Update module overlay visibility
             this.modules.forEach((m) => {
@@ -115,15 +119,23 @@ $(function () {
             )
         }
 
-        renderSdr() {
+        renderSdr(config) {
             let encoding = []
             this.modules.forEach(function(m) {
                 encoding = encoding.concat(m.getEncoding())
             })
+            this.encoding = encoding
             SDR.draw(encoding, 'encoding', {
                 spartan: true,
-                size: 30
+                size: config.sdrSize || 30,
+                line: config.sdrLine
             });
+        }
+
+        saveLocationEncoding(x, y, encoding) {
+            this.clickLocations.push({
+                x: x, y: y, encoding: encoding
+            })
         }
     }
 
@@ -140,8 +152,15 @@ $(function () {
                 let svgs = d3.selectAll('#module-overlays svg');
                 me._renderModuleOverlayCells(svgs, i, configCopy)
             })
-            if (config.sdr)
-                this.renderSdr()
+            if (config.sdr) {
+                $('#encoding-container').show()
+                this.renderSdr(config)
+                if (this.clickLocations.length) {
+                    this._renderClickLocations()
+                }
+            } else {
+                $('#encoding-container').hide()
+            }
         }
 
         renderFromOverlay(moduleIndex, config, mouseX, mouseY) {
@@ -163,7 +182,7 @@ $(function () {
             let groups = d3.selectAll('g.module-group');
             this._renderWorldCells(groups, configCopy, fillWithFields);
             if (config.sdr)
-                this.renderSdr()
+                this.renderSdr(config)
         }
 
         _renderModuleOverlayCells(svgs, moduleIndex, config, mouseX, mouseY) {
@@ -277,7 +296,7 @@ $(function () {
                     if (config.showFields) return fillWithFields(data, config)
                     else return fillByHover(data, config)
                 })
-                .attr('fill-opacity', 0.75)
+                .attr('fill-opacity', config.fillOpacity || 0.75)
 
             texts.attr('x', function(d) {
                     return d.x - 3
@@ -292,6 +311,39 @@ $(function () {
                     if (! gc.isPadding && gc.isActive())
                         return d.gridCell.id
                 })
+        }
+
+        _renderClickLocations() {
+            let me = this
+            let $container = d3.select('g.clicks')
+
+            function treatment($el) {
+                $el.attr('cx', (d) => { return d.x })
+                .attr('cy', (d) => { return d.y })
+                .attr('r', (d) => {
+                    let currentEncoding = me.encoding
+                    let overlap = window.SDR.tools.getOverlapScore(currentEncoding, d.encoding)
+                    return overlap * 3
+                })
+                .attr('fill', 'red')
+                .attr('fill-opacity', (d) => {
+                  let currentEncoding = me.encoding
+                  let overlap = window.SDR.tools.getOverlapScore(currentEncoding, d.encoding)
+                  return overlap / (currentEncoding.length / 20)
+                })
+                .attr('stroke', 'red')
+                .attr('stroke-width', '1px')
+            }
+
+            let $clicks = $container.selectAll('circle')
+                .data(this.clickLocations)
+            treatment($clicks)
+
+            let $newClicks = $clicks.enter().append('circle')
+                .attr('class', 'click')
+            treatment($newClicks)
+
+            $clicks.exit().remove()
         }
 
     }

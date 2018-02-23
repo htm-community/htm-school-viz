@@ -24,9 +24,8 @@ ul#module-overlays li {
     padding-right: 10px;
 }
 
-#module-overlays svg {
-    border: 1px solid black;
-    background-color: white;
+#module-overlays {
+    display: none;
 }
 
 #encoding-container {
@@ -37,8 +36,9 @@ ul#module-overlays li {
     border: 2px solid black;
     background-color: white;
     padding: 10px;
+    padding-bottom: 20px;
 }
 
 #encoding svg {
-    height: 400px;
+    height: 500px;
 }

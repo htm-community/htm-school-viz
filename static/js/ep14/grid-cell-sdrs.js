@@ -2,19 +2,21 @@ $(function () {
     let HexagonGridCellModule = window.HTM.gridCells.HexagonGridCellModule
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
-    const minScale = 20,
-        maxScale = 80,
+    const minScale = 40,
+        maxScale = 200,
         minOrientation = 0,
         maxOrientation = 45
 
     let GlobalConfig = function() {
-        this.lite = false
-        this.sdr = false
+        this.lite = true
+        this.sdr = true
         this.showFields = true
+        this.fillOpacity = 0.5
         this.screenLock = false
         this.showNumbers = false
         this.stroke = 3
         this.textSize = 16
+        this.sdrSize = 20
     };
     let config = new GlobalConfig();
 
@@ -103,22 +105,28 @@ $(function () {
     function run() {
         prepareDom();
 
-        let numModules = 5
+        let numModules = 7
         let count = 0
+        let scale = minScale
+        let orientation = 0
+        let cellsPerRow = 10
+        let activeCells = 3
 
-        while (count < 5) {
-            let orientation = getRandomInt(0, 30)
-            let scale = getRandomInt(40, 50)
-            let module = new HexagonGridCellModule(count, 4, 4, orientation, scale)
-            module.setColor(getRandomInt(100, 255), getRandomInt(100, 255), getRandomInt(100, 255))
-            module.activeCells = 1
+        while (count < numModules) {
+            let module = new HexagonGridCellModule(
+              count, cellsPerRow, cellsPerRow, orientation, scale
+            )
+            module.setColor(
+              getRandomInt(100, 255),
+              getRandomInt(100, 255),
+              getRandomInt(100, 255)
+            )
+            module.activeCells = activeCells
             module.weight = 1
-            if (count == 0) {
-                module.visible = true
-            } else {
-                module.visible = false
-            }
+            module.visible = true
             gridCellModules.push(module)
+            scale = scale * 1.4
+            orientation += 7.5
             count++
         }
 
@@ -135,9 +143,10 @@ $(function () {
                 renderer.renderFromWorld(config, d3.event.pageX, d3.event.pageY)
             });
 
-            renderer.onOverlay('mousemove', function(_, i) {
-                renderer.renderFromOverlay(i, config, d3.event.offsetX, d3.event.offsetY)
+            renderer.onWorld('click', function() {
+                renderer.saveLocationEncoding(d3.event.pageX, d3.event.pageY, renderer.encoding)
             })
+
         }
     }
 
