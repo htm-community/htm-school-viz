@@ -79,15 +79,15 @@ $(function () {
                     if (m.visible) return 'visible';
                     return 'hidden';
                 })
-                .attr('class', 'module-group');
+                .attr('class', 'module-projection');
             }
 
             // Update
-            let groups = this.$world.selectAll('g.projection').data(this.modules);
+            let groups = this.$world.selectAll('g.module-projection').data(this.modules);
             treatGroups(groups);
 
             // Enter
-            let coming = groups.enter().insert('g', ':first-child').attr('class', 'projection');
+            let coming = groups.enter().append('g').attr('class', 'module-projection');
             treatGroups(coming);
 
             // Exit
@@ -144,7 +144,7 @@ $(function () {
         renderFromWorld(config, mouseX, mouseY) {
             if (config.screenLock) return
             let me = this
-            let groups = d3.selectAll('g.module-group');
+            let groups = this.$world.selectAll('g.module-projection');
             this._renderWorldCells(groups, config, mouseX, mouseY);
             let configCopy = Object.assign({}, config)
             configCopy.showFields = true
@@ -179,7 +179,7 @@ $(function () {
                 let svgs = d3.selectAll('#module-overlays svg');
                 me._renderModuleOverlayCells(svgs, moduleIndex, configCopy, x, y)
             })
-            let groups = d3.selectAll('g.module-group');
+            let groups = d3.selectAll('g.module-projection');
             this._renderWorldCells(groups, configCopy, fillWithFields);
             if (config.sdr)
                 this.renderSdr(config)
@@ -248,6 +248,10 @@ $(function () {
                 if (! config.computeOnly)
                   me._renderCircleToElement(m, data, g, configCopy)
             });
+            // groups.sort((a, b) => {
+            //     if (a.scale < b.scale) return -1
+            //     else return 1
+            // })
         }
 
         _renderCircleToElement(module, data, $target, config) {
