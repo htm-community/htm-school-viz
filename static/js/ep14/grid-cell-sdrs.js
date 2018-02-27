@@ -3,7 +3,7 @@ $(function () {
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
     const minScale = 40,
-        maxScale = 200,
+        maxScale = 300,
         minOrientation = 0,
         maxOrientation = 45
 
@@ -61,26 +61,10 @@ $(function () {
             renderer.render(config);
         });
 
-        function updateAllControllerDisplays() {
-            moduleFolders.forEach(function(folder) {
-                for (let i in folder.__controllers) {
-                    folder.__controllers[i].updateDisplay();
-                }
-            });
-        }
-
         modules.forEach(function(module, i) {
             let folder = gui.addFolder('Module ' + module.id)
             folder.add(module, 'visible').onChange(function(value) {
                 module.visible = value;
-                renderer.render(config);
-            });
-            folder.add(module, 'weight', 1, 5).onChange(function(value) {
-                module.weight = value;
-                renderer.render(config);
-            }).step(1);
-            folder.add(module, 'scale', minScale, maxScale).onChange(function(value) {
-                module.scale = value;
                 renderer.render(config);
             });
             folder.add(module, 'activeCells', 1, 10).onChange(function(value) {
@@ -91,9 +75,34 @@ $(function () {
                 module.orientation = value;
                 renderer.render(config);
             });
-            // folder.open();
             moduleFolders.push(folder);
         });
+        gui.close()
+    }
+
+    function injectGridCellModuleSet(numModules, maxScale) {
+        let count = 0
+        let scale = maxScale
+        let cellsPerRow = 10
+        let activeCells = 4
+
+        while (count < numModules) {
+            let orientation = getRandomInt(0, 60)
+            let module = new HexagonGridCellModule(
+              gridCellModules.length, cellsPerRow, cellsPerRow, orientation, scale
+            )
+            module.setColor(
+              getRandomInt(0, 255),
+              getRandomInt(0, 255),
+              getRandomInt(0, 255)
+            )
+            module.activeCells = activeCells
+            module.weight = 1
+            module.visible = true
+            gridCellModules.push(module)
+            scale = scale / 1.4
+            count++
+        }
     }
 
     // END UTILS
@@ -105,29 +114,7 @@ $(function () {
     function run() {
         prepareDom();
 
-        let numModules = 8
-        let count = 0
-        let scale = minScale
-        let cellsPerRow = 10
-        let activeCells = 3
-
-        while (count < numModules) {
-            let orientation = getRandomInt(0, 60)
-            let module = new HexagonGridCellModule(
-              count, cellsPerRow, cellsPerRow, orientation, scale
-            )
-            module.setColor(
-              getRandomInt(100, 255),
-              getRandomInt(100, 255),
-              getRandomInt(100, 255)
-            )
-            module.activeCells = activeCells
-            module.weight = 1
-            module.visible = true
-            gridCellModules.push(module)
-            scale = scale * 1.4
-            count++
-        }
+        injectGridCellModuleSet(8, maxScale)
 
         let renderer = new GridCellModuleRenderer(gridCellModules)
 

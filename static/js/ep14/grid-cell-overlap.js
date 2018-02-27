@@ -96,6 +96,31 @@ $(function () {
         });
     }
 
+    function injectGridCellModuleSet(numModules, maxScale) {
+        let count = 0
+        let scale = maxScale
+        let cellsPerRow = 10
+        let activeCells = 4
+
+        while (count < numModules) {
+            let orientation = getRandomInt(0, 60)
+            let module = new HexagonGridCellModule(
+              gridCellModules.length, cellsPerRow, cellsPerRow, orientation, scale
+            )
+            module.setColor(
+              getRandomInt(0, 255),
+              getRandomInt(0, 255),
+              getRandomInt(0, 255)
+            )
+            module.activeCells = activeCells
+            module.weight = 1
+            module.visible = true
+            gridCellModules.push(module)
+            scale = scale / 1.4
+            count++
+        }
+    }
+
     // END UTILS
     /////////////
 
@@ -105,30 +130,7 @@ $(function () {
     function run() {
         prepareDom();
 
-        let numModules = 10
-        let count = 0
-        let scale = minScale
-        let orientation = 0
-        let cellsPerRow = 10
-        let activeCells = 3
-
-        while (count < numModules) {
-            let module = new HexagonGridCellModule(
-              count, cellsPerRow, cellsPerRow, orientation, scale
-            )
-            module.setColor(
-              getRandomInt(100, 255),
-              getRandomInt(100, 255),
-              getRandomInt(100, 255)
-            )
-            module.activeCells = activeCells
-            module.weight = 1
-            module.visible = true
-            gridCellModules.push(module)
-            scale = scale * 1.4
-            orientation += 7.5
-            count++
-        }
+        injectGridCellModuleSet(8, maxScale)
 
         let renderer = new GridCellModuleRenderer(gridCellModules)
 

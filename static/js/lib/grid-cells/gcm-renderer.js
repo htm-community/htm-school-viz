@@ -67,7 +67,6 @@ $(function () {
             d3.select('body')
                 .append('div').attr('id', 'encoding-container')
                 .append('div').attr('id', 'encoding')
-            this.$world.append('g').attr('class', 'clicks')
         }
 
         render(config, intersectX, intersectY) {
@@ -105,6 +104,8 @@ $(function () {
                 else display += 'none'
                 svg.attr('style', display)
             })
+            // add group for clicks
+            this.$world.append('g').attr('class', 'clicks')
         }
 
         renderFromWorld(config, mouseX, mouseY) {
@@ -248,10 +249,6 @@ $(function () {
                 if (! config.computeOnly)
                   me._renderCircleToElement(m, data, g, configCopy)
             });
-            // groups.sort((a, b) => {
-            //     if (a.scale < b.scale) return -1
-            //     else return 1
-            // })
         }
 
         _renderCircleToElement(module, data, $target, config) {
@@ -324,9 +321,9 @@ $(function () {
                 })
                 .attr('fill', 'red')
                 .attr('fill-opacity', (d) => {
-                  let currentEncoding = me.encoding
-                  let overlap = window.SDR.tools.getOverlapScore(currentEncoding, d.encoding)
-                  return overlap / (currentEncoding.length / 20)
+                    let currentEncoding = me.encoding
+                    let overlap = window.SDR.tools.getOverlapScore(currentEncoding, d.encoding)
+                    return overlap / (currentEncoding.length / 20)
                 })
                 .attr('stroke', 'red')
                 .attr('stroke-width', '1px')
