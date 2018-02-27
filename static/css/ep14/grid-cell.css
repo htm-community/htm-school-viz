@@ -30,5 +30,5 @@ ul#module-overlays li {
 }
 
 #world {
-    cursor: url("/static/img/mouse-cursor.png"), auto;
+    cursor: url("/static/img/mouse-cursor.png") 64 64, auto;
 }

@@ -38,3 +38,7 @@ ul#module-overlays li {
 #encoding svg {
     height: 500px;
 }
+
+#world {
+    cursor: url("/static/img/mouse-cursor.png") 64 64, auto;
+}
