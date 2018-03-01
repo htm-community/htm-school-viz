@@ -1,14 +1,5 @@
 $(function () {
 
-    function fillByHover(data, config) {
-        if (config.highlightGridCell !== undefined) {
-            if (config.highlightGridCell === data.gridCell.id && data.hover)
-              return data.rgb
-        } else {
-            if (data.hover) return data.rgb
-        }
-        return 'none'
-    }
 
     function fillWithFields(data, config) {
         let point = data
@@ -201,7 +192,9 @@ $(function () {
 
             let svg = d3.select(svgs.nodes()[moduleIndex])
             let width = Math.max(...points.map(function(p) { return p.x }))
+            if (width % m.scale == 0) width += m.scale
             let height = Math.max(...points.map(function(p) { return p.y }))
+            if (height == 0) height = m.height
             svg.attr('width', width)
                 .attr('height', height)
 
@@ -213,7 +206,7 @@ $(function () {
             // We always want to show the strokes on module overlays.
             let configCopy = Object.assign({}, config)
             configCopy.lite = false
-            me._renderCircleToElement(m, data, svg, configCopy)
+            me._renderPointToElement(m, data, svg, configCopy)
         }
 
         _renderWorldCells(groups, config, mouseX, mouseY) {
@@ -247,64 +240,26 @@ $(function () {
                     return p
                 })
                 if (! config.computeOnly)
-                  me._renderCircleToElement(m, data, g, configCopy)
+                  me._renderPointToElement(m, data, g, configCopy)
             });
         }
 
-        _renderCircleToElement(module, data, $target, config) {
+        _renderPointToElement(module, data, $target, config) {
             let textData = data
             if (! config.showNumbers) textData = []
             // Update
-            let circles = $target.selectAll('circle').data(data)
+            let circles = $target.selectAll(module.getShape()).data(data)
             let texts = $target.selectAll('text').data(textData)
-            this._treatCircle(module, circles, texts, config)
+            module.treatPoint(circles, texts, config)
 
             // Enter
-            let newCircs = circles.enter().append('circle')
+            let newCircs = circles.enter().append(module.getShape())
             let newTexts = texts.enter().append('text')
-            this._treatCircle(module, newCircs, newTexts, config)
+            module.treatPoint(newCircs, newTexts, config)
 
             // Exit
             circles.exit().remove()
             texts.exit().remove()
-        }
-
-        _treatCircle(module, circles, texts, config) {
-
-            circles.attr("class", "cell")
-                .attr('cx', function(data) {
-                    return data.x
-                })
-                .attr('cy', function(data) {
-                    return data.y
-                })
-                .attr('r', module.scale / 2)
-                .attr('stroke', '#bbb')
-                .attr('stroke-width', function(data) {
-                    let out = config.stroke
-                    if (config.lite) out = 0
-                    if (data.gridCell.isPadding) out = 0
-                    return out
-                })
-                .attr('fill', (data) => {
-                    if (config.showFields) return fillWithFields(data, config)
-                    else return fillByHover(data, config)
-                })
-                .attr('fill-opacity', config.fillOpacity || 0.75)
-
-            texts.attr('x', function(d) {
-                    return d.x - 3
-                })
-                .attr('y', function(d) {
-                    return d.y + 3
-                })
-                .attr('font-size', config.textSize)
-                .attr('fill', 'white')
-                .text(function(d) {
-                    let gc = d.gridCell
-                    if (! gc.isPadding && gc.isActive())
-                        return d.gridCell.id
-                })
         }
 
         _renderClickLocations() {

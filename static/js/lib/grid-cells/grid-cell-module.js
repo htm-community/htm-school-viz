@@ -26,9 +26,8 @@ class GridCell {
 
 class GridCellModule {
 
-    constructor(id, cellCount, orientation) {
+    constructor(id, orientation) {
         this.id = id
-        this.cellCount = cellCount
         this.setColor(100, 100, 255)
         this.orientation = orientation || 0
         this.visible = true
@@ -74,10 +73,6 @@ class GridCellModule {
         throw new Error(
             'GridCellModule implementations must provide getEncoding()'
         )
-    }
-
-    getCellCount() {
-        return this.cellCount
     }
 
     setColor(r, g, b) {

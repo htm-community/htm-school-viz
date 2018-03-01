@@ -3,10 +3,36 @@ $(function () {
     let GridCell = window.HTM.gridCells.GridCell
     let GridCellModule = window.HTM.gridCells.GridCellModule
 
+    function fillByHover(data, config) {
+        if (config.highlightGridCell !== undefined) {
+            if (config.highlightGridCell === data.gridCell.id && data.hover)
+                return data.rgb
+        } else {
+            if (data.hover) return data.rgb
+        }
+        return 'none'
+    }
+
+    function fillWithFields(data, config) {
+        let point = data
+        if (config.highlightGridCell !== undefined) {
+            if (config.highlightGridCell === data.gridCell.id) {
+                if (! point.gridCell.isPadding && point.gridCell.isActive()) {
+                    return data.rgb
+                }
+            }
+            return 'none'
+        }
+        if (! point.gridCell.isPadding && point.gridCell.isActive()) {
+            return data.rgb
+        }
+        return 'none'
+    }
+
     class HexagonGridCellModule extends GridCellModule {
 
         constructor(id, xDim, yDim, orientation, scale) {
-            super(id, xDim * yDim, orientation)
+            super(id, orientation)
             this.xDim = xDim
             this.yDim = yDim
             this.scale = scale
@@ -34,6 +60,47 @@ $(function () {
                 }
             })
             return out
+        }
+
+        treatPoint(circles, texts, config) {
+            circles.attr("class", "cell")
+                .attr('cx', function(data) {
+                    return data.x
+                })
+                .attr('cy', function(data) {
+                    return data.y
+                })
+                .attr('r', this.scale / 2)
+                .attr('stroke', '#bbb')
+                .attr('stroke-width', function(data) {
+                    let out = config.stroke
+                    if (config.lite) out = 0
+                    if (data.gridCell.isPadding) out = 0
+                    return out
+                })
+                .attr('fill', (data) => {
+                    if (config.showFields) return fillWithFields(data, config)
+                    else return fillByHover(data, config)
+                })
+                .attr('fill-opacity', config.fillOpacity || 0.75)
+
+            texts.attr('x', function(d) {
+                return d.x - 3
+            })
+                .attr('y', function(d) {
+                    return d.y + 3
+                })
+                .attr('font-size', config.textSize)
+                .attr('fill', 'white')
+                .text(function(d) {
+                    let gc = d.gridCell
+                    if (! gc.isPadding && gc.isActive())
+                        return d.gridCell.id
+                })
+        }
+
+        getShape() {
+            return 'circle'
         }
 
         _getGridCellAt(x, y) {

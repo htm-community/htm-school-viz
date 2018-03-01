@@ -29,16 +29,17 @@ ul#module-overlays li {
     background-color: white;
 }
 
-#encoding {
+#encoding-container {
     position: absolute;
     top: 10px;
     left: 10px;
+    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+    border: 2px solid black;
+    background-color: white;
+    padding: 10px;
 }
 
 #encoding svg {
-    height: 500px;
+    height: 400px;
 }
 
-#world {
-    cursor: url("/static/img/mouse-cursor.png") 32 32, auto;
-}
