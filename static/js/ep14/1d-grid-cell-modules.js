@@ -3,7 +3,7 @@ $(function () {
     let GridCellModuleRenderer = window.HTM.gridCells.GridCellModuleRenderer
 
     const minScale = 20,
-        maxScale = 80,
+        maxScale = 40,
         minOrientation = 0,
         maxOrientation = 45
 
@@ -104,13 +104,13 @@ $(function () {
     function run() {
         prepareDom();
 
-        let numModules = 5
+        let numModules = 16
         let count = 0
 
         while (count < numModules) {
             let scale = getRandomInt(minScale, maxScale)
-            let module = new OneDimensionalGridCellModule(count, 4, scale)
-            module.setColor(getRandomInt(100, 255), getRandomInt(100, 255), getRandomInt(100, 255))
+            let module = new OneDimensionalGridCellModule(count, 5, scale)
+            module.setColor(getRandomInt(0, 255), getRandomInt(0, 255), getRandomInt(0, 255))
             module.activeCells = 1
             module.weight = 1
             module.visible = true

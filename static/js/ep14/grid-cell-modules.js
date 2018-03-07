@@ -110,7 +110,7 @@ $(function () {
             let orientation = getRandomInt(0, 30)
             let scale = getRandomInt(40, 50)
             let module = new HexagonGridCellModule(count, 4, 4, orientation, scale)
-            module.setColor(getRandomInt(100, 255), getRandomInt(100, 255), getRandomInt(100, 255))
+            module.setColor(getRandomInt(0, 255), getRandomInt(0, 255), getRandomInt(0, 255))
             module.activeCells = 1
             module.weight = 1
             if (count == 0) {

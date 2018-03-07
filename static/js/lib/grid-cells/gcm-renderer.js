@@ -60,7 +60,7 @@ $(function () {
                 .append('div').attr('id', 'encoding')
         }
 
-        render(config, intersectX, intersectY) {
+        render(config, intersectX, intersectY, callback) {
             function treatGroups(groups) {
                 groups.attr('id', function(m) {
                     return 'module-' + m.id;
@@ -97,6 +97,8 @@ $(function () {
             })
             // add group for clicks
             this.$world.append('g').attr('class', 'clicks')
+
+            if (callback) callback()
         }
 
         renderFromWorld(config, mouseX, mouseY) {

@@ -15,7 +15,7 @@ $(function () {
         this.showNumbers = false
         this.stroke = 0
         this.textSize = 24
-        this.highlightGridCell = 9
+        this.highlightGridCell = 0
     };
     let config = new GlobalConfig();
 
@@ -99,16 +99,27 @@ $(function () {
 
         renderer.render(config)
 
+        let overlaySize = 150
+        let overlay = d3.select('#module-overlay-0')
         if (renderer.worldPoints) {
 
             renderer.onWorld('mousemove', function() {
                 renderer.renderFromWorld(config, d3.event.pageX, d3.event.pageY)
+                overlay.attr('height', overlaySize)
+                overlay.attr('width', overlaySize)
             });
 
             renderer.onOverlay('mousemove', function(_, i) {
                 renderer.renderFromOverlay(i, config, d3.event.offsetX, d3.event.offsetY)
+                let overlay = d3.select('#module-overlay-0')
+                overlay.attr('height', overlaySize)
+                overlay.attr('width', overlaySize)
             })
         }
+
+        overlay.attr('height', overlaySize)
+        overlay.attr('width', overlaySize)
+
     }
 
     $(document).keyup(function(e) {

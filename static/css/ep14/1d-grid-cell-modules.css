@@ -43,3 +43,6 @@ ul#module-overlays li {
     height: 400px;
 }
 
+#world {
+    cursor: url("/static/img/mouse-cursor.png") 32 32, auto;
+}

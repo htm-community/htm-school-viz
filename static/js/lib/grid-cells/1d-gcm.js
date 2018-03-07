@@ -3,6 +3,17 @@ $(function () {
     let GridCell = window.HTM.gridCells.GridCell
     let GridCellModule = window.HTM.gridCells.GridCellModule
 
+    function fillByHover(data, config) {
+        if (config.highlightGridCell !== undefined) {
+            if (config.highlightGridCell === data.gridCell.id && data.hover)
+                return data.rgb
+        } else {
+            if (data.hover) return data.rgb
+        }
+        return 'none'
+    }
+
+
     function fillWithFields(data, config) {
         let point = data
         if (config.highlightGridCell !== undefined) {
