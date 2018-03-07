@@ -88,8 +88,8 @@ $(function () {
 
         let module = new HexagonGridCellModule(0, 4, 4, 0, 80)
         module.setColor(100, 100, 255)
-        module.activeCells = 10
-        module.weight = 3
+        module.activeCells = 2
+        module.weight = 1
         gridCellModules.push(module)
 
         let renderer = new GridCellModuleRenderer(gridCellModules)
