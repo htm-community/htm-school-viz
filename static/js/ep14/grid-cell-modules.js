@@ -8,7 +8,7 @@ $(function () {
         maxOrientation = 45
 
     let GlobalConfig = function() {
-        this.lite = false
+        this.lite = true
         this.sdr = false
         this.showFields = true
         this.screenLock = false
@@ -113,11 +113,7 @@ $(function () {
             module.setColor(getRandomInt(0, 255), getRandomInt(0, 255), getRandomInt(0, 255))
             module.activeCells = 1
             module.weight = 1
-            if (count == 0) {
-                module.visible = true
-            } else {
-                module.visible = false
-            }
+            module.visible = true
             gridCellModules.push(module)
             count++
         }
@@ -125,7 +121,7 @@ $(function () {
         let renderer = new GridCellModuleRenderer(gridCellModules)
 
         renderer.prepareRender();
-        setupDatGui(gridCellModules, renderer)
+        // setupDatGui(gridCellModules, renderer)
 
         renderer.render(config)
 
