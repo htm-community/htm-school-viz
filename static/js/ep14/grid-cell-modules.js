@@ -121,7 +121,7 @@ $(function () {
         let renderer = new GridCellModuleRenderer(gridCellModules)
 
         renderer.prepareRender();
-        // setupDatGui(gridCellModules, renderer)
+        setupDatGui(gridCellModules, renderer)
 
         renderer.render(config)
 
