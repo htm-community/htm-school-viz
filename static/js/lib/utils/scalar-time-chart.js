@@ -40,7 +40,7 @@ $(function() {
 
     InputChart.prototype.loadData = function(callback) {
         var me = this;
-        var parseDate = d3.time.format("%m/%d/%y %H:%M").parse;
+        var parseDate = d3.timeParse("%m/%d/%y %H:%M");
         if (! me.data) {
             d3.csv(me.csv, function (error, data) {
                 if (error) return callback(error);
@@ -65,24 +65,19 @@ $(function() {
         $(this.selector).html('');
         this.dataCursor = 0;
 
-        this.transformDateIntoXValue = d3.time.scale()
+        this.transformDateIntoXValue = d3.scaleTime()
             .range([0, width]);
 
-        var y = d3.scale.linear()
+        var y = d3.scaleLinear()
             .range([height, 0]);
 
-        var color = d3.scale.category10();
+        var color = d3.scaleOrdinal(d3.schemeCategory10);
 
-        var xAxis = d3.svg.axis()
-            .scale(me.transformDateIntoXValue)
-            .orient("bottom");
+        var xAxis = d3.axisBottom(me.transformDateIntoXValue)
+        var yAxis = d3.axisLeft(y)
 
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
-
-        var line = d3.svg.line()
-            .interpolate("basis")
+        var line = d3.line()
+            .curve(d3.curveBasis)
             .x(function (d) {
                 return me.transformDateIntoXValue(d.date);
             })
